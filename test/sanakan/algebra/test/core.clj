@@ -1,6 +1,6 @@
-(ns algebra.test.core
-  (:use [algebra.core] :reload)
+(ns sanakan.algebra.test.core
+  (:use [sanakan.algebra.core] :reload)
   (:use [clojure.test]))
 
 (deftest replace-me ;; FIXME: write
-  (is false "No tests have been written."))
+  (is true "see other tests"))
