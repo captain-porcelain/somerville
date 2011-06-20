@@ -13,6 +13,5 @@
     (is (= 1.0 (aget! mt 0 0)))
     (is (= 3.0 (aget! mt 0 1)))
     (is (= 2.0 (aget! mt 1 0)))
-    (is (= 4.0 (aget! mt 1 1)))
-    ))
+    (is (= 4.0 (aget! mt 1 1)))))
 
