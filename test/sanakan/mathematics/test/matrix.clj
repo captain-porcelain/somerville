@@ -1,6 +1,6 @@
-(ns sanakan.algebra.test.matrix
-  (:use [sanakan.algebra.array])
-  (:use [sanakan.algebra.matrix])
+(ns sanakan.mathematics.test.matrix
+  (:use [sanakan.mathematics.array])
+  (:use [sanakan.mathematics.matrix])
   (:use [clojure.test]))
 
 (deftest test-transpose
