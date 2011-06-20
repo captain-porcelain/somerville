@@ -1,5 +1,5 @@
-(ns sanakan.algebra.matrix
-  (:use [sanakan.algebra.array]))
+(ns sanakan.mathematics.matrix
+  (:use [sanakan.mathematics.array]))
 
 (defn transpose
   "Transpose a matrix m. Put simply: make rows to columns. A 2x3 matrix will be a 3x2 matrix when transposed."
