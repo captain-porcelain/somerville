@@ -67,3 +67,14 @@
          (if (>= i w)
            {:l l :u a}
            (recur (unchecked-inc i) an))))))
+
+(defn determinant
+  "Calculate the determinant of a square matrix."
+  [m]
+  (let [u (:u (lu-decomposition m))
+        n (count u)]
+     (loop [i (int 0)
+            det 1.0]
+       (if (>= i n)
+         det
+         (recur (unchecked-inc i) (* det (aget! u i i)))))))
