@@ -81,3 +81,12 @@
     (is (= 0.0 (aget! mn 1 0)))
     (is (= -1.5 (aget! mn 1 1)))))
 
+(deftest test-determinant
+  (let [m (make-array Double/TYPE 2 2)
+        r11 (aset! m 0 0 -2.0)
+        r12 (aset! m 0 1 2.0)
+        r21 (aset! m 1 0 -1.0)
+        r22 (aset! m 1 1 1.0)
+        d (determinant m)]
+    (is (= 0.0 d))))
+
