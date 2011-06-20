@@ -4,13 +4,13 @@
 ;; Basically these macros provide the functionality to get and set double values in a two dimensional array
 ;; without reflection for the values. This is done for performance of course.
 (defmacro aget!
-  ([array y]      `(aget ~(vary-meta array assoc :tag 'doubles) ~y))
-  ([array x & ys] `(let [a# (aget ~(vary-meta array assoc :tag 'objects) ~@ys)]
-                     (aget! a# ~x))))
+  ([array x]      `(aget ~(vary-meta array assoc :tag 'doubles) ~x))
+  ([array x y] `(let [a# (aget ~(vary-meta array assoc :tag 'objects) ~x)]
+                     (aget! a# ~y))))
 
 (defmacro aset! [array x y v]
-  (let [nested-array `(aget ~(vary-meta array assoc :tag 'objects) ~y)
+  (let [nested-array `(aget ~(vary-meta array assoc :tag 'objects) ~x)
         a-sym         (with-meta (gensym "a") {:tag 'doubles})]
     `(let [~a-sym ~nested-array]
-       (aset ~a-sym ~x (double ~v)))))
+       (aset ~a-sym ~y (double ~v)))))
 

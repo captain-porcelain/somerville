@@ -11,14 +11,33 @@
        (when (< i w)
          (loop [j (int 0)]
            (when (< j h)
-             (dorun (println (str i " " j " " w " " h)))
              (do (aset! mt j i (aget! m i j)))
              (recur (unchecked-inc j))))
          (recur (unchecked-inc i))))
     mt))
 
+(defn multiply
+  "Multiply two matrices. Please note that if the first matix is 3x2 the second has to be 2x3."
+  [m n]
+  (let [r1 (count m)
+        r2 (count (first n))
+        r3 (count n)
+        mn (make-array Double/TYPE r1 r2)]
+     (loop [i (int 0)]
+       (when (< i r1)
+         (loop [j (int 0)]
+           (when (< j r2)
+             (loop [k (int 0)]
+               (when (< k r3)
+                 (do (aset! mn i j (+ (aget! mn i j) (* (aget! m i k) (aget! n k j)))))
+                 (recur (unchecked-inc k))))
+             (recur (unchecked-inc j))))
+         (recur (unchecked-inc i))))
+  mn))
+
 (defn decompose-lower
-  "Calculate the matrix L used for LU decomposition."
+  "Calculate the matrix L used for LU decomposition. m is the matrix to decompose in this iteration step,
+  l is the matrix in which the lower values are collected and n is the current step."
   [m l n]
   (let [w (count m)
         ln (make-array Double/TYPE w w)]
@@ -26,15 +45,25 @@
        (when (< i w)
          (loop [j (int 0)]
            (when (< j w)
-             (dorun (println (str i " " j " " w)))
-             (let [v (if (= i j 1.0 (if (and (> i j) (= j n)) (/ (aget! m i j) (aget! m j j)) 0.0)))]
-               (do (aset! ln j i v))
-               (do (when (and (> i j) (= j n)) (aset! l j i v))))
+             (let [v (if (= i j) 1.0 (if (and (> i j) (= j n)) (* -1 (/ (aget! m i j) (aget! m j j))) 0.0))]
+               (do (aset! ln i j v))
+               (do (when (= j n)
+                     (when (> i j) (aset! l i j (* -1 v)))
+                     (when (= i j) (aset! l i j v)))))
              (recur (unchecked-inc j))))
          (recur (unchecked-inc i))))
-    {:ln ln :l l}))
+    ln))
 
 (defn lu-decomposition
-  "Decompose a square matrix into lower and upper matirces. Useful for solving linear equations, calculating the determinant and inversion."
+  "Decompose a square matrix into lower and upper matrices.
+  Useful for solving linear equations, calculating the determinant and inversion."
   [m]
-  )
+  (let [w (count m)
+        l (make-array Double/TYPE w w)]
+     (loop [i (int 0)
+            a m]
+       (let [ln (decompose-lower a l i)
+             an (multiply ln a)]
+         (if (>= i w)
+           {:l l :u a}
+           (recur (unchecked-inc i) an))))))
