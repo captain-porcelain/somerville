@@ -1,1 +1,1 @@
-(ns algebra.core)
+(ns sanakan.algebra.core)
