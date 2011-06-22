@@ -90,3 +90,97 @@
         d (determinant m)]
     (is (= 0.0 d))))
 
+(deftest test-solve-lower-vector
+  (let [m (make-array Double/TYPE 2 2)
+        r11 (aset! m 0 0 1.0)
+        r12 (aset! m 0 1 0.0)
+        r13 (aset! m 1 0 1.0)
+        r21 (aset! m 1 1 1.0)
+        x (make-array Double/TYPE 2)
+        q11 (aset! x 0 4.0)
+        q12 (aset! x 1 6.0)
+        y (solve-lower-array m x)]
+    (is (= 4.0 (aget! y 0)))
+    (is (= 2.0 (aget! y 1)))))
+
+(deftest test-solve-upper-vector
+  (let [m (make-array Double/TYPE 2 2)
+        r11 (aset! m 0 0 2.0)
+        r12 (aset! m 0 1 1.0)
+        r13 (aset! m 1 0 0.0)
+        r21 (aset! m 1 1 3.0)
+        x (make-array Double/TYPE 2)
+        q11 (aset! x 0 16.0)
+        q12 (aset! x 1 24.0)
+        y (solve-upper-array m x)]
+    (is (= 4.0 (aget! y 0)))
+    (is (= 8.0 (aget! y 1)))))
+
+(deftest test-solve-vector
+  (let [m (make-array Double/TYPE 2 2)
+        r11 (aset! m 0 0 4.0)
+        r12 (aset! m 0 1 2.0)
+        r13 (aset! m 1 0 1.0)
+        r21 (aset! m 1 1 3.0)
+        x (make-array Double/TYPE 2)
+        q11 (aset! x 0 34.0)
+        q12 (aset! x 1 26.0)
+        y (solve-array m x)]
+    (is (= 5.0 (aget! y 0)))
+    (is (= 7.0 (aget! y 1)))))
+
+(deftest test-solve-lower-matrix
+  (let [m (make-array Double/TYPE 2 2)
+        r11 (aset! m 0 0 1.0)
+        r12 (aset! m 0 1 0.0)
+        r21 (aset! m 1 0 2.0)
+        r22 (aset! m 1 1 1.0)
+        x (make-array Double/TYPE 2 2)
+        q11 (aset! x 0 0 3.0)
+        q12 (aset! x 0 1 2.0)
+        q21 (aset! x 1 0 10.0)
+        q22 (aset! x 1 1 9.0)
+        y (solve-lower-matrix m x)]
+    (is (= 3.0 (aget! y 0 0)))
+    (is (= 2.0 (aget! y 0 1)))
+    (is (= 4.0 (aget! y 1 0)))
+    (is (= 5.0 (aget! y 1 1)))))
+
+(deftest test-solve-upper-matrix
+  (let [m (make-array Double/TYPE 2 2)
+        r11 (aset! m 0 0 1.0)
+        r12 (aset! m 0 1 2.0)
+        r21 (aset! m 1 0 0.0)
+        r22 (aset! m 1 1 2.0)
+        x (make-array Double/TYPE 2 2)
+        q11 (aset! x 0 0 11.0)
+        q12 (aset! x 0 1 12.0)
+        q21 (aset! x 1 0 8.0)
+        q22 (aset! x 1 1 10.0)
+        y (solve-upper-matrix m x)]
+    (is (= 3.0 (aget! y 0 0)))
+    (is (= 2.0 (aget! y 0 1)))
+    (is (= 4.0 (aget! y 1 0)))
+    (is (= 5.0 (aget! y 1 1)))))
+
+(deftest test-invert
+  (let [m (make-array Double/TYPE 3 3)
+        r11 (aset! m 0 0 1.0)
+        r12 (aset! m 0 1 2.0)
+        r13 (aset! m 0 2 0.0)
+        r21 (aset! m 1 0 2.0)
+        r22 (aset! m 1 1 3.0)
+        r23 (aset! m 1 2 0.0)
+        r31 (aset! m 2 0 3.0)
+        r32 (aset! m 2 1 4.0)
+        r33 (aset! m 2 2 1.0)
+        y (invert m)]
+    (is (= -3.0 (aget! y 0 0)))
+    (is (= 2.0 (aget! y 0 1)))
+    (is (= 0.0 (aget! y 0 2)))
+    (is (= 2.0 (aget! y 1 0)))
+    (is (= -1.0 (aget! y 1 1)))
+    (is (= 0.0 (aget! y 1 2)))
+    (is (= 1.0 (aget! y 2 0)))
+    (is (= -2.0 (aget! y 2 1)))
+    (is (= 1.0 (aget! y 2 2)))))
