@@ -78,3 +78,109 @@
        (if (>= i n)
          det
          (recur (unchecked-inc i) (* det (aget! u i i)))))))
+
+(defn solve-lower-array
+  "Solve the equation Ly = x where L is a lower triangular matrix and x is a vector."
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n)]
+    (loop [i (int 0)]
+      (when (< i n)
+        (loop [j (int 0)
+               sum (double 0.0)]
+          (when (<= j i)
+            (when (= j i)
+              (aset! y i (/ (- (aget! x i) sum) (aget! l i j))))
+            (recur (unchecked-inc j) (+ sum (* (aget! l i j) (aget! y j))))))
+        (recur (unchecked-inc i))))
+    y))
+
+(defn solve-upper-array
+  "Solve the equation Uy = x where U is a upper triangular matrix and x is a vector."
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n)]
+    (loop [i (- n 1)]
+      (when (>= i 0)
+        (loop [j (- n 1)
+               sum (double 0.0)]
+          (when (>= j i)
+            (when (= j i)
+              (aset! y i (/ (- (aget! x i) sum) (aget! l i j))))
+            (recur (unchecked-dec j) (+ sum (* (aget! l i j) (aget! y j))))))
+        (recur (unchecked-dec i))))
+    y))
+
+(defn solve-array
+  "Solve the linear equation My=x."
+  [m x]
+  (let [lu (lu-decomposition m)
+        b (solve-lower-array (:l lu) x)
+        y (solve-upper-array (:u lu) b)]
+    y))
+
+(defn solve-lower-matrix
+  "Solve the equation Ly = x where L is a lower triangular matrix and x is a matrix."
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n n)]
+    (loop [k (int 0)]
+        (when (< k n)
+          (loop [i (int 0)]
+            (when (< i n)
+              (loop [j (int 0)
+                     sum (double 0.0)]
+                (when (<= j i)
+                  (when (= j i)
+                    (aset! y i k (/ (- (aget! x i k) sum) (aget! l i j))))
+                  (recur (unchecked-inc j) (+ sum (* (aget! l i j) (aget! y j k))))))
+              (recur (unchecked-inc i))))
+      (recur (unchecked-inc k))))
+    y))
+
+(defn solve-upper-matrix
+  "Solve the equation Uy = x where U is a upperr triangular matrix and x is a matrix."
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n n)]
+    (loop [k (int 0)]
+        (when (< k n)
+          (loop [i (- n 1)]
+            (when (>= i 0)
+            (loop [j (- n 1)
+                     sum (double 0.0)]
+                (when (>= j i)
+                  (when (= j i)
+                    (aset! y i k (/ (- (aget! x i k) sum) (aget! l i j))))
+                  (recur (unchecked-dec j) (+ sum (* (aget! l i j) (aget! y j k))))))
+              (recur (unchecked-dec i))))
+      (recur (unchecked-inc k))))
+    y))
+
+(defn solve-matrix
+  "Solve the linear equation My=x."
+  [m x]
+  (let [lu (lu-decomposition m)
+        b (solve-lower-matrix (:l lu) x)
+        y (solve-upper-matrix (:u lu) b)]
+    y))
+
+(defn identity-matrix
+  "Get the identity matrix of size n"
+  [n]
+  (let [m (make-array Double/TYPE n n)]
+    (loop [i (int 0)]
+      (when (< i n)
+        (loop [j (int 0)]
+          (when (< j n)
+            (if (= i j)
+              (aset! m i j (double 1.0))
+              (aset! m i j (double 0.0)))
+            (recur (unchecked-inc j))))
+        (recur (unchecked-inc i))))
+    m))
+
+(defn invert
+  "Invert a square matrix."
+  [m]
+  (solve-matrix m (identity-matrix (count m))))

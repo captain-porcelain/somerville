@@ -8,9 +8,10 @@
   ([array x y] `(let [a# (aget ~(vary-meta array assoc :tag 'objects) ~x)]
                      (aget! a# ~y))))
 
-(defmacro aset! [array x y v]
-  (let [nested-array `(aget ~(vary-meta array assoc :tag 'objects) ~x)
-        a-sym         (with-meta (gensym "a") {:tag 'doubles})]
-    `(let [~a-sym ~nested-array]
-       (aset ~a-sym ~y (double ~v)))))
+(defmacro aset!
+  ([array x v] `(aset ~(vary-meta array assoc :tag 'doubles) ~x (double ~v)))
+  ([array x y v] (let [nested-array `(aget ~(vary-meta array assoc :tag 'objects) ~x)
+                       a-sym         (with-meta (gensym "a") {:tag 'doubles})]
+                   `(let [~a-sym ~nested-array]
+                      (aset ~a-sym ~y (double ~v))))))
 
