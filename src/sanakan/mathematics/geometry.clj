@@ -44,7 +44,7 @@
         c (- (:c parabola1) (:c parabola2))]
   (struct-map parabola :a a :b b :c c)))
 
-(defn solve-at
+(defn solve-parabola-at
   [parabola x]
   (+ (* x x (:a parabola)) (* x (:b parabola)) (:c parabola)))
 
@@ -59,11 +59,11 @@
       (list)
       (if (= 0 dis)
         ;; discriminant of 0 means only one intersection.
-        (list (struct-map point2 :x firstpart :y (solve-at parabola1 firstpart)))
+        (list (struct-map point2 :x firstpart :y (solve-parabola-at parabola1 firstpart)))
         (let [x1 (- firstpart (Math/sqrt dis))
-              y1 (solve-at parabola1 x1)
+              y1 (solve-parabola-at parabola1 x1)
               x2 (+ firstpart (Math/sqrt dis))
-              y2 (solve-at parabola1 x2)]
+              y2 (solve-parabola-at parabola1 x2)]
           (if (< x1 x2)
             ;; otherwise we have to intersections which we sort by x for convenience.
             (list (struct-map point2 :x x1 :y y1) (struct-map point2 :x x2 :y y2))
