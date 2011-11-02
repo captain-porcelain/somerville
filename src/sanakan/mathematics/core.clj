@@ -4,11 +4,22 @@
         [rosado.processing.applet :as applet])
   (:gen-class))
 
+(def sites (atom (list (struct-map geometry/point2 :x 400 :y 400))))
+
+(defn draw-site
+   [site]
+    (processing/stroke-float 255 0 0)
+    (processing/fill-float 255 0 0)
+    (processing/line 0 0 (:x site) (:y site))
+    (processing/rect (:x site) (:y site) 20 20))
+
 (defn draw
   "This function is called by processing repeatedly."
   []
   (processing/background-float 0)
-  )
+  (dorun
+    (for [site @sites]
+      (draw-site site))))
 
 (defn setup
   "This function is called by processing once before drawing"
