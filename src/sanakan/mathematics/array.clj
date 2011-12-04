@@ -15,3 +15,24 @@
                    `(let [~a-sym ~nested-array]
                       (aset ~a-sym ~y (double ~v))))))
 
+(defn- split-height
+  [array slice x h]
+  (if (= 0 (count slice))
+    array
+    (let [y (- h (count slice))
+          tmp (aset! array x y (first slice))]
+      (recur array (rest slice) x h))))
+
+(defn- reshape
+  [array slices w h]
+  (dorun (println (str "slices " (count slices))))
+  (if (= 0 (count slices))
+    array
+    (recur (split-height array (first slices) (- w (count slices)) h) (rest slices) w h)))
+
+(defn reshape-to-2d-array
+  "Takes a list of doubles and reshapes them into a 2d array of width and height"
+  [coll width height]
+  (let [array (make-array Double/TYPE width height)
+        slices (partition height coll)]
+    (reshape array slices width height)))
