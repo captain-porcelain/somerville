@@ -37,7 +37,7 @@
     (if (and (= 0 (:a parabola)) (= 0 (:b parabola))) -1 dis)))
 
 (defn subtract
-  ""
+  "Plainly subtract one quadratic function from another"
   [parabola1 parabola2]
   (let [a (- (:a parabola1) (:a parabola2))
         b (- (:b parabola1) (:b parabola2))
@@ -45,11 +45,12 @@
   (struct-map parabola :a a :b b :c c)))
 
 (defn solve-parabola-at
+  "Solve the quadratic function representing a parabola for a given x."
   [parabola x]
   (+ (* x x (:a parabola)) (* x (:b parabola)) (:c parabola)))
 
 (defn intersect
-  ""
+  "Find the points where two parabolas intersect if such points exist."
   [parabola1 parabola2]
   (let [dif (subtract parabola1 parabola2)
         dis (discriminate dif)
@@ -68,3 +69,4 @@
             ;; otherwise we have to intersections which we sort by x for convenience.
             (list (struct-map point2 :x x1 :y y1) (struct-map point2 :x x2 :y y2))
             (list (struct-map point2 :x x2 :y y2) (struct-map point2 :x x1 :y y1))))))))
+
