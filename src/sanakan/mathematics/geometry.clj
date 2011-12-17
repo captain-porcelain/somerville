@@ -57,8 +57,8 @@
 (defn intersect
   "Find the points where two parabolas intersect if such points exist."
   [parabola1 parabola2]
-  (let [subtracted (subtract parabola1 parabola2)
-        dif (struct-map parabola :a 1 :b (/ (:b subtracted) (:a subtracted)) :c (/ (:c subtracted) (:a subtracted))) 
+  (let [sub (subtract parabola1 parabola2)
+        dif (if (not (= (:a sub) 0)) (struct-map parabola :a 1 :b (/ (:b sub) (:a sub)) :c (/ (:c sub) (:a sub))) sub)
         dis (discriminate dif)
         firstpart (* -0.5 (:b dif))]
     (if (> 0 dis)
