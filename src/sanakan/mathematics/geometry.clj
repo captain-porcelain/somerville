@@ -6,6 +6,11 @@
 (defstruct point2 :x :y)
 (defstruct line :a :b)
 
+(defn solve-line-at
+  "A line is given by y = a*x + b. This function solves this for a given x."
+  [line x]
+  (+ (* (:a line) x) (:b line)))
+
 (defn parabola-from-factors
   "Create a parabola from the factors of ax² + by + c = 0"
   [a b c]
@@ -17,7 +22,7 @@
   directrix is open towards the positive y."
   [point directrix]
   (let [x (:x point)
-        directrix-y (+ (* (:a directrix) x) (:b directrix))
+        directrix-y (solve-line-at directrix x)
         distance (- (:y point) directrix-y)
         y (- (:y point) (/ distance 2))
         a (/ 1 (* 2 distance))
@@ -52,7 +57,8 @@
 (defn intersect
   "Find the points where two parabolas intersect if such points exist."
   [parabola1 parabola2]
-  (let [dif (subtract parabola1 parabola2)
+  (let [subtracted (subtract parabola1 parabola2)
+        dif (struct-map parabola :a 1 :b (/ (:b subtracted) (:a subtracted)) :c (/ (:c subtracted) (:a subtracted))) 
         dis (discriminate dif)
         firstpart (* -0.5 (:b dif))]
     (if (> 0 dis)
