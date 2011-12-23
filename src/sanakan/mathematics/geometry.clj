@@ -47,18 +47,17 @@
   (let [a (- (:a parabola1) (:a parabola2))
         b (- (:b parabola1) (:b parabola2))
         c (- (:c parabola1) (:c parabola2))]
-  (struct-map parabola :a a :b b :c c)))
+    (struct-map parabola :a a :b b :c c)))
 
 (defn solve-parabola-at
   "Solve the quadratic function representing a parabola for a given x."
   [parabola x]
   (+ (* x x (:a parabola)) (* x (:b parabola)) (:c parabola)))
 
-(defn intersect
-  "Find the points where two parabolas intersect if such points exist."
-  [parabola1 parabola2]
-  (let [sub (subtract parabola1 parabola2)
-        dif (if (not (= (:a sub) 0)) (struct-map parabola :a 1 :b (/ (:b sub) (:a sub)) :c (/ (:c sub) (:a sub))) sub)
+(defn find-zero-of-parabola
+  "Find the points where a parabolas value is 0."
+  [p]
+  (let [dif (struct-map parabola :a 1 :b (/ (:b p) (:a p)) :c (/ (:c p) (:a p)))
         dis (discriminate dif)
         firstpart (* -0.5 (:b dif))]
     (if (> 0 dis)
@@ -66,13 +65,67 @@
       (list)
       (if (= 0 dis)
         ;; discriminant of 0 means only one intersection.
-        (list (struct-map point2 :x firstpart :y (solve-parabola-at parabola1 firstpart)))
+        (list firstpart)
         (let [x1 (- firstpart (Math/sqrt dis))
-              y1 (solve-parabola-at parabola1 x1)
-              x2 (+ firstpart (Math/sqrt dis))
-              y2 (solve-parabola-at parabola1 x2)]
+              x2 (+ firstpart (Math/sqrt dis))]
           (if (< x1 x2)
             ;; otherwise we have to intersections which we sort by x for convenience.
-            (list (struct-map point2 :x x1 :y y1) (struct-map point2 :x x2 :y y2))
-            (list (struct-map point2 :x x2 :y y2) (struct-map point2 :x x1 :y y1))))))))
+            (list x1 x2)
+            (list x2 x1)))))))
 
+(defn find-zero-of-line
+  "Find the point where a line is 0."
+  [line]
+  (if (= 0 (:a line)) nil (/ (* -1 (:b line)) (:a line))))
+
+(defn intersect-two-parabolas
+  "Find the points where two parabolas intersect if such points exist."
+  [parabola1 parabola2]
+  (let [sub (subtract parabola1 parabola2)
+        xs (if (not (= (:a sub) 0))
+             (find-zero-of-parabola sub)
+             (let [line-zero (find-zero-of-line (struct-map line :a (:b sub) :b (:c sub)))]
+               (if (nil? line-zero) (list) (list line-zero))))]
+    (map #(struct-map point2 :x % :y (solve-parabola-at parabola1 %)) xs)))
+
+(defn smaller-parabola
+  "Given two parabolas return the one that has the smaller value at x"
+  [p1 p2 x]
+  (if (< (solve-parabola-at p1 x) (solve-parabola-at p2 x)) p1 p2))
+
+(defn beachline-part
+  [p1 p2 is]
+  (if (= 0 (count is))
+    (list (smaller-parabola p1 p2 0))
+    (if (= 1 (count is))
+      (list
+        (smaller-parabola p1 p2 (- (:x (first is)) 1))
+        (smaller-parabola p1 p2 (+ (:x (first is)) 1)))
+      (list
+        (smaller-parabola p1 p2 (- (:x (first is)) 1))
+        (smaller-parabola p1 p2 (/ (+ (:x (first is)) (:x (second is))) 2))
+        (smaller-parabola p1 p2 (+ (:x (second is)) 1))))))
+
+(defn beachline
+  "Find the points where a list of parabolas intersect. We expect the list to be sorted
+  by increasing x of the focal point of the parabolas."
+  [parabolas]
+  (loop [cur (first parabolas)
+         rst (rest parabolas)
+         intersections (list)
+         ps (list)]
+    (if (= 0 (count rst))
+      [intersections ps]
+      (let [frst (first rst)
+            is (intersect-two-parabolas cur frst)]
+        (recur frst (rest rst) (concat intersections is) (concat ps (beachline-part cur frst is)))))))
+
+(defn get-parabola-from-beachline
+  [intersections parabolas x]
+  (let [bigger (count (filter #(> (:x %) x) intersections))
+        n (- (count intersections) bigger)]
+    (nth parabolas n)))
+
+(defn solve-beachline-at
+  [intersections parabolas x]
+  (solve-parabola-at (get-parabola-from-beachline intersections parabolas x) x))
