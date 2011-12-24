@@ -126,6 +126,10 @@
         n (- (count intersections) bigger)]
     (nth parabolas n)))
 
-(defn solve-beachline-at
+(defn solve-beachline-at-old
   [intersections parabolas x]
   (solve-parabola-at (get-parabola-from-beachline intersections parabolas x) x))
+
+(defn solve-beachline-at
+  [sites sweepline x]
+  (first (sort (map #(solve-parabola-at % x) (map #(parabola-from-focuspoint-and-directrix % sweepline) sites)))))

@@ -1,4 +1,4 @@
-(ns sanakan.mathematics.geometry
+(ns sanakan.mathematics.voronoi
   (:use [sanakan.mathematics.geometry]))
 
 ;; a function for creating a binary search tree from a map.
@@ -8,5 +8,6 @@
   "Create a voronoi diagram for a couple of sites."
   [sites]
   (let [tree (reduce conj (sorted-set-by compare-key-fn) sites)]
+    tree
     )
   )
