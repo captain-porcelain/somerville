@@ -129,13 +129,7 @@
                p1 (parabola-from-focuspoint-and-directrix pnt1 directrix)
                p2 (parabola-from-focuspoint-and-directrix pnt2 directrix)
                p3 (parabola-from-focuspoint-and-directrix pnt3 directrix)
-               t (dorun (println p1))
-               t (dorun (println p2))
-               t (dorun (println p3))
-               [intersections parabolas] (beachline (list p1 p2 p3))
-               t (dorun (println (first intersections)))
-               t (dorun (println (second intersections)))
-               ]
+               [intersections parabolas] (beachline (list p1 p2 p3))]
            (is (= 2 (count intersections)))
            (is (= p1 (get-parabola-from-beachline intersections parabolas -2)))
            (is (= p2 (get-parabola-from-beachline intersections parabolas 0)))

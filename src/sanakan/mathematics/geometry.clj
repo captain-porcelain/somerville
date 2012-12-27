@@ -106,6 +106,12 @@
         (smaller-parabola p1 p2 (/ (+ (:x (first is)) (:x (second is))) 2))
         (smaller-parabola p1 p2 (+ (:x (second is)) 1))))))
 
+(defn append-beachline-parts
+  [old-parts new-parts]
+  (if (= (last old-parts) (first new-parts))
+    (concat old-parts (rest new-parts))
+    (concat old-parts new-parts)))
+
 (defn beachline
   "Find the points where a list of parabolas intersect. We expect the list to be sorted
   by increasing x of the focal point of the parabolas."
@@ -118,7 +124,7 @@
       [intersections ps]
       (let [frst (first rst)
             is (intersect-two-parabolas cur frst)]
-        (recur frst (rest rst) (concat intersections is) (concat ps (beachline-part cur frst is)))))))
+        (recur frst (rest rst) (concat intersections is) (append-beachline-parts ps (beachline-part cur frst is)))))))
 
 (defn get-parabola-from-beachline
   [intersections parabolas x]
