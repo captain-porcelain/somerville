@@ -1,5 +1,5 @@
 (ns sanakan.mathematics.matrix
-  (:use [sanakan.mathematics.array]))
+  (:require [sanakan.mathematics.array :as a]))
 
 (defn transpose
   "Transpose a matrix m. Put simply: make rows to columns. A 2x3 matrix will be a 3x2 matrix when transposed."
@@ -11,7 +11,7 @@
        (when (< i w)
          (loop [j (int 0)]
            (when (< j h)
-             (do (aset! mt j i (aget! m i j)))
+             (do (a/aset! mt j i (a/aget! m i j)))
              (recur (unchecked-inc j))))
          (recur (unchecked-inc i))))
     mt))
@@ -29,7 +29,7 @@
            (when (< j r2)
              (loop [k (int 0)]
                (when (< k r3)
-                 (do (aset! mn i j (+ (aget! mn i j) (* (aget! m i k) (aget! n k j)))))
+                 (do (a/aset! mn i j (+ (a/aget! mn i j) (* (a/aget! m i k) (a/aget! n k j)))))
                  (recur (unchecked-inc k))))
              (recur (unchecked-inc j))))
          (recur (unchecked-inc i))))
@@ -45,11 +45,11 @@
        (when (< i w)
          (loop [j (int 0)]
            (when (< j w)
-             (let [v (if (= i j) 1.0 (if (and (> i j) (= j n)) (* -1 (/ (aget! m i j) (aget! m j j))) 0.0))]
-               (do (aset! ln i j v))
+             (let [v (if (= i j) 1.0 (if (and (> i j) (= j n)) (* -1 (/ (a/aget! m i j) (a/aget! m j j))) 0.0))]
+               (do (a/aset! ln i j v))
                (do (when (= j n)
-                     (when (> i j) (aset! l i j (* -1 v)))
-                     (when (= i j) (aset! l i j v)))))
+                     (when (> i j) (a/aset! l i j (* -1 v)))
+                     (when (= i j) (a/aset! l i j v)))))
              (recur (unchecked-inc j))))
          (recur (unchecked-inc i))))
     ln))
@@ -77,7 +77,7 @@
             det 1.0]
        (if (>= i n)
          det
-         (recur (unchecked-inc i) (* det (aget! u i i)))))))
+         (recur (unchecked-inc i) (* det (a/aget! u i i)))))))
 
 (defn solve-lower-array
   "Solve the equation Ly = x where L is a lower triangular matrix and x is a vector."
@@ -90,8 +90,8 @@
                sum (double 0.0)]
           (when (<= j i)
             (when (= j i)
-              (aset! y i (/ (- (aget! x i) sum) (aget! l i j))))
-            (recur (unchecked-inc j) (+ sum (* (aget! l i j) (aget! y j))))))
+              (a/aset! y i (/ (- (a/aget! x i) sum) (a/aget! l i j))))
+            (recur (unchecked-inc j) (+ sum (* (a/aget! l i j) (a/aget! y j))))))
         (recur (unchecked-inc i))))
     y))
 
@@ -106,8 +106,8 @@
                sum (double 0.0)]
           (when (>= j i)
             (when (= j i)
-              (aset! y i (/ (- (aget! x i) sum) (aget! l i j))))
-            (recur (unchecked-dec j) (+ sum (* (aget! l i j) (aget! y j))))))
+              (a/aset! y i (/ (- (a/aget! x i) sum) (a/aget! l i j))))
+            (recur (unchecked-dec j) (+ sum (* (a/aget! l i j) (a/aget! y j))))))
         (recur (unchecked-dec i))))
     y))
 
@@ -132,8 +132,8 @@
                      sum (double 0.0)]
                 (when (<= j i)
                   (when (= j i)
-                    (aset! y i k (/ (- (aget! x i k) sum) (aget! l i j))))
-                  (recur (unchecked-inc j) (+ sum (* (aget! l i j) (aget! y j k))))))
+                    (a/aset! y i k (/ (- (a/aget! x i k) sum) (a/aget! l i j))))
+                  (recur (unchecked-inc j) (+ sum (* (a/aget! l i j) (a/aget! y j k))))))
               (recur (unchecked-inc i))))
       (recur (unchecked-inc k))))
     y))
@@ -151,8 +151,8 @@
                      sum (double 0.0)]
                 (when (>= j i)
                   (when (= j i)
-                    (aset! y i k (/ (- (aget! x i k) sum) (aget! l i j))))
-                  (recur (unchecked-dec j) (+ sum (* (aget! l i j) (aget! y j k))))))
+                    (a/aset! y i k (/ (- (a/aget! x i k) sum) (a/aget! l i j))))
+                  (recur (unchecked-dec j) (+ sum (* (a/aget! l i j) (a/aget! y j k))))))
               (recur (unchecked-dec i))))
       (recur (unchecked-inc k))))
     y))
@@ -174,8 +174,8 @@
         (loop [j (int 0)]
           (when (< j n)
             (if (= i j)
-              (aset! m i j (double 1.0))
-              (aset! m i j (double 0.0)))
+              (a/aset! m i j (double 1.0))
+              (a/aset! m i j (double 0.0)))
             (recur (unchecked-inc j))))
         (recur (unchecked-inc i))))
     m))

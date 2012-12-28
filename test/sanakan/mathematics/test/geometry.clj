@@ -46,8 +46,8 @@
                p2 (parabola-from-factors 2 0 0)
                intersections (intersect-two-parabolas p1 p2)]
            (is (= 1 (count intersections)))
-           (is (= 0 (:x (first intersections))))
-           (is (= 0 (:y (first intersections))))))
+           (is (= 0.0 (:x (first intersections))))
+           (is (= 0.0 (:y (first intersections))))))
 
 (deftest test-parabola-intersections-1-2
          (let [point1 (struct-map point2 :x 0 :y 1)

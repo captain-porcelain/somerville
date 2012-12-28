@@ -11,7 +11,7 @@
                    (conj (struct-map point2 :x 1 :y 2))
                    (conj (struct-map point2 :x 4 :y 9))
                    (conj (struct-map point2 :x 3 :y 7)))]
-           (prn t)
+;           (prn t)
            (is (= 1 (:x (first t))))
            (is (= 2 (:x (first (rest t)))))
            (is (= 3 (:x (first (rest (rest t))))))
@@ -26,7 +26,7 @@
 
 (deftest test-tree2
          (let [t (reduce conj (sorted-set-by compare-key-fn) sites)]
-           (prn t)
+;           (prn t)
            (is (= 1 (:x (first t))))
            (is (= 2 (:x (first (rest t)))))
            (is (= 3 (:x (first (rest (rest t))))))
