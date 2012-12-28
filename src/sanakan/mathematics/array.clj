@@ -25,7 +25,6 @@
 
 (defn- reshape
   [array slices w h]
-  (dorun (println (str "slices " (count slices))))
   (if (= 0 (count slices))
     array
     (recur (split-height array (first slices) (- w (count slices)) h) (rest slices) w h)))

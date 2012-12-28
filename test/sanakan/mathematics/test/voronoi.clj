@@ -1,4 +1,5 @@
 (ns sanakan.mathematics.test.voronoi
+  (:require [sanakan.mathematics.geometry :as geometry])
   (:use [sanakan.mathematics.voronoi])
   (:use [clojure.test]))
 
@@ -17,3 +18,10 @@
            (is (= (nth s2 1) 2))
            (is (= (nth s2 2) 2))
            ))
+
+(deftest voronoi-init
+         (let [v (voronoi (list
+                                    (struct-map geometry/point2 :x 400 :y 350)
+                                    (struct-map geometry/point2 :x 200 :y 300)
+                                    (struct-map geometry/point2 :x 500 :y 400)))]
+           (is (= (:y (first (:sites v))) 300))))

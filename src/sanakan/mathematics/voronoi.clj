@@ -1,5 +1,5 @@
 (ns sanakan.mathematics.voronoi
-  (:use [sanakan.mathematics.geometry]))
+  (:require [sanakan.mathematics.geometry :as g]))
 
 ;; a function for creating a binary search tree from a map.
 (defn compare-key-fn [key1 key2] (< (:y key1) (:y key2)))
@@ -11,10 +11,10 @@
 (defn locate-arc-above
   [sites sweepline x]
   (:s (first
-        (sort-by 
+        (sort-by
           #(:y %)
-          (map #({:s % :y (solve-parabola-at % x)})
-               (map #(parabola-from-focuspoint-and-directrix % sweepline) sites))))))
+          (map #({:s % :y (g/solve-parabola-at % x)})
+               (map #(g/parabola-from-focuspoint-and-directrix % sweepline) sites))))))
 
 (defn sort-sites
   "Sort sites by their x coordinate."
@@ -44,7 +44,6 @@
 (defn voronoi
   "Create a voronoi diagram for a couple of sites."
   [sites]
-  (let [tree (set-as-tree sites)]
-    sites
-    )
-  )
+  (let [events (sort-sites sites)]
+    {:events events :sites events}
+    ))
