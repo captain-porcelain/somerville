@@ -1,8 +1,7 @@
 (ns sanakan.mathematics.core
-  (:require [sanakan.mathematics.geometry :as geometry]
+  (:require [sanakan.mathematics.geometry.geometry :as geometry]
             [sanakan.mathematics.voronoi :as voronoi]
-            [rosado.processing :as processing]
-            [rosado.processing.applet :as applet])
+            [quil.core :as processing])
   (:gen-class))
 
 (def sites (atom (voronoi/voronoi (list
@@ -74,7 +73,8 @@
     (if (= code 45) ; -
       (reset! sweepline (struct-map geometry/line :a 0 :b (- (:b @sweepline) 1))))))
 
-(applet/defapplet voronoi
+(defn -main [& args]
+  (processing/sketch
                   :title "voronoi"
                   :setup setup
                   :draw draw
@@ -82,8 +82,5 @@
                   :mouse-dragged mouse-dragged
                   :mouse-pressed mouse-pressed
                   :key-pressed key-pressed
-                  :mouse-released mouse-released)
-
-(defn -main [& args]
-  (applet/run voronoi))
+                  :mouse-released mouse-released))
 

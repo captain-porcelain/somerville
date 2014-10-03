@@ -1,5 +1,5 @@
 (ns sanakan.mathematics.test.tree
-  (:use [sanakan.mathematics.geometry])
+  (:use [sanakan.mathematics.geometry.geometry])
   (:use [clojure.test]))
 
 (defn compare-key-fn [key1 key2] (< (:y key1) (:y key2)))
