@@ -1,15 +1,13 @@
-(ns sanakan.mathematics.geometry.geometry)
+(ns sanakan.mathematics.geometry.geometry
+  (:require
+    [sanakan.mathematics.geometry.point :as p]
+    [sanakan.mathematics.geometry.line :as l]))
 
 ;; This file contains functions for handling geometric data.
 
 (defstruct parabola :a :b :c)
 (defstruct point2 :x :y)
 (defstruct line :a :b)
-
-(defn solve-line-at
-  "A line is given by y = a*x + b. This function solves this for a given x."
-  [line x]
-  (+ (* (:a line) x) (:b line)))
 
 (defn parabola-from-factors
   "Create a parabola from the factors of ax² + by + c = 0"
@@ -22,7 +20,7 @@
   directrix is open towards the positive y."
   [point directrix]
   (let [x (:x point)
-        directrix-y (solve-line-at directrix x)
+        directrix-y (l/solve-line-at directrix x)
         distance (- (:y point) directrix-y)
         y (- (:y point) (/ distance 2))
         a (/ 1 (* 2 distance))

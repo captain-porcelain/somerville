@@ -1,4 +1,6 @@
-(ns sanakan.mathematics.geometry.point)
+(ns sanakan.mathematics.geometry.point
+  (:require
+    [clojure.core.typed :refer [ann AnyInteger]]))
 
 ;; define a two dimensional point
 (defstruct point2 :x :y)

@@ -1,5 +1,6 @@
 (ns sanakan.mathematics.core
   (:require [sanakan.mathematics.geometry.geometry :as geometry]
+            [sanakan.mathematics.geometry.line :as line]
             [sanakan.mathematics.voronoi :as voronoi]
             [quil.core :as processing])
   (:gen-class))
@@ -28,7 +29,7 @@
 
 (defn draw-sweepline
   []
-  (let [y (geometry/solve-line-at @sweepline 0)
+  (let [y (line/solve-line-at @sweepline 0)
         ww (processing/width)
         wh (processing/height)]
     (processing/stroke-float 255 0 255)

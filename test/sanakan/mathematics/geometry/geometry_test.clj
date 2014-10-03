@@ -1,4 +1,4 @@
-(ns sanakan.mathematics.test.geometry
+(ns sanakan.mathematics.geometry.geometry-test
   (:use [sanakan.mathematics.geometry.geometry])
   (:use [clojure.test]))
 
