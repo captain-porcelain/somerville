@@ -13,3 +13,6 @@
 (fact (:y midp1p2) => 3/2)
 
 (fact (p/slope p1 p2) => 7/4)
+(fact (p/slope (p/point 0 0) (p/point 1 0)) => 0)
+(fact (p/slope (p/point 0 0) (p/point 1 1)) => 1)
+
