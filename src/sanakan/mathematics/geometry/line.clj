@@ -1,22 +1,19 @@
-(ns sanakan.mathematics.geometry.line)
+(ns sanakan.mathematics.geometry.line
+  (:require
+    [sanakan.mathematics.geometry.point :as p]))
 
-;; define a two dimensional point
-(defstruct point2 :x :y)
+;; define a line by having ax + b
+(defstruct line2 :a :b)
 
-;; define a line by having two points
-(defstruct line :a :b)
-
-(defn slope
+(defn line
+  "Get a line from two points."
   [p1 p2]
-  (let [dx (- (:x p2) (:x p1))
-        dy (- (:y p2) (:y p1))]
-    (if (= dx 0) 999999 (/ dy dx))))
-
-(defn from-points
-  [p1 p2]
-  (struct-map line :a (slope p1 p2) :b (:y p1)))
+  (struct-map line2 :a (p/slope p1 p2) :b (:y p1)))
 
 (defn bisector
   [p1 p2]
-  (let [s (/ 1 (slope p1 p2))]
-        ))
+  (let [s (* -1 (/ 1 (p/slope p1 p2)))
+        m (p/midpoint p1 p2)
+        l (line p1 p2)
+        b (- (:y m) (* s (:a l)))]
+    (struct-map line2 :a s :b b)))
