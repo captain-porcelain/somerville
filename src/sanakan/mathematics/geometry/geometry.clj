@@ -1,4 +1,4 @@
-(ns sanakan.mathematics.geometry)
+(ns sanakan.mathematics.geometry.geometry)
 
 ;; This file contains functions for handling geometric data.
 

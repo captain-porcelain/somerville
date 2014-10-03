@@ -1,5 +1,5 @@
 (ns sanakan.mathematics.voronoi
-  (:require [sanakan.mathematics.geometry :as g]))
+  (:require [sanakan.mathematics.geometry.geometry :as g]))
 
 ;; a function for creating a binary search tree from a map.
 (defn compare-key-fn [key1 key2] (< (:y key1) (:y key2)))

@@ -1,5 +1,5 @@
 (ns sanakan.mathematics.test.voronoi
-  (:require [sanakan.mathematics.geometry :as geometry])
+  (:require [sanakan.mathematics.geometry.geometry :as geometry])
   (:use [sanakan.mathematics.voronoi])
   (:use [clojure.test]))
 
