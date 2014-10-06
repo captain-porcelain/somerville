@@ -1,5 +1,6 @@
 (ns sanakan.mathematics.geometry.point
   (:require
+    [clojure.math.numeric-tower :as nt]
     [clojure.core.typed :refer [ann AnyInteger]]))
 
 ;; define a two dimensional point
@@ -25,3 +26,10 @@
   (let [dx (- (:x p2) (:x p1))
         dy (- (:y p2) (:y p1))]
     (if (= dx 0) 999999 (/ dy dx))))
+
+(defn distance
+  "Calculate distance between two points."
+  [p1 p2]
+  (let [dx (- (:x p1) (:x p2))
+        dy (- (:y p1) (:y p2))]
+    (nt/sqrt (+ (* dx dx) (* dy dy)))))

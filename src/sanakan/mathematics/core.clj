@@ -51,10 +51,11 @@
 (defn setup
   "This function is called by processing once before drawing"
   []
-  (processing/size 800 800 processing/P2D)
+  ;(processing/size 800 800 processing/P2D)
   (processing/smooth)
   (processing/fill 226)
-  (processing/framerate 10))
+  ;(processing/framerate 10)
+  )
 
 (defn mouse-moved [evt])
 (defn mouse-dragged [evt])
