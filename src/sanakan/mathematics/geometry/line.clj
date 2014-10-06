@@ -26,7 +26,7 @@
         b (struct-map line2 :a s :b t)
         y1 (solve-line-at b 0)
         y2 (solve-line-at b 1)]
-    (struct-map line2 :a s :b b :p1 (p/point 0 y1) :p2 (p/point 1 y2))))
+    (struct-map line2 :a s :b t :p1 (p/point 0 y1) :p2 (p/point 1 y2))))
 
 (defn intersect
   "Get intersection point of two lines."

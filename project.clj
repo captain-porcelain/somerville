@@ -3,6 +3,7 @@
   :dependencies
   [[org.clojure/clojure "1.6.0"]
    [quil "2.2.2"]
+   [org.clojure/math.numeric-tower "0.0.4"]
    ;; tools
    [midje "1.6.3"]
    [org.clojure/core.typed "0.2.71"]
