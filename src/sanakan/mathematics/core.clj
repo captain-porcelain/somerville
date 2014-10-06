@@ -1,22 +1,36 @@
 (ns sanakan.mathematics.core
   (:require [sanakan.mathematics.geometry.geometry :as geometry]
             [sanakan.mathematics.geometry.line :as line]
-            [sanakan.mathematics.voronoi :as voronoi]
+            [sanakan.mathematics.geometry.point :as p]
+            [sanakan.mathematics.geometry.voronoi :as voronoi]
             [quil.core :as processing])
   (:gen-class))
 
-(def sites (atom (voronoi/voronoi (list
-                   (struct-map geometry/point2 :x 200 :y 300)
-                   (struct-map geometry/point2 :x 400 :y 350)
-                   (struct-map geometry/point2 :x 500 :y 400)))))
+(def sites (atom (voronoi/voronoi
+                   (list
+                     (p/point 200 300)
+                     (p/point 400 350)
+                     (p/point 500 400))
+                   0 0 800 800)))
 (def sweepline (atom (struct-map geometry/line :a 0 :b 280)))
+
+(defn draw-bisector
+  [bisector]
+  (let [y0 (line/solve-line-at bisector 0)
+        y1 (line/solve-line-at bisector 800)]
+    (processing/stroke-float 0 255 0)
+    (processing/fill-float 0 255 0)
+    (processing/line 0 y0 800 y1)))
 
 (defn draw-site
   [site]
   (processing/stroke-float 255 0 0)
   (processing/fill-float 255 0 0)
-  (processing/line 0 0 (:x site) (:y site))
-  (processing/rect (:x site) (:y site) 2 2))
+  ;(processing/line 0 0 (:x site) (:y site))
+  (processing/rect (:x (:p site)) (:y (:p site)) 2 2)
+  (dorun
+    (for [b (:bisectors site)]
+      (draw-bisector (:bisector b)))))
 
 (defn draw-beachline
   []
@@ -42,8 +56,8 @@
   (processing/background-float 0)
   (processing/stroke-float 0 255 0)
   (processing/fill-float 0 255 0)
-  (dorun (draw-sweepline))
-  (dorun (draw-beachline))
+  ;(dorun (draw-sweepline))
+  ;(dorun (draw-beachline))
   (dorun
     (for [site @sites]
       (draw-site site))))
@@ -51,11 +65,9 @@
 (defn setup
   "This function is called by processing once before drawing"
   []
-  ;(processing/size 800 800 processing/P2D)
   (processing/smooth)
   (processing/fill 226)
-  ;(processing/framerate 10)
-  )
+  (processing/frame-rate 10))
 
 (defn mouse-moved [evt])
 (defn mouse-dragged [evt])
@@ -77,12 +89,14 @@
 
 (defn -main [& args]
   (processing/sketch
-                  :title "voronoi"
-                  :setup setup
-                  :draw draw
-                  :mouse-moved mouse-moved
-                  :mouse-dragged mouse-dragged
-                  :mouse-pressed mouse-pressed
-                  :key-pressed key-pressed
-                  :mouse-released mouse-released))
+    :title "voronoi"
+    :setup setup
+    :draw draw
+    :size [800 800]
+    ;:mouse-moved mouse-moved
+    ;:mouse-dragged mouse-dragged
+    ;:mouse-pressed mouse-pressed
+    ;:key-pressed key-pressed
+    ;:mouse-released mouse-released
+    ))
 
