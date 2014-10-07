@@ -22,7 +22,7 @@
   (let [s (* -1 (/ 1 (p/slope p1 p2)))
         m (p/midpoint p1 p2)
         l (line p1 p2)
-        t (- (:y m) (* s (:a l)))
+        t (- (:y m) (* s (:x m)))
         b (struct-map line2 :a s :b t)
         y1 (solve-line-at b 0)
         y2 (solve-line-at b 1)]

@@ -21,8 +21,12 @@
 
 ;; test that a bisector line between two points can be calculated.
 (def b1 (l/bisector (p/point 0 1) (p/point 1 0)))
-(fact (:a l1) => 1)
-(fact (:b l1) => 0)
+(fact (:a b1) => 1)
+(fact (:b b1) => 0)
+
+(def b2 (l/bisector (p/point 0 2) (p/point 1 1)))
+(fact (:a b2) => 1)
+(fact (:b b2) => 1)
 
 ;; test calculation of intersection between two lines.
 (def i1 (l/intersect il1 il2))
