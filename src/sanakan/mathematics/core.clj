@@ -6,12 +6,8 @@
             [quil.core :as processing])
   (:gen-class))
 
-(def sites (atom (voronoi/voronoi
-                   (list
-                     (p/point 200 300)
-                     (p/point 400 350)
-                     (p/point 500 400))
-                   0 0 800 800)))
+(def points (atom (list)))
+(def sites (atom (voronoi/voronoi @points 0 0 800 800)))
 (def sweepline (atom (struct-map geometry/line :a 0 :b 280)))
 
 (defn draw-bisector
@@ -71,11 +67,12 @@
 
 (defn mouse-moved [evt])
 (defn mouse-dragged [evt])
-(defn mouse-pressed [evt])
-(defn mouse-released [evt]
-  (let [mx (.getX evt)
-        my (.getY evt)]
-    (reset! sites (voronoi/voronoi (cons (struct-map geometry/point2 :x mx :y my) @sites)))))
+(defn mouse-pressed [])
+(defn mouse-released []
+  (let [mx (processing/mouse-x)
+        my (processing/mouse-y)]
+    (reset! points (cons (p/point mx my) @points))
+    (reset! sites (voronoi/voronoi @points 0 0 800 800))))
 
 (defn key-pressed [evt]
   "Trigger actions on key presses."
@@ -95,8 +92,8 @@
     :size [800 800]
     ;:mouse-moved mouse-moved
     ;:mouse-dragged mouse-dragged
-    ;:mouse-pressed mouse-pressed
+    :mouse-pressed mouse-pressed
+    :mouse-released mouse-released
     ;:key-pressed key-pressed
-    ;:mouse-released mouse-released
     ))
 
