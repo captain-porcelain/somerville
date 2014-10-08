@@ -4,10 +4,14 @@
     [sanakan.mathematics.geometry.line :as l]
     [sanakan.mathematics.geometry.point :as p]))
 
+;;-----------------------------------------------------------------------------
+;; Section for bisector handling specific to voronoi calculation.
+
 ;; Define a structure for a bisector given by the two points and the bisecting line.
 (defrecord Bisector [p1 p2 line]
   c/Printable
-  (c/out [x] (str "Bisector " p1 " and " p2 " is " line)))
+  (c/out [this i] (str (c/indent i) "Bisector between " (c/out p1) " and " (c/out p2) " is\n" (c/out line (+ i 2)) "\n"))
+  (c/out [this] (c/out this 0)))
 
 (defn bisectors
   "Calculate all bisectors for a list of points.
@@ -20,10 +24,14 @@
                   (for [p2 points]
                     (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2)))))}))
 
+;;-----------------------------------------------------------------------------
+;; Section for intersection handling specific to voronoi calculation.
+
 ;; Define a structure for intersections of bisectors.
 (defrecord Intersection [intersection bisector1 bisector2]
   c/Printable
-  (c/out [x] (str "Intersection " (c/out bisector1) " and " (c/out bisector1) " is " intersection)))
+  (c/out [this i] (str (c/indent i) "Intersections between\n" (c/out bisector1 (+ i 2)) (c/indent i) "and\n" (c/out bisector1 (+ i 2)) (c/indent i) "is " (c/out intersection (+ i 2)) "\n"))
+  (c/out [this] (c/out this 0)))
 
 (defn intersect
   "Calculate all intersections of one bisector with a set of bisectors."
@@ -34,15 +42,13 @@
       (when-not (= bisector l1)
         (Intersection. (l/intersect (:line bisector) (:line l1)) bisector l1)))))
 
-(defn intersections
-  "Given a point and its bisectors calculates all intersections of the bisectors."
-  [p]
-  (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p))))
-
 (defn intersect-bisectors
   "Given a point and its bisectors calculates all intersections of the bisectors."
   [p]
-  (assoc p :intersections (intersections p)))
+  (assoc p :intersections (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p)))))
+
+;;-----------------------------------------------------------------------------
+;; Main section for creating voronois.
 
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."

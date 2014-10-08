@@ -26,7 +26,7 @@
 (def points2 (list p3 p4 p5 p6))
 (def v1 (v/voronoi points2 0 0 10 10))
 
-(fact (count (v/intersections (first v1))) => 6)
+(fact (count (:intersections (v/intersect-bisectors (first v1)))) => 6)
 
 ;; this logic only holds if there are no two bisectors that are parallel.
 ;; the voronoi contains the same amount of points as it was given.
@@ -40,6 +40,5 @@
     ;; each bisector has one intersection with the other bisectors.
     (fact (count (:intersections p)) => (/ (* (count points2) (- (count points2) 1)) 2))))
 
-;(dorun (println v1))
-
-;(dorun (println (c/out (first (:bisectors (first v1))))))
+(dorun (println (c/out (first (:bisectors (first v1))))))
+(dorun (println (c/out (first (:intersections (first v1))))))

@@ -1,12 +1,19 @@
 (ns sanakan.mathematics.geometry.point
   (:require
+    [sanakan.mathematics.geometry.commons :as c]
     [clojure.math.numeric-tower :as nt]
     [clojure.core.typed :refer [ann AnyInteger]]))
 
 ;; define a two dimensional point
-(defrecord Point2 [x y])
+(defrecord Point2 [x y]
+  c/Printable
+  (c/out [this i] (str "Point (" x "," y ")"))
+  (c/out [this] (c/out this 0)))
 ;; define a three dimensional point
-(defrecord Point3 [x y z])
+(defrecord Point3 [x y z]
+  c/Printable
+  (c/out [this i] (str "Point (" x "," y "," z ")"))
+  (c/out [this] (c/out this 0)))
 
 (defn point
   "Create a point in either 2 or 3 dimensions."
