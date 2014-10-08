@@ -1,46 +1,52 @@
 (ns sanakan.mathematics.geometry.voronoi
   (:require
-    [sanakan.mathematics.geometry.geometry :as g]
+    [sanakan.mathematics.geometry.commons :as c]
     [sanakan.mathematics.geometry.line :as l]
     [sanakan.mathematics.geometry.point :as p]))
 
-(defn calculate-bisectors
-  "Calculate the bisectors of one point with a list of points."
-  [p points]
-  (filter
-    #(not (nil? %))
-      (for [p1 points]
-        (when-not (= p p1) (l/bisector p p1)))))
+;; Define a structure for a bisector given by the two points and the bisecting line.
+(defrecord Bisector [p1 p2 line]
+  c/Printable
+  (c/out [x] (str "Bisector " p1 " and " p2 " is " line)))
 
-(defn calculate-all-bisectors
-  "Calculate all bisectors for a point set."
+(defn bisectors
+  "Calculate all bisectors for a list of points.
+  For each point a map with that point and the bisectors with the other points is returned."
   [points]
   (for [p1 points]
-    {:p p1 :bisectors (calculate-bisectors p1 points)}))
+    {:p p1
+     :bisectors (filter
+                  #(not (nil? %))
+                  (for [p2 points]
+                    (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2)))))}))
 
-(defn calculate-intersections
-  "Calculate all intersections of one line with a set of lines."
-  [line lines]
+;; Define a structure for intersections of bisectors.
+(defrecord Intersection [intersection bisector1 bisector2]
+  c/Printable
+  (c/out [x] (str "Intersection " (c/out bisector1) " and " (c/out bisector1) " is " intersection)))
+
+(defn intersect
+  "Calculate all intersections of one bisector with a set of bisectors."
+  [bisector bisectors]
   (filter
     #(not (nil? %))
-      (for [l1 lines]
-        (when-not (= line l1) (l/intersect line l1)))))
+    (for [l1 bisectors]
+      (when-not (= bisector l1)
+        (Intersection. (l/intersect (:line bisector) (:line l1)) bisector l1)))))
 
-(defn calculate-intersections-for-one-bisector
-  "Given one point with its bisectors calculates all intersections of the bisectors."
-  [bisectors]
-  (for [b bisectors]
-    {:bisector b :intersections (calculate-intersections b bisectors)}))
-
-(defn calculate-all-intersections
-  "Calculate all intersections for all bisectors."
+(defn intersections
+  "Given a point and its bisectors calculates all intersections of the bisectors."
   [p]
-  (assoc p :bisectors (calculate-intersections-for-one-bisector (:bisectors p))))
+  (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p))))
+
+(defn intersect-bisectors
+  "Given a point and its bisectors calculates all intersections of the bisectors."
+  [p]
+  (assoc p :intersections (intersections p)))
 
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
   [points bx1 by1 bx2 by2]
-  (let [bisectors (calculate-all-bisectors points)
-        bisectors (map calculate-all-intersections bisectors)
+  (let [intersected (map intersect-bisectors (bisectors points))
         ]
-    bisectors))
+    intersected))
