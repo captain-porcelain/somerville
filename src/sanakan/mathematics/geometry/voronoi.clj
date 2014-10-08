@@ -20,11 +20,11 @@
 
 (defn calculate-intersections
   "Calculate all intersections of one line with a set of lines."
-  [l lines]
+  [line lines]
   (filter
     #(not (nil? %))
       (for [l1 lines]
-        (when-not (= l l1) (l/intersect l l1)))))
+        (when-not (= line l1) (l/intersect line l1)))))
 
 (defn calculate-intersections-for-one-bisector
   "Given one point with its bisectors calculates all intersections of the bisectors."
