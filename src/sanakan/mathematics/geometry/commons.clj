@@ -1,6 +1,10 @@
 (ns sanakan.mathematics.geometry.commons)
 
+(defn indent
+  [i]
+  (reduce str (repeat i " ")))
+
 ;; Define a protocol for pretty printing geometry records.
 (defprotocol Printable
-  (out [x]))
+  (out [this] [this x]))
 
