@@ -1,15 +1,16 @@
 (ns sanakan.mathematics.geometry.line
   (:require
+    [sanakan.mathematics.geometry.commons :as c]
     [sanakan.mathematics.geometry.point :as p]))
 
-;; define a line by having ax + b
-(defstruct line2 :a :b :p1 :p2)
+;; Define a line by its slope-intercept form having ax + b
+(defrecord Line2 [a b p1 p2])
 
 (defn line
   "Get a line from two points."
   [p1 p2]
   (let [s (p/slope p1 p2)]
-    (struct-map line2 :a s :b (- (:y p1) (* s (:x p1))) :p1 p1 :p2 p2)))
+    (Line2. s (- (:y p1) (* s (:x p1))) p1 p2)))
 
 (defn solve-line-at
   "A line is given by y = a*x + b. This function solves this for a given x."
@@ -23,10 +24,10 @@
         m (p/midpoint p1 p2)
         l (line p1 p2)
         t (- (:y m) (* s (:x m)))
-        b (struct-map line2 :a s :b t)
+        b (Line2. s t 0 1)
         y1 (solve-line-at b 0)
         y2 (solve-line-at b 1)]
-    (struct-map line2 :a s :b t :p1 (p/point 0 y1) :p2 (p/point 1 y2))))
+    (Line2. s t (p/point 0 y1) (p/point 1 y2))))
 
 (defn intersect
   "Get intersection point of two lines."
