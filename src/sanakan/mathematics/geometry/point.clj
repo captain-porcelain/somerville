@@ -40,3 +40,12 @@
   (let [dx (- (:x p1) (:x p2))
         dy (- (:y p1) (:y p2))]
     (nt/sqrt (+ (* dx dx) (* dy dy)))))
+
+(defn angle
+  "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3."
+  [p1 p2 p3]
+  (let [d12 (distance p1 p2)
+        d13 (distance p1 p3)
+        d23 (distance p2 p3)
+        t (/ (- (+ (* d12 d12) (* d13 d13)) (* d23 d23)) (* 2 d12 d13))]
+    (java.lang.Math/acos t)))

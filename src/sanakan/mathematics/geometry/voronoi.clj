@@ -29,13 +29,13 @@
 ;; Section for intersection handling specific to voronoi calculation.
 
 ;; Define a structure for intersections of bisectors.
-(defrecord Intersection [intersection bisector1 bisector2]
+(defrecord Intersection [intersection bisector1 bisector2 angle]
   c/Printable
   (c/out [this i] (str (c/indent i) "Intersections between\n"
                        (c/out bisector1 (+ i 2))
                        (c/indent i) "and\n"
                        (c/out bisector2 (+ i 2))
-                       (c/indent i) "is " (c/out intersection) "\n"))
+                       (c/indent i) "is " (c/out intersection) " with angle " angle "\n"))
   (c/out [this] (c/out this 0)))
 
 (defn intersect
@@ -45,12 +45,14 @@
     #(not (nil? %))
     (for [l1 bisectors]
       (when-not (= bisector l1)
-        (Intersection. (l/intersect (:line bisector) (:line l1)) bisector l1)))))
+        (let [i (l/intersect (:line bisector) (:line l1))
+              a (p/angle (:p1 bisector) (p/point 0 0) i)]
+          (Intersection.  i bisector l1 a))))))
 
 (defn intersect-bisectors
   "Given a point and its bisectors calculates all intersections of the bisectors."
   [p]
-  (assoc p :intersections (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p)))))
+  (assoc p :intersections (sort-by :angle (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p))))))
 
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.

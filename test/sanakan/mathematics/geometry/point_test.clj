@@ -16,3 +16,10 @@
 (fact (p/slope (p/point 0 0) (p/point 1 0)) => 0)
 (fact (p/slope (p/point 0 0) (p/point 1 1)) => 1)
 
+(defn close-to
+  "Compare floats."
+  [x y]
+  (and (< x (+ y 0.001)) (> x (- y 0.001))))
+
+(fact (p/angle (p/point 0 0) (p/point 1 0) (p/point 1 0)) => 0.0)
+(fact (close-to (p/angle (p/point 0 0) (p/point 1 0) (p/point 0 1)) (/ java.lang.Math/PI 2)) => true)
