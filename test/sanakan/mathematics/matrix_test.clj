@@ -1,4 +1,4 @@
-(ns sanakan.mathematics.test.matrix
+(ns sanakan.mathematics.matrix-test
   (:use [sanakan.mathematics.array])
   (:use [sanakan.mathematics.matrix])
   (:use [clojure.test]))
