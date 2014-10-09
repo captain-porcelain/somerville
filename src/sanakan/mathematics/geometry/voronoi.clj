@@ -10,7 +10,8 @@
 ;; Define a structure for a bisector given by the two points and the bisecting line.
 (defrecord Bisector [p1 p2 line]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Bisector between " (c/out p1) " and " (c/out p2) " is\n" (c/out line (+ i 2)) "\n"))
+  (c/out [this i] (str (c/indent i) "Bisector between " (c/out p1) " and " (c/out p2) " is\n"
+                       (c/out line (+ i 2)) "\n"))
   (c/out [this] (c/out this 0)))
 
 (defn bisectors
@@ -18,7 +19,7 @@
   For each point a map with that point and the bisectors with the other points is returned."
   [points]
   (for [p1 points]
-    {:p p1
+    {:point p1
      :bisectors (filter
                   #(not (nil? %))
                   (for [p2 points]
@@ -30,7 +31,11 @@
 ;; Define a structure for intersections of bisectors.
 (defrecord Intersection [intersection bisector1 bisector2]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Intersections between\n" (c/out bisector1 (+ i 2)) (c/indent i) "and\n" (c/out bisector1 (+ i 2)) (c/indent i) "is " (c/out intersection (+ i 2)) "\n"))
+  (c/out [this i] (str (c/indent i) "Intersections between\n"
+                       (c/out bisector1 (+ i 2))
+                       (c/indent i) "and\n"
+                       (c/out bisector2 (+ i 2))
+                       (c/indent i) "is " (c/out intersection) "\n"))
   (c/out [this] (c/out this 0)))
 
 (defn intersect
@@ -50,9 +55,18 @@
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.
 
+(defrecord Voronoi [points bx1 by1 bx2 by2]
+  c/Printable
+  (c/out [this i] (str (c/indent i) "Voronoi for the points\n"
+                       (reduce str (interpose "\n" (for [p points] (c/out (:point p) (+ i 2)))))
+                       "\n\nconsists of bisectors\n"
+                       (reduce str (for [p points] (reduce str(for [b (:bisectors p)] (c/out b (+ i 2))))))
+                       "\nwith intersections at\n"
+                       (reduce str (for [p points] (reduce str(for [b (:intersections p)] (c/out b (+ i 2))))))))
+  (c/out [this] (c/out this 0)))
+
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
   [points bx1 by1 bx2 by2]
-  (let [intersected (map intersect-bisectors (bisectors points))
-        ]
-    intersected))
+  (let [intersected (map intersect-bisectors (bisectors points))]
+    (Voronoi. intersected bx1 by1 bx2 by2)))
