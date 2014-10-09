@@ -40,6 +40,4 @@
     ;; each bisector has one intersection with the other bisectors.
     (fact (count (:intersections p)) => (/ (* (count points2) (- (count points2) 1)) 2))))
 
-;(dorun (println (c/out (first (:bisectors (first v1))))))
-;(dorun (println (c/out (first (:intersections (first v1))))))
 (dorun (println (c/out v1)))
