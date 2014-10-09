@@ -14,28 +14,27 @@
   [i]
   (processing/stroke-float 0 0 255)
   (processing/fill-float 0 0 255)
-  (processing/rect (:x i) (:y i) 4 4))
+  (processing/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))
 
 (defn draw-bisector
   [bisector]
-  (let [y0 (line/solve-line-at (:bisector bisector) 0)
-        y1 (line/solve-line-at (:bisector bisector) 800)]
+  (let [y0 (line/solve-line-at (:line bisector) 0)
+        y1 (line/solve-line-at (:line bisector) 800)]
     (processing/stroke-float 0 255 0)
     (processing/fill-float 0 255 0)
-    (processing/line 0 y0 800 y1)
-    (dorun
-      (for [i (:intersections bisector)]
-        (draw-intersection i)))))
+    (processing/line 0 y0 800 y1)))
 
 (defn draw-site
   [site]
   (processing/stroke-float 255 0 0)
   (processing/fill-float 255 0 0)
-  ;(processing/line 0 0 (:x site) (:y site))
-  (processing/rect (:x (:p site)) (:y (:p site)) 4 4)
+  (processing/rect (:x (:point site)) (:y (:point site)) 4 4)
   (dorun
     (for [b (:bisectors site)]
-      (draw-bisector b))))
+      (draw-bisector b)))
+  (dorun
+      (for [i (:intersections site)]
+        (draw-intersection i))))
 
 (defn draw-beachline
   []
@@ -64,7 +63,7 @@
   ;(dorun (draw-sweepline))
   ;(dorun (draw-beachline))
   (dorun
-    (for [site @sites]
+    (for [site (:points @sites)]
       (draw-site site))))
 
 (defn setup
