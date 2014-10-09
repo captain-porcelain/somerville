@@ -6,7 +6,7 @@
 ;; Define a line by its slope-intercept form having ax + b
 (defrecord Line2 [a b p1 p2]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Line from " (c/out p1 (+ i 2)) " to " (c/out p2 (+ i 2)) " is f(x)=" a "*x+" b))
+  (c/out [this i] (str (c/indent i) "Line from " (c/out p1) " to " (c/out p2) " is f(x)=" a "*x+" b))
   (c/out [this] (c/out this 0)))
 
 (defn line
