@@ -1,4 +1,4 @@
-(ns sanakan.mathematics.geometry.geometry
+(ns sanakan.mathematics.geometry.parabola
   (:require
     [sanakan.mathematics.geometry.point :as p]
     [sanakan.mathematics.geometry.line :as l]))

@@ -1,5 +1,5 @@
-(ns sanakan.mathematics.geometry.geometry-test
-  (:use [sanakan.mathematics.geometry.geometry])
+(ns sanakan.mathematics.geometry.parabola-test
+  (:use [sanakan.mathematics.geometry.parabola])
   (:use [clojure.test]))
 
 (deftest test-simple-parabola
