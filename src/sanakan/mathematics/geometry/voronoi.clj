@@ -58,7 +58,9 @@
   "Count the intersections with bisectors that are more relevant than the given one."
   [point intersection bisectors]
   (let [dist (p/distance point intersection)
-        distances (map #(hash-map :dp (p/distance point %) :di (p/distance intersection %)) (l/cuts (l/line point intersection) bisectors))
+        distances (map
+                    #(hash-map :dp (p/distance point %) :di (p/distance intersection %))
+                    (l/cuts (l/line point intersection) bisectors))
         closer (filter #(and (< (:dp %) dist) (< (:di %) dist)) distances)]
     (count closer)))
 
@@ -70,7 +72,7 @@
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.
 
-(defrecord Voronoi [points bx1 by1 bx2 by2]
+(defrecord Voronoi [points cells bx1 by1 bx2 by2]
   c/Printable
   (c/out [this i] (str (c/indent i) "Voronoi for the points\n"
                        (reduce str (interpose "\n" (for [p points] (c/out (:point p) (+ i 2)))))
@@ -83,10 +85,15 @@
 (defn cell
   "Calculate voronoi cell from intersected bisectors."
   [site]
-  (filter #(relevant? (:point site) % (:bisectors site)) (:intersections site)))
+  (map :intersection (filter #(relevant? (:point site) (:intersection %) (map :line (:bisectors site))) (:intersections site))))
+
+(defn connect-cell
+  [cell]
+  (map l/line cell (concat (rest cell) (first cell))))
 
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
   [points bx1 by1 bx2 by2]
-  (let [intersected (map intersect-bisectors (bisectors points))]
-    (Voronoi. intersected bx1 by1 bx2 by2)))
+  (let [intersected (map intersect-bisectors (bisectors points))
+        cells (map connect-cell (map cell intersected))]
+    (Voronoi. intersected cells bx1 by1 bx2 by2)))

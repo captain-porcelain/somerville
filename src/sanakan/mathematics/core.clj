@@ -27,12 +27,22 @@
   (quil/stroke-float 255 0 0)
   (quil/fill-float 255 0 0)
   (quil/rect (:x (:point site)) (:y (:point site)) 4 4)
-  (dorun
-    (for [b (:bisectors site)]
-      (draw-bisector b)))
+  ;(dorun
+  ;  (for [b (:bisectors site)]
+  ;    (draw-bisector b)))
   (dorun
       (for [i (:intersections site)]
         (draw-intersection i))))
+
+(defn draw-cell
+  [cell]
+  (dorun
+      (for [l cell]
+        (let []
+          (quil/stroke-float 255 255 0)
+          (quil/fill-float 255 255 0)
+          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))
+          ))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -42,7 +52,10 @@
   (quil/fill-float 0 255 0)
   (dorun
     (for [site (:points @sites)]
-      (draw-site site))))
+      (draw-site site)))
+  (dorun
+    (for [site (:cells @sites)]
+      (draw-cell site))))
 
 (defn setup
   "This function is called by quil once before drawing"
