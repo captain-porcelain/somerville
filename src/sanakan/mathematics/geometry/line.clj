@@ -35,6 +35,13 @@
 (defn intersect
   "Get intersection point of two lines."
   [l1 l2]
-  (let [x (/ (- (:b l2) (:b l1)) (- (:a l1) (:a l2)))
-        y (solve-line-at l1 x)]
-    (p/point x y)))
+  (if (= (:a l1) (:a l2))
+    nil
+    (let [x (/ (- (:b l2) (:b l1)) (- (:a l1) (:a l2)))
+          y (solve-line-at l1 x)]
+      (p/point x y))))
+
+(defn cuts
+  "Get list on intersections of one line with a list of lines."
+  [line lines]
+  (filter #(not (nil? %)) (map #(intersect line %) lines)))
