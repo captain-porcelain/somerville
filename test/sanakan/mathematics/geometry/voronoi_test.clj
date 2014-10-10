@@ -56,5 +56,3 @@
 (def r1 (v/relevant? rp ri (list rl1 rl3 rl4)))
 (fact r1 => true)
 
-(dorun (println (:point (first (:points v1)))))
-;(dorun (println (v/cell (first (:points v1)))))
