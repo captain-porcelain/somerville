@@ -32,3 +32,15 @@
 (def i1 (l/intersect il1 il2))
 (fact (:x i1) => 2)
 (fact (:y i1) => 1)
+
+(def il3 (l/line (p/point 0 0) (p/point 0 1)))
+(def il4 (l/line (p/point 2 0) (p/point 2 1)))
+(def i2 (l/intersect il3 il4))
+(fact i2 => nil)
+
+(def cl1 (l/line (p/point 0 0) (p/point 0 1)))
+(def cl2 (l/line (p/point 1 0) (p/point 1 1)))
+(def cl3 (l/line (p/point 0 0) (p/point 1 0)))
+(def cl4 (l/line (p/point 0 2) (p/point 1 2)))
+(def c (l/cuts cl1 (list cl2 cl3 cl4)))
+(fact (count c) => 2)

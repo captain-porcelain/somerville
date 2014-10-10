@@ -54,6 +54,19 @@
   [p]
   (assoc p :intersections (sort-by :angle (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p))))))
 
+(defn count-intersections
+  "Count the intersections with bisectors that are more relevant than the given one."
+  [point intersection bisectors]
+  (let [dist (p/distance point intersection)
+        distances (map #(hash-map :dp (p/distance point %) :di (p/distance intersection %)) (l/cuts (l/line point intersection) bisectors))
+        closer (filter #(and (< (:dp %) dist) (< (:di %) dist)) distances)]
+    (count closer)))
+
+(defn relevant?
+  "Check if the intersection is relevant for the voronoi cell."
+  [point intersection bisectors]
+  (= 0 (count-intersections point intersection bisectors)))
+
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.
 
@@ -66,6 +79,11 @@
                        "\nwith intersections at\n"
                        (reduce str (for [p points] (reduce str(for [b (:intersections p)] (c/out b (+ i 2))))))))
   (c/out [this] (c/out this 0)))
+
+(defn cell
+  "Calculate voronoi cell from intersected bisectors."
+  [site]
+  (filter #(relevant? (:point site) % (:bisectors site)) (:intersections site)))
 
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
