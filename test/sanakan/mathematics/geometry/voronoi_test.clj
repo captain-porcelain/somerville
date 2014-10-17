@@ -18,10 +18,10 @@
 (fact (:point (second bisectors1)) => p2)
 
 ;; test properties of calculated voronois
-(def p3 (p/point 1 1))
-(def p4 (p/point 4 2))
-(def p5 (p/point 2 5))
-(def p6 (p/point 6 7))
+(def p3 (p/point 4 5))
+(def p4 (p/point 10 9))
+(def p5 (p/point 2 10))
+(def p6 (p/point 5 1))
 (def points2 (list p3 p4 p5 p6))
 (def v1 (v/voronoi points2 0 0 10 10))
 
@@ -38,6 +38,13 @@
   (for [p (:points v1)]
     ;; each bisector has one intersection with the other bisectors.
     (fact (count (:intersections p)) => (/ (* (count points2) (- (count points2) 1)) 2))))
+
+;(dorun
+;  (for [c (:cells v1)]
+;    (dorun (println c))))
+
+(def cell1 (v/cell (first (:points v1))))
+(fact (count cell1) => 3)
 
 ;(dorun (println (c/out v1)))
 
