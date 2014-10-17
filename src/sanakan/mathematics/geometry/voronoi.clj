@@ -85,7 +85,7 @@
 (defn cell
   "Calculate voronoi cell from intersected bisectors."
   [site]
-  (map :intersection (filter #(relevant? (:point site) (:intersection %) (map :line (:bisectors site))) (:intersections site))))
+  (distinct (map :intersection (filter #(relevant? (:point site) (:intersection %) (map :line (:bisectors site))) (:intersections site)))))
 
 (defn connect-cell
   [cell]
