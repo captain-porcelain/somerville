@@ -39,15 +39,6 @@
     ;; each bisector has one intersection with the other bisectors.
     (fact (count (:intersections p)) => (/ (* (count points2) (- (count points2) 1)) 2))))
 
-;(dorun
-;  (for [c (:cells v1)]
-;    (dorun (println c))))
-
-(def cell1 (v/cell (first (:points v1))))
-(fact (count cell1) => 3)
-
-;(dorun (println (c/out v1)))
-
 (def rp (p/point 1 1))
 (def rl1 (l/line (p/point 0 1) (p/point 1 2)))
 (def rl2 (l/line (p/point 0 2) (p/point 1 2)))
@@ -63,3 +54,18 @@
 (def r1 (v/relevant? rp ri (list rl1 rl3 rl4)))
 (fact r1 => true)
 
+
+(def points3 (list p3 p4 p5))
+(def v2 (v/voronoi points3 0 0 20 20))
+; test that there are no nullpointers
+(fact (count (v/cell (nth (:points v2) 0))) => 1)
+(fact (count (v/cell (nth (:points v2) 1))) => 1)
+(fact (count (v/cell (nth (:points v2) 2))) => 1)
+
+(def cell1 (v/cell (first (:points v1))))
+(fact (count cell1) => 3)
+;(try
+  ;(dorun (println (v/connect-cell cell1)))
+  ;(catch Exception e (.printStackTrace e)))
+
+;(dorun (println (c/out v1)))

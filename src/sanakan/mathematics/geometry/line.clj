@@ -20,6 +20,18 @@
   [line x]
   (+ (* (:a line) x) (:b line)))
 
+(defn parameter-by-x
+  "For a line in parameterized form find the parameter value representing x"
+  [line x]
+  (if (= (:x (:p1 line)) (:x (:p2 line)))
+    0
+    (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))
+
+(defn solve-line-at-parameterized
+  "For a line given by two points this function solves this for a given x."
+  [line x]
+  (+ (:y (:p1 line)) (* (parameter-by-x line x) (- (:y (:p2 line)) (:y (:p1 line))))))
+
 (defn bisector
   "Get the line that bisects two points."
   [p1 p2]

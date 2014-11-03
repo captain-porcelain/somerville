@@ -1,5 +1,6 @@
 (ns sanakan.mathematics.core
   (:require [sanakan.mathematics.geometry.line :as line]
+            [sanakan.mathematics.geometry.commons :as c]
             [sanakan.mathematics.geometry.point :as p]
             [sanakan.mathematics.geometry.voronoi :as voronoi]
             [quil.core :as quil])
@@ -41,8 +42,7 @@
         (let []
           (quil/stroke-float 255 255 0)
           (quil/fill-float 255 255 0)
-          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))
-          ))))
+          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -71,7 +71,8 @@
   (let [mx (quil/mouse-x)
         my (quil/mouse-y)]
     (reset! points (cons (p/point mx my) @points))
-    (reset! sites (voronoi/voronoi @points 0 0 800 800))))
+    (reset! sites (voronoi/voronoi @points 0 0 800 800))
+    (dorun (println (c/out @sites)))))
 
 (defn key-pressed [evt]
   "Trigger actions on key presses."
