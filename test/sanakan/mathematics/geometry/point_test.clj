@@ -1,6 +1,7 @@
 (ns sanakan.mathematics.geometry.point-test
   (:require
-    [sanakan.mathematics.geometry.point :as p])
+    [sanakan.mathematics.geometry.point :as p]
+    [sanakan.mathematics.geometry.commons :as c])
   (:use midje.sweet))
 
 (def p1 (p/point -1 -2))
@@ -16,10 +17,5 @@
 (fact (p/slope (p/point 0 0) (p/point 1 0)) => 0)
 (fact (p/slope (p/point 0 0) (p/point 1 1)) => 1)
 
-(defn close-to
-  "Compare floats."
-  [x y]
-  (and (< x (+ y 0.001)) (> x (- y 0.001))))
-
 (fact (p/angle (p/point 0 0) (p/point 1 0) (p/point 1 0)) => 0.0)
-(fact (close-to (p/angle (p/point 0 0) (p/point 1 0) (p/point 0 1)) (/ java.lang.Math/PI 2)) => true)
+(fact (c/close-to (p/angle (p/point 0 0) (p/point 1 0) (p/point 0 1)) (/ java.lang.Math/PI 2)) => true)
