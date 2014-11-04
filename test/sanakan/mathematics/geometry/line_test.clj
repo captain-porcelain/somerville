@@ -41,6 +41,9 @@
 (fact (l/solve-line-at-parameterized il2 0) => -1)
 (fact (l/solve-line-at-parameterized il2 1) => 0)
 (fact (l/solve-line-at-parameterized il2 2) => 1)
+(def il3 (l/line (p/point 1 0) (p/point 1 1)))
+(fact (l/solve-line-at-parameterized il3 0) => nil)
+(fact (l/solve-line-at-parameterized il3 2) => nil)
 
 ;; test that a bisector line between two points can be calculated.
 (def b1 (l/bisector (p/point 0 1) (p/point 1 0)))

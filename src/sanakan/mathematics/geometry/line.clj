@@ -24,20 +24,22 @@
   "For a line in parameterized form find the parameter value representing x"
   [line x]
   (if (= (:x (:p1 line)) (:x (:p2 line)))
-    0
-    (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))
+   nil
+   (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))
 
 (defn solve-line-at-parameterized
   "For a line given by two points this function solves this for a given x."
   [line x]
-  (+ (:y (:p1 line)) (* (parameter-by-x line x) (- (:y (:p2 line)) (:y (:p1 line))))))
+  (let [t (parameter-by-x line x)]
+    (if (nil? t)
+      nil
+      (+ (:y (:p1 line)) (* t (- (:y (:p2 line)) (:y (:p1 line))))))))
 
 (defn bisector
   "Get the line that bisects two points."
   [p1 p2]
   (let [s (* -1 (/ 1 (p/slope p1 p2)))
         m (p/midpoint p1 p2)
-        l (line p1 p2)
         t (- (:y m) (* s (:x m)))
         b (Line2. s t 0 1)
         y1 (solve-line-at b 0)
