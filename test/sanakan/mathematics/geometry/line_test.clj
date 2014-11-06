@@ -68,14 +68,21 @@
 (fact (:x i5) => 0)
 (fact (:y i5) => 0)
 (def i6 (l/intersect (l/line (p/point 0 0) (p/point 1 1)) (l/line (p/point 0 0) (p/point 1 0))))
-(fact (:x i6) => 0.0)
-(fact (:y i6) => 0.0)
+(fact (:x i6) => 0)
+(fact (:y i6) => 0)
+(def i8 (l/intersect (l/line (p/point 1 1) (p/point 2 3)) (l/line (p/point 0 2) (p/point 1 2))))
+(fact (c/close-to (:x i8) 1.5) => true)
+(fact (c/close-to (:y i8) 2.0) => true)
 
 (def il3 (l/line (p/point 0 0) (p/point 0 1)))
 (def il4 (l/line (p/point 2 0) (p/point 2 1)))
 (fact (l/parallel? il3 il4) => true)
 (def i2 (l/intersect il3 il4))
 (fact i2 => nil)
+
+(fact (l/parallel? (l/line (p/point 0 0) (p/point 0 1)) (l/line (p/point 0 0.5) (p/point 0 0.5))) => true)
+(fact (l/parallel? (l/line (p/point 0 0.5) (p/point 1 0.5)) (l/line (p/point 0 0) (p/point 1 0))) => true)
+(def i3 (l/intersect (l/line (p/point 1 1) (p/point 2 3)) (l/line (p/point 0 0.5) (p/point 1 0.5))))
 
 (def cl1 (l/line (p/point 0 0) (p/point 0 1)))
 (def cl2 (l/line (p/point 1 0) (p/point 1 1)))

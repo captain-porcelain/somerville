@@ -46,6 +46,7 @@
 (def rl4 (l/line (p/point 0 0.5) (p/point 1 0.5)))
 (def ri (p/point 2 3))
 (def c1 (v/count-intersections rp ri (list rl1 rl2 rl3 rl4)))
+(def cuts (l/cuts (l/line rp ri) (list rl1 rl2 rl3 rl4)))
 (fact c1 => 1)
 (def r1 (v/relevant? rp ri (list rl1 rl2 rl3 rl4)))
 (fact r1 => false)
