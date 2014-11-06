@@ -32,7 +32,7 @@
   [p1 p2]
   (let [dx (- (:x p2) (:x p1))
         dy (- (:y p2) (:y p1))]
-    (if (= dx 0) 999999 (/ dy dx))))
+    (if (= dx 0) nil (/ dy dx))))
 
 (defn distance
   "Calculate distance between two points."

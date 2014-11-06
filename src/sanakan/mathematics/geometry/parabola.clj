@@ -20,7 +20,7 @@
   directrix is open towards the positive y."
   [point directrix]
   (let [x (:x point)
-        directrix-y (l/solve-line-at directrix x)
+        directrix-y (l/solve-line-at-sloped directrix x)
         distance (- (:y point) directrix-y)
         y (- (:y point) (/ distance 2))
         a (/ 1 (* 2 distance))
