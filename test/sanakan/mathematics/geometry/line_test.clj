@@ -8,8 +8,6 @@
 
 ;; verify that lines can be calculated from points.
 (def l1 (l/line (p/point 0 0) (p/point 1 1)))
-(fact (:a l1) => 1)
-(fact (:b l1) => 0)
 
 ;; check that parameterized helpers work
 (fact (l/parameter-by-x l1 0) => 0)
@@ -18,7 +16,19 @@
 (fact (l/parameter-by-x l2 0) => 0)
 (fact (l/parameter-by-x l2 1) => 1)
 
-;; verify that a line can be used to calculate y values
+;; verify that a line can be used to calculate y values using the slope intercept form
+(fact (l/solve-line-at-sloped l1 0) => 0)
+(fact (l/solve-line-at-sloped l1 1) => 1)
+(def il1 (l/line (p/point 0 0) (p/point 2 1)))
+(fact (l/solve-line-at-sloped il1 0) => 0)
+(fact (l/solve-line-at-sloped il1 1) => 1/2)
+(fact (l/solve-line-at-sloped il1 2) => 1)
+(def il2 (l/line (p/point 1 0) (p/point 2 1)))
+(fact (l/solve-line-at-sloped il2 0) => -1)
+(fact (l/solve-line-at-sloped il2 1) => 0)
+(fact (l/solve-line-at-sloped il2 2) => 1)
+
+;; verify that a parameterized line can be used to calculate y values
 (fact (l/solve-line-at l1 0) => 0)
 (fact (l/solve-line-at l1 1) => 1)
 (def il1 (l/line (p/point 0 0) (p/point 2 1)))
@@ -29,30 +39,18 @@
 (fact (l/solve-line-at il2 0) => -1)
 (fact (l/solve-line-at il2 1) => 0)
 (fact (l/solve-line-at il2 2) => 1)
-
-;; verify that a parameterized line can be used to calculate y values
-(fact (l/solve-line-at-parameterized l1 0) => 0)
-(fact (l/solve-line-at-parameterized l1 1) => 1)
-(def il1 (l/line (p/point 0 0) (p/point 2 1)))
-(fact (l/solve-line-at-parameterized il1 0) => 0)
-(fact (l/solve-line-at-parameterized il1 1) => 1/2)
-(fact (l/solve-line-at-parameterized il1 2) => 1)
-(def il2 (l/line (p/point 1 0) (p/point 2 1)))
-(fact (l/solve-line-at-parameterized il2 0) => -1)
-(fact (l/solve-line-at-parameterized il2 1) => 0)
-(fact (l/solve-line-at-parameterized il2 2) => 1)
 (def il3 (l/line (p/point 1 0) (p/point 1 1)))
-(fact (l/solve-line-at-parameterized il3 0) => nil)
-(fact (l/solve-line-at-parameterized il3 2) => nil)
+(fact (l/solve-line-at il3 0) => nil)
+(fact (l/solve-line-at il3 2) => nil)
 
 ;; test that a bisector line between two points can be calculated.
 (def b1 (l/bisector (p/point 0 1) (p/point 1 0)))
-(fact (:a b1) => 1)
-(fact (:b b1) => 0)
+;(fact (:a b1) => 1)
+;(fact (:b b1) => 0)
 
 (def b2 (l/bisector (p/point 0 2) (p/point 1 1)))
-(fact (:a b2) => 1)
-(fact (:b b2) => 1)
+;(fact (:a b2) => 1)
+;(fact (:b b2) => 1)
 
 ;; test calculation of intersection between two lines.
 (def i1 (l/intersect il1 il2))

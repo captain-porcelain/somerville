@@ -3,57 +3,95 @@
     [sanakan.mathematics.geometry.commons :as c]
     [sanakan.mathematics.geometry.point :as p]))
 
-;; Define a line by its slope-intercept form having ax + b
-(defrecord Line2 [a b p1 p2]
+;; Define a line by two points
+(defrecord Line2 [p1 p2]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Line from " (c/out p1) " to " (c/out p2) " is f(x)=" a "*x+" b))
+  (c/out [this i] (str (c/indent i) "Line from " (c/out p1) " to " (c/out p2)))
   (c/out [this] (c/out this 0)))
 
 (defn line
   "Get a line from two points."
   [p1 p2]
-  (let [s (p/slope p1 p2)]
-    (Line2. s (- (:y p1) (* s (:x p1))) p1 p2)))
+  (Line2. p1 p2))
 
-(defn solve-line-at
+(defn slope-intercept
+  "Get line in slope intercept form f(x) = a*x + b"
+  [line]
+  (let [s (p/slope (:p1 line) (:p2 line))]
+    {:a s :b (- (:y (:p1 line)) (* s (:x (:p1 line))))}))
+
+(defn solve-line-at-sloped
   "A line is given by y = a*x + b. This function solves this for a given x."
   [line x]
-  (+ (* (:a line) x) (:b line)))
+  (let [si (slope-intercept line)]
+    (+ (* (:a si) x) (:b si))))
 
 (defn parameter-by-x
   "For a line in parameterized form find the parameter value representing x"
   [line x]
   (if (= (:x (:p1 line)) (:x (:p2 line)))
-   nil
-   (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))
+    nil
+    (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))
 
-(defn solve-line-at-parameterized
+(defn x-by-t
+  "For a parameterized line solve it for a given parameter"
+  [line t]
+  (+ (:y (:p1 line)) (* t (- (:x (:p2 line)) (:x (:p1 line))))))
+
+(defn y-by-t
+  "For a parameterized line solve it for a given parameter"
+  [line t]
+  (+ (:y (:p1 line)) (* t (- (:y (:p2 line)) (:y (:p1 line))))))
+
+(defn solve-line-at
   "For a line given by two points this function solves this for a given x."
   [line x]
   (let [t (parameter-by-x line x)]
     (if (nil? t)
       nil
-      (+ (:y (:p1 line)) (* t (- (:y (:p2 line)) (:y (:p1 line))))))))
+      (y-by-t line t))))
 
 (defn bisector
   "Get the line that bisects two points."
   [p1 p2]
   (let [s (* -1 (/ 1 (p/slope p1 p2)))
         m (p/midpoint p1 p2)
-        t (- (:y m) (* s (:x m)))
-        b (Line2. s t 0 1)
-        y1 (solve-line-at b 0)
-        y2 (solve-line-at b 1)]
-    (Line2. s t (p/point 0 y1) (p/point 1 y2))))
+        t (- (:y m) (* s (:x m)))]
+    (Line2. (p/point 0 t) (p/point 1 (+ s t)))))
 
-(defn intersect
+(defn intersect-sloped
   "Get intersection point of two lines."
   [l1 l2]
-  (if (= (:a l1) (:a l2))
-    nil
-    (let [x (/ (- (:b l2) (:b l1)) (- (:a l1) (:a l2)))
-          y (solve-line-at l1 x)]
-      (p/point x y))))
+  (let [si1 (slope-intercept l1)
+        si2 (slope-intercept l2)]
+    (if (= (:a si1) (:a si2))
+      nil
+      (let [x (/ (- (:b si2) (:b si1)) (- (:a si1) (:a si2)))
+            y (solve-line-at l1 x)]
+        (p/point x y)))))
+
+(defn parallel?
+  "Check if two lines are parallel."
+  [l1 l2]
+  (= (p/slope (:p1 l1) (:p2 l1)) (p/slope (:p1 l2) (:p2 l2))))
+
+(defn intersect
+  "Get intersection point of two parameterized lines."
+  [l1 l2]
+  (let [p11x (:x (:p1 l1))
+        p11y (:y (:p1 l1))
+        p12x (:x (:p2 l1))
+        p12y (:y (:p2 l1))
+        p21x (:x (:p1 l2))
+        p21y (:y (:p1 l2))
+        p22x (:x (:p2 l2))
+        p22y (:y (:p2 l2))
+        g (+ (- (/ (* (- p11y p21y) (- p22x p21x)) (- p22y p21y)) p11x) p21x)
+        h (/ (- (* (- p12x p11x) (- p22y p21y)) (* (- p12y p11y) (- p22x p21x))) (- p22y p21y))
+        t (/ g h)]
+    (if (parallel? l1 l2)
+      nil
+      (p/point (x-by-t l1 t) (y-by-t l1 t)))))
 
 (defn cuts
   "Get list on intersections of one line with a list of lines."
