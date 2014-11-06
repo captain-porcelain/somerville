@@ -17,7 +17,7 @@
 (defn parabola-from-focuspoint-and-directrix
   "Create a parabola such that it defines all points that are
   equidistant from the directrix and the focuspoint. The created
-  directrix is open towards the positive y."
+  parabola is open towards the positive y."
   [point directrix]
   (let [x (:x point)
         directrix-y (l/solve-line-at-sloped directrix x)
