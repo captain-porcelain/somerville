@@ -36,7 +36,7 @@
 (defn x-by-t
   "For a parameterized line solve it for a given parameter"
   [line t]
-  (+ (:y (:p1 line)) (* t (- (:x (:p2 line)) (:x (:p1 line))))))
+  (+ (:x (:p1 line)) (* t (- (:x (:p2 line)) (:x (:p1 line))))))
 
 (defn y-by-t
   "For a parameterized line solve it for a given parameter"
@@ -50,6 +50,15 @@
     (if (nil? t)
       nil
       (y-by-t line t))))
+
+(defn parallel?
+  "Check if two lines are parallel."
+  [l1 l2]
+  (let [s1 (p/slope (:p1 l1) (:p2 l1))
+        s1 (if (nil? s1) s1 (+ 0.0 s1))
+        s2 (p/slope (:p1 l2) (:p2 l2))
+        s2 (if (nil? s2) s2 (+ 0.0 s2))]
+    (= s1 s2)))
 
 (defn bisector
   "Get the line that bisects two points."
@@ -70,33 +79,36 @@
             y (solve-line-at l1 x)]
         (p/point x y)))))
 
-(defn parallel?
-  "Check if two lines are parallel."
+(defn intersect-parameterized
+  "Get intersection point of two parameterized lines."
   [l1 l2]
-  (= (p/slope (:p1 l1) (:p2 l1)) (p/slope (:p1 l2) (:p2 l2))))
+  (let [p11x (:x (:p1 l1))
+        p11y (:y (:p1 l1))
+        p12x (:x (:p2 l1))
+        p12y (:y (:p2 l1))
+        p21x (:x (:p1 l2))
+        p21y (:y (:p1 l2))
+        p22x (:x (:p2 l2))
+        p22y (:y (:p2 l2))
+        d2y (- p22y p21y)
+        tmp (when (or (= 0.0 d2y) (= 0 d2y)) (dorun (println (str "d2y is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
+        d2y (if (or (= 0.0 d2y) (= 0 d2y)) 0.000000001 d2y)
+        g (+ (- (/ (* (- p11y p21y) (- p22x p21x)) d2y) p11x) p21x)
+        h (/ (- (* (- p12x p11x) (- p22y p21y)) (* (- p12y p11y) (- p22x p21x))) d2y)
+        tmp (when (or (= 0.0 h) (= 0 h)) (dorun (println (str "h is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
+        h (if (or (= 0.0 h) (= 0 h)) 0.00000001 h)
+        t (/ g h)]
+    (p/point (x-by-t l1 t) (y-by-t l1 t))))
 
 (defn intersect
-  "Get intersection point of two parameterized lines."
   [l1 l2]
   (if (parallel? l1 l2)
     nil
-    (let [p11x (:x (:p1 l1))
-          p11y (:y (:p1 l1))
-          p12x (:x (:p2 l1))
-          p12y (:y (:p2 l1))
-          p21x (:x (:p1 l2))
-          p21y (:y (:p1 l2))
-          p22x (:x (:p2 l2))
-          p22y (:y (:p2 l2))
-          d2y (- p22y p21y)
-          d2y (if (or (= 0.0 d2y) (= 0 d2y)) 0.000000001 d2y)
-          g (+ (- (/ (* (- p11y p21y) (- p22x p21x)) d2y) p11x) p21x)
-          h (/ (- (* (- p12x p11x) (- p22y p21y)) (* (- p12y p11y) (- p22x p21x))) d2y)
-          h (if (or (= 0.0 h) (= 0 h)) 0.00000001 h)
-          t (/ g h)]
-      (p/point (x-by-t l1 t) (y-by-t l1 t)))))
+    (if (parallel? l2 (line (p/point 0 0) (p/point 1 0)))
+      (intersect-parameterized l2 l1)
+      (intersect-parameterized l1 l2))))
 
 (defn cuts
-  "Get list on intersections of one line with a list of lines."
+  "Get list of intersections of one line with a list of lines."
   [line lines]
   (filter #(not (nil? %)) (map #(intersect line %) lines)))
