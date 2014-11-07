@@ -65,8 +65,16 @@
 
 (def cell1 (v/cell (first (:points v1))))
 (fact (count cell1) => 3)
-;(try
-  ;(dorun (println (v/connect-cell cell1)))
-  ;(catch Exception e (.printStackTrace e)))
+(def connected (v/connect-cell points3))
+(fact (count connected) => 3)
+(fact (:p1 (nth connected 0)) => p3)
+(fact (:p2 (nth connected 0)) => p4)
+(fact (:p1 (nth connected 1)) => p4)
+(fact (:p2 (nth connected 1)) => p5)
+(fact (:p1 (nth connected 2)) => p5)
+(fact (:p2 (nth connected 2)) => p3)
 
-;(dorun (println (c/out v1)))
+
+;(def points4 (list (p/point 371 264) (p/point 461 136) (p/point 249 145)))
+;(def v3 (v/voronoi points4 0 0 500 500))
+;(dorun (println (c/out v3)))
