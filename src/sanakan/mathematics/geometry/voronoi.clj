@@ -72,7 +72,12 @@
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.
 
-(defrecord Cell [point lines])
+(defrecord Cell [point lines]
+  c/Printable
+  (c/out [this i] (str (c/indent i) "Voronoicell for the " (c/out point) " has the following lines:\n"
+                       (reduce str (interpose "\n" (for [l lines] (c/out l (+ i 2)))))
+                       "\n"))
+  (c/out [this] (c/out this 0)))
 
 (defrecord Voronoi [points cells bx1 by1 bx2 by2]
   c/Printable
@@ -83,7 +88,7 @@
                        "\nwith intersections at\n"
                        (reduce str (for [p points] (reduce str (for [b (:intersections p)] (c/out b (+ i 2))))))
                        "\nwith cells\n"
-                       (reduce str (for [cell cells] (reduce str (for [l cell] (c/out l (+ i 2))))))
+                       (reduce str (for [cell cells] (c/out cell (+ i 2))))
                        ))
   (c/out [this] (c/out this 0)))
 
