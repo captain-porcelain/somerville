@@ -72,6 +72,8 @@
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.
 
+(defrecord Cell [point lines])
+
 (defrecord Voronoi [points cells bx1 by1 bx2 by2]
   c/Printable
   (c/out [this i] (str (c/indent i) "Voronoi for the points\n"
@@ -81,11 +83,11 @@
                        "\nwith intersections at\n"
                        (reduce str (for [p points] (reduce str (for [b (:intersections p)] (c/out b (+ i 2))))))
                        "\nwith cells\n"
-                       (reduce str (for [cell cells] (reduce str (for [l cell] (str (c/out (:p1 l)) " " (type (:p2 l)))))))
+                       (reduce str (for [cell cells] (reduce str (for [l cell] (c/out l (+ i 2))))))
                        ))
   (c/out [this] (c/out this 0)))
 
-(defn cell
+(defn cell-corners
   "Calculate voronoi cell corner points from intersected bisectors."
   [site]
   (distinct
@@ -97,11 +99,17 @@
 (defn connect-cell
   "Connect a list of points into a list of lines from point to point."
   [cell]
-  (map l/line cell (concat (rest cell) (list (first cell)))))
+  (map #(l/line %1 %2) cell (concat (rest cell) (list (first cell)))))
+
+(defn cell
+  "Create cell instance from point and edges of cell."
+  [point lines]
+  (Cell. point lines))
 
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
   [points bx1 by1 bx2 by2]
   (let [intersected (map intersect-bisectors (bisectors points))
-        cells (map connect-cell (map cell intersected))]
+        cell-edges (map connect-cell (map cell-corners intersected))
+        cells (map cell points cell-edges)]
     (Voronoi. intersected cells bx1 by1 bx2 by2)))
