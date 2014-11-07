@@ -77,19 +77,27 @@
   (c/out [this i] (str (c/indent i) "Voronoi for the points\n"
                        (reduce str (interpose "\n" (for [p points] (c/out (:point p) (+ i 2)))))
                        "\n\nconsists of bisectors\n"
-                       (reduce str (for [p points] (reduce str(for [b (:bisectors p)] (c/out b (+ i 2))))))
+                       (reduce str (for [p points] (reduce str (for [b (:bisectors p)] (c/out b (+ i 2))))))
                        "\nwith intersections at\n"
-                       (reduce str (for [p points] (reduce str(for [b (:intersections p)] (c/out b (+ i 2))))))))
+                       (reduce str (for [p points] (reduce str (for [b (:intersections p)] (c/out b (+ i 2))))))
+                       "\nwith cells\n"
+                       (reduce str (for [cell cells] (reduce str (for [l cell] (str (c/out (:p1 l)) " " (type (:p2 l)))))))
+                       ))
   (c/out [this] (c/out this 0)))
 
 (defn cell
-  "Calculate voronoi cell from intersected bisectors."
+  "Calculate voronoi cell corner points from intersected bisectors."
   [site]
-  (distinct (map :intersection (filter #(relevant? (:point site) (:intersection %) (map :line (:bisectors site))) (:intersections site)))))
+  (distinct
+    (map :intersection
+         (filter
+           #(relevant? (:point site) (:intersection %) (map :line (:bisectors site)))
+           (:intersections site)))))
 
 (defn connect-cell
+  "Connect a list of points into a list of lines from point to point."
   [cell]
-  (map l/line cell (concat (rest cell) (first cell))))
+  (map l/line cell (concat (rest cell) (list (first cell)))))
 
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
