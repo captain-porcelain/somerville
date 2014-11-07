@@ -59,11 +59,11 @@
 (def points3 (list p3 p4 p5))
 (def v2 (v/voronoi points3 0 0 20 20))
 ; test that there are no nullpointers
-(fact (count (v/cell (nth (:points v2) 0))) => 1)
-(fact (count (v/cell (nth (:points v2) 1))) => 1)
-(fact (count (v/cell (nth (:points v2) 2))) => 1)
+(fact (count (v/cell-corners (nth (:points v2) 0))) => 1)
+(fact (count (v/cell-corners (nth (:points v2) 1))) => 1)
+(fact (count (v/cell-corners (nth (:points v2) 2))) => 1)
 
-(def cell1 (v/cell (first (:points v1))))
+(def cell1 (v/cell-corners (first (:points v1))))
 (fact (count cell1) => 3)
 (def connected (v/connect-cell points3))
 (fact (count connected) => 3)

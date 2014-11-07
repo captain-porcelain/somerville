@@ -38,7 +38,7 @@
 (defn draw-cell
   [cell]
   (dorun
-      (for [l cell]
+      (for [l (:lines cell)]
         (let []
           (quil/stroke-float 255 255 0)
           (quil/fill-float 255 255 0)
@@ -64,26 +64,18 @@
   (quil/fill 226)
   (quil/frame-rate 10))
 
-(defn mouse-moved [evt])
-(defn mouse-dragged [evt])
 (defn mouse-pressed [])
 (defn mouse-released []
   (let [mx (quil/mouse-x)
         my (quil/mouse-y)]
     (reset! points (cons (p/point mx my) @points))
-    (reset! sites (voronoi/voronoi @points 0 0 800 800))
-    (dorun (println (c/out @sites)))))
+    (reset! sites (voronoi/voronoi @points 0 0 800 800))))
 
-(defn key-pressed [evt]
+(defn key-pressed []
   "Trigger actions on key presses."
-  (let [k (.getKeyChar evt)
-        code (.getKeyCode evt)]
-    (dorun (println (str "pressed code " code ", key " k)))
-    ;(if (= code 521) ; +
-    ;  )
-    ;(if (= code 45) ; -
-    ;  )
-      ))
+    ;(dorun (println (str "pressed code " (quil/key-code))))
+    (if (= (quil/key-code) 68) ; d
+      (dorun (println (c/out @sites)))))
 
 (defn -main [& args]
   (quil/sketch
@@ -95,6 +87,5 @@
     ;:mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed
     :mouse-released mouse-released
-    ;:key-pressed key-pressed
-    ))
+    :key-pressed key-pressed))
 
