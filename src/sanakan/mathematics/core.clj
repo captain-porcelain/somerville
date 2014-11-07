@@ -27,7 +27,7 @@
   [site]
   (quil/stroke-float 255 0 0)
   (quil/fill-float 255 0 0)
-  (quil/rect (:x (:point site)) (:y (:point site)) 4 4)
+  (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4)
   ;(dorun
   ;  (for [b (:bisectors site)]
   ;    (draw-bisector b)))
@@ -35,14 +35,27 @@
       (for [i (:intersections site)]
         (draw-intersection i))))
 
+(def highlighted (atom nil))
+
 (defn draw-cell
   [cell]
   (dorun
-      (for [l (:lines cell)]
+    (when (> 5 (p/distance (:point cell) (p/point (quil/mouse-x) (quil/mouse-y))))
+      (reset! highlighted cell)))
+  (dorun
+    (for [l (:lines cell)]
+      (let []
+        (quil/stroke-float 255 255 0)
+        (quil/fill-float 255 255 0)
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))
+  (dorun
+    (when (not (nil? @highlighted))
+     (for [l (:lines @highlighted)]
         (let []
-          (quil/stroke-float 255 255 0)
-          (quil/fill-float 255 255 0)
-          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
+          (quil/stroke-float 255 255 255)
+          (quil/fill-float 255 255 255)
+          (quil/rect (- (:x (:point @highlighted)) 2) (- (:y (:point @highlighted)) 2) 4 4)
+          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))))
 
 (defn draw
   "This function is called by quil repeatedly."
