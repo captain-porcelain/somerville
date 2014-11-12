@@ -6,8 +6,14 @@
             [quil.core :as quil])
   (:gen-class))
 
-(def points (atom (list)))
-(def sites (atom (voronoi/voronoi @points 0 0 800 800)))
+(def width 600)
+(def height 600)
+(def p1 (p/point 200 250))
+(def p2 (p/point 500 450))
+(def p3 (p/point 100 500))
+(def p4 (p/point 250 50))
+(def points (atom (list p1 p2 p3 p4)))
+(def sites (atom (voronoi/voronoi @points 0 0 width height)))
 
 (defn draw-intersection
   [i]
@@ -18,10 +24,10 @@
 (defn draw-bisector
   [bisector]
   (let [y0 (line/solve-line-at (:line bisector) 0)
-        y1 (line/solve-line-at (:line bisector) 800)]
+        y1 (line/solve-line-at (:line bisector) width)]
     (quil/stroke-float 0 255 0)
     (quil/fill-float 0 255 0)
-    (quil/line 0 y0 800 y1)))
+    (quil/line 0 y0 width y1)))
 
 (defn draw-site
   [site]
@@ -82,11 +88,15 @@
   (let [mx (quil/mouse-x)
         my (quil/mouse-y)]
     (reset! points (cons (p/point mx my) @points))
-    (reset! sites (voronoi/voronoi @points 0 0 800 800))))
+    (reset! sites (voronoi/voronoi @points 0 0 width height))))
 
 (defn key-pressed []
   "Trigger actions on key presses."
     ;(dorun (println (str "pressed code " (quil/key-code))))
+    (if (= (quil/key-code) 67) ; c
+      (let []
+		(reset! points (list))
+		(reset! sites (voronoi/voronoi @points 0 0 width height))))
     (if (= (quil/key-code) 68) ; d
       (dorun (println (c/out @sites)))))
 
@@ -95,7 +105,7 @@
     :title "voronoi"
     :setup setup
     :draw draw
-    :size [800 800]
+    :size [width height]
     ;:mouse-moved mouse-moved
     ;:mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed

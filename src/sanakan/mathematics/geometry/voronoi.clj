@@ -17,13 +17,15 @@
 (defn bisectors
   "Calculate all bisectors for a list of points.
   For each point a map with that point and the bisectors with the other points is returned."
-  [points]
+  [points bbox]
   (for [p1 points]
     {:point p1
-     :bisectors (filter
-                  #(not (nil? %))
-                  (for [p2 points]
-                    (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2)))))}))
+     :bisectors (concat
+                  bbox
+                  (filter
+                    #(not (nil? %))
+                    (for [p2 points]
+                      (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2))))))}))
 
 ;;-----------------------------------------------------------------------------
 ;; Section for intersection handling specific to voronoi calculation.
@@ -45,14 +47,16 @@
     #(not (nil? %))
     (for [l1 bisectors]
       (when-not (= bisector l1)
-        (let [i (l/intersect (:line bisector) (:line l1))
-              a (p/angle (:p1 bisector) (p/point 0 0) i)]
-          (Intersection.  i bisector l1 a))))))
+        (let [i (l/intersect (:line bisector) (:line l1))]
+          (if (nil? i)
+            nil
+            (Intersection.  i bisector l1 (p/angle (:p1 bisector) (p/point 0 0) i))))))))
 
 (defn intersect-bisectors
   "Given a point and its bisectors calculates all intersections of the bisectors."
   [p]
-  (assoc p :intersections (sort-by :angle (reduce concat (map #(intersect % (:bisectors p)) (:bisectors p))))))
+  (let [bisectors (:bisectors p)]
+    (assoc p :intersections (sort-by :angle (reduce concat (map #(intersect % bisectors) bisectors))))))
 
 (defn count-intersections
   "Count the intersections with bisectors that are more relevant than the given one."
@@ -68,6 +72,15 @@
   "Check if the intersection is relevant for the voronoi cell."
   [point intersection bisectors]
   (= 0 (count-intersections point intersection bisectors)))
+
+(defn bounding-box
+  "Create lines that describe the bounding box for the voronoi"
+  [bx1 by1 bx2 by2]
+  (list
+    (Bisector. (p/point bx1 (- by1 1)) (p/point bx1 (+ by1 1)) (l/line (p/point bx1 by1) (p/point bx2 by1)))
+    (Bisector. (p/point (- bx1 1) by1) (p/point (+ bx1 1) by1) (l/line (p/point bx1 by1) (p/point bx1 by2)))
+    (Bisector. (p/point (- bx2 1) by2) (p/point (+ bx2 1) by2) (l/line (p/point bx2 by1) (p/point bx2 by2)))
+    (Bisector. (p/point bx1 (- by2 1)) (p/point bx1 (+ by2 1)) (l/line (p/point bx1 by2) (p/point bx2 by2)))))
 
 ;;-----------------------------------------------------------------------------
 ;; Main section for creating voronois.
@@ -114,7 +127,8 @@
 (defn voronoi
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
   [points bx1 by1 bx2 by2]
-  (let [intersected (map intersect-bisectors (bisectors points))
+  (let [bbox (bounding-box bx1 by1 bx2 by2)
+        intersected (map intersect-bisectors (bisectors points bbox))
         cell-edges (map connect-cell (map cell-corners intersected))
         cells (map cell points cell-edges)]
     (Voronoi. intersected cells bx1 by1 bx2 by2)))
