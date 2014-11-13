@@ -17,15 +17,13 @@
 (defn bisectors
   "Calculate all bisectors for a list of points.
   For each point a map with that point and the bisectors with the other points is returned."
-  [points bbox]
+  [points]
   (for [p1 points]
     {:point p1
-     :bisectors (concat
-                  bbox
-                  (filter
-                    #(not (nil? %))
-                    (for [p2 points]
-                      (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2))))))}))
+     :bisectors (filter
+                  #(not (nil? %))
+                  (for [p2 points]
+                    (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2)))))}))
 
 ;;-----------------------------------------------------------------------------
 ;; Section for intersection handling specific to voronoi calculation.
@@ -54,8 +52,8 @@
 
 (defn intersect-bisectors
   "Given a point and its bisectors calculates all intersections of the bisectors."
-  [p]
-  (let [bisectors (:bisectors p)]
+  [p bbox]
+  (let [bisectors (concat (:bisectors p) bbox)]
     (assoc p :intersections (sort-by :angle (reduce concat (map #(intersect % bisectors) bisectors))))))
 
 (defn count-intersections
@@ -101,8 +99,7 @@
                        "\nwith intersections at\n"
                        (reduce str (for [p points] (reduce str (for [b (:intersections p)] (c/out b (+ i 2))))))
                        "\nwith cells\n"
-                       (reduce str (for [cell cells] (c/out cell (+ i 2))))
-                       ))
+                       (reduce str (for [cell cells] (c/out cell (+ i 2))))))
   (c/out [this] (c/out this 0)))
 
 (defn cell-corners
@@ -128,7 +125,7 @@
   "Calculate a set of voronoi cells when given a set of points and a bounding box."
   [points bx1 by1 bx2 by2]
   (let [bbox (bounding-box bx1 by1 bx2 by2)
-        intersected (map intersect-bisectors (bisectors points bbox))
+        intersected (map #(intersect-bisectors % bbox) (bisectors points))
         cell-edges (map connect-cell (map cell-corners intersected))
         cells (map cell points cell-edges)]
     (Voronoi. intersected cells bx1 by1 bx2 by2)))
