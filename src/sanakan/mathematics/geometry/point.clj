@@ -9,6 +9,7 @@
   c/Printable
   (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
   (c/out [this] (c/out this 0)))
+
 ;; define a three dimensional point
 (defrecord Point3 [x y z]
   c/Printable
