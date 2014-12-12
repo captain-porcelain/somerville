@@ -53,7 +53,9 @@
 (defn intersect-bisectors
   "Given a point and its bisectors calculates all intersections of the bisectors."
   [p bbox]
-  (let [bisectors (concat (:bisectors p) bbox)]
+  (let [bisectors (:bisectors p)
+        ;(concat (:bisectors p) bbox)
+        ]
     (assoc p :intersections (sort-by :angle (reduce concat (map #(intersect % bisectors) bisectors))))))
 
 (defn count-intersections
