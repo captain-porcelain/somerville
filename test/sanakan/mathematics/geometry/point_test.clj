@@ -31,11 +31,13 @@
 (def PI10 java.lang.Math/PI)
 (def PI15 (* 3 (/ java.lang.Math/PI 2)))
 (def PI20 (* 2 java.lang.Math/PI))
+(def PI175 (* 7 (/ java.lang.Math/PI 4)))
 
 (fact (c/close-to (p/angle-to-x (p/point  1  0)) PI00)  => true)
 (fact (c/close-to (p/angle-to-x (p/point  0  1)) PI05) => true)
 (fact (c/close-to (p/angle-to-x (p/point -1  0)) PI10) => true)
 (fact (c/close-to (p/angle-to-x (p/point  0 -1)) PI15) => true)
+(fact (c/close-to (p/angle-to-x (p/point  5 -5)) PI175) => true)
 
 (fact (c/close-to (p/angle (p/point 0 0) (p/point 1 0) (p/point 1 0)) PI00) => true)
 (fact (c/close-to (p/angle (p/point 0 0) (p/point 1 0) (p/point 0 1)) PI05) => true)
@@ -45,3 +47,5 @@
 (fact (c/close-to (p/angle (p/point 0 0) (p/point  1  0) (p/point -1  0)) PI10) => true)
 (fact (c/close-to (p/angle (p/point 0 0) (p/point  1  0) (p/point  0 -1)) PI15) => true)
 (fact (c/close-to (p/angle (p/point 0 0) (p/point -1  0) (p/point  1  0)) (* -1 PI10)) => true)
+
+;(fact (c/close-to (p/angle (p/point 5 5) (p/point  0  0) (p/point 10  0)) PI05) => true)

@@ -24,8 +24,6 @@
 (def p6 (p/point 5 1))
 (def points2 (list p3 p4 p5 p6))
 (def v1 (v/voronoi points2 0 0 12 12))
-(dorun (println (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v1))))))
-(dorun (println (map #(str (c/out %)) (v/cell-corners (first (:points v1))))))
 
 (fact (count (:intersections (v/intersect-bisectors (first (:points v1)) (list)))) => 6)
 ;; this logic only holds if there are no two bisectors that are parallel.
@@ -36,10 +34,6 @@
   (for [p (:points v1)]
     ;; each point has as many bisectors as other points exist.
     (fact (count (:bisectors p)) => (- (count points2) 1))))
-(dorun
-  (for [p (:points v1)]
-    ;; each bisector has one intersection with the other bisectors.
-    (fact (count (:intersections p)) => (/ (* (count points2) (- (count points2) 1)) 2))))
 
 (def rp (p/point 1 1))
 (def rl1 (l/line (p/point 0 1) (p/point 1 2)))
@@ -61,12 +55,12 @@
 (def points3 (list p3 p4 p5))
 (def v2 (v/voronoi points3 0 0 20 20))
 ; test that there are no nullpointers
-(fact (count (v/cell-corners (nth (:points v2) 0))) => 1)
-(fact (count (v/cell-corners (nth (:points v2) 1))) => 1)
-(fact (count (v/cell-corners (nth (:points v2) 2))) => 1)
+(fact (count (v/cell-corners (nth (:points v2) 0))) => 6)
+(fact (count (v/cell-corners (nth (:points v2) 1))) => 7)
+(fact (count (v/cell-corners (nth (:points v2) 2))) => 6)
 
 (def cell1 (v/cell-corners (first (:points v1))))
-(fact (count cell1) => 3)
+(fact (count cell1) => 7)
 (def connected (v/connect-cell points3))
 (fact (count connected) => 3)
 (fact (:p1 (nth connected 0)) => p3)
@@ -77,9 +71,10 @@
 (fact (:p2 (nth connected 2)) => p3)
 
 
-(def points4 (list (p/point 5 5)))
-(def v3 (v/voronoi points4 0 0 10 10))
-(dorun (println (c/out v3)))
-(dorun (println (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v3))))))
-(dorun (println (map #(str (p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) "\n") (:intersections (first (:points v3))))))
-(dorun (println (map #(str (c/out %)) (v/cell-corners (first (:points v3))))))
+;(def points4 (list (p/point 5 5)))
+;(def v3 (v/voronoi points4 0 0 10 10))
+;(dorun (println (c/out v3)))
+;(dorun (println (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v3))))))
+;(dorun (println (map #(str (p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) "\n") (:intersections (first (:points v3))))))
+;(dorun (println (map #(str (c/out (:intersection %)) "\n") (sort-by #(p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) (:intersections (first (:points v3)))))))
+;(dorun (println (map #(str (c/out %)) (v/cell-corners (first (:points v3))))))

@@ -68,16 +68,10 @@
         t1 (* 2 d12 d13)
         t (if (= 0 t1) 0 (/ (- (+ (* d12 d12) (* d13 d13)) (* d23 d23)) t1))
         a (java.lang.Math/acos t)
-        a (if (< (:y p) 0) (+ a java.lang.Math/PI) a)]
+        a (if (< (:y p) 0) (- (* 2 java.lang.Math/PI) a) a)]
     a))
 
 (defn angle
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3."
   [p1 p2 p3]
-  (let [d1 (subtract p3 p1)
-        d2 (subtract p2 p1)
-        a1 (angle-to-x (subtract p3 p1))
-        a2 (angle-to-x (subtract p2 p1))
-        ;tmp (dorun (println (str (c/out p1) " " (c/out p2) " " (c/out p3) " is " (c/out d1) " " (c/out d2) " with " a1 " and " a2 )))
-        ])
   (- (angle-to-x (subtract p3 p1)) (angle-to-x (subtract p2 p1))))

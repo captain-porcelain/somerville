@@ -59,7 +59,6 @@
   "Given a point and its bisectors calculates all intersections of the bisectors."
   [p bbox]
   (let [bisectors (concat (:bisectors p) bbox)]
-  ;(let [bisectors (:bisectors p)]
     (assoc p :intersections (sort-intersections (reduce concat (map #(intersect % bisectors) bisectors))))))
 
 (defn count-intersections
@@ -111,11 +110,13 @@
 (defn cell-corners
   "Calculate voronoi cell corner points from intersected bisectors."
   [site]
-  (distinct
-    (map :intersection
-         (filter
-           #(relevant? (:point site) (:intersection %) (map :line (:bisectors site)))
-           (:intersections site)))))
+  (sort-by
+    #(p/angle (:point site) (p/point 0 0) %)
+    (distinct
+      (map :intersection
+           (filter
+             #(relevant? (:point site) (:intersection %) (map :line (:bisectors site)))
+             (:intersections site))))))
 
 (defn connect-cell
   "Connect a list of points into a list of lines from point to point."
