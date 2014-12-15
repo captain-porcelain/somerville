@@ -77,6 +77,9 @@
 (fact (:p2 (nth connected 2)) => p3)
 
 
-;(def points4 (list (p/point 371 264) (p/point 461 136) (p/point 249 145)))
-;(def v3 (v/voronoi points4 0 0 500 500))
-;(dorun (println (c/out v3)))
+(def points4 (list (p/point 5 5)))
+(def v3 (v/voronoi points4 0 0 10 10))
+(dorun (println (c/out v3)))
+(dorun (println (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v3))))))
+(dorun (println (map #(str (p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) "\n") (:intersections (first (:points v3))))))
+(dorun (println (map #(str (c/out %)) (v/cell-corners (first (:points v3))))))
