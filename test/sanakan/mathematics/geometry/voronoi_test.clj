@@ -24,7 +24,8 @@
 (def p6 (p/point 5 1))
 (def points2 (list p3 p4 p5 p6))
 (def v1 (v/voronoi points2 0 0 12 12))
-;(dorun (println (c/out v1)))
+(dorun (println (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v1))))))
+(dorun (println (map #(str (c/out %)) (v/cell-corners (first (:points v1))))))
 
 (fact (count (:intersections (v/intersect-bisectors (first (:points v1)) (list)))) => 6)
 ;; this logic only holds if there are no two bisectors that are parallel.

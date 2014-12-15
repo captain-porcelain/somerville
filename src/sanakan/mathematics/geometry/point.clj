@@ -35,20 +35,44 @@
         dy (- (:y p2) (:y p1))]
     (if (= dx 0) nil (/ dy dx))))
 
+(defn subtract
+  "Subtract second point from first"
+  [p1 p2]
+  (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2))))
+
 (defn distance
   "Calculate distance between two points."
   [p1 p2]
   (let [;tmp (dorun (println (str "distance between "p1 " and " p2)))
-		dx (- (:x p1) (:x p2))
+        dx (- (:x p1) (:x p2))
         dy (- (:y p1) (:y p2))]
     (nt/sqrt (+ (* dx dx) (* dy dy)))))
+
+(defn quadrant
+  "Get the quadrant a point is in."
+  [p]
+  (cond (and (=  (:x p) 0) (=  (:y p) 0)) 1
+        (and (>  (:x p) 0) (>= (:y p) 0)) 1
+        (and (<= (:x p) 0) (>  (:y p) 0)) 2
+        (and (<  (:x p) 0) (<= (:y p) 0)) 3
+        (and (>= (:x p) 0) (<  (:y p) 0)) 4))
+
+(defn angle-to-x
+  "Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p."
+  [p]
+  (let [p1 (point 0 0)
+        p2 (point 1 0)
+        p3 p
+        d12 (distance p1 p2)
+        d13 (distance p1 p3)
+        d23 (distance p2 p3)
+        t1 (* 2 d12 d13)
+        t (if (= 0 t1) 0 (/ (- (+ (* d12 d12) (* d13 d13)) (* d23 d23)) t1))
+        a (java.lang.Math/acos t)
+        a (if (< (:y p) 0) (+ a java.lang.Math/PI) a)]
+    a))
 
 (defn angle
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3."
   [p1 p2 p3]
-  (let [d12 (distance p1 p2)
-        d13 (distance p1 p3)
-        d23 (distance p2 p3)
-        t1 (* 2 d12 d13)
-        t (if (= 0 t1) 0 (/ (- (+ (* d12 d12) (* d13 d13)) (* d23 d23)) t1))]
-    (java.lang.Math/acos t)))
+  (- (angle-to-x (subtract p3 p1)) (angle-to-x (subtract p2 p1))))
