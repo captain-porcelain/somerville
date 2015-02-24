@@ -57,4 +57,6 @@
 
 (fact (count (ff/fill (p/point -1 -1) points blocked-value-fn blocked-decider-fn)) => 77)
 
+(fact (count (ff/partition points negative-value-fn negative-decider-fn)) => 97)
 
+(fact (count (ff/partition points blocked-value-fn blocked-decider-fn)) => 3)
