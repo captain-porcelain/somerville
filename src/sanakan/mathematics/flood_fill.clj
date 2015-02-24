@@ -47,3 +47,19 @@
               np (concat (rest newpoints) (remove (set (concat newpoints accepted)) n)) ;; filter neighbours to new ones
               ap (conj accepted p)]
           (recur np ap))))))
+
+(defn partition
+  "Use flood fill to partition a space and return a list of partitions with their points."
+  [points value-fn decider-fn]
+  (loop [remaining (add-value points value-fn)
+         i 0
+         partitions '()]
+    (if (= 0 (count remaining))
+      partitions
+      (let [seed (first remaining)
+            testpoints (rest remaining)
+            part (fill seed testpoints value-fn decider-fn)
+            restpoints (remove (set part) testpoints)
+            ;tmp (dorun (println (str "run " i ": " (count part) " - " (count restpoints))))
+            ]
+        (recur restpoints (+ i 1) (conj partitions part))))))
