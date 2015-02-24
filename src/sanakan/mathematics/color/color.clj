@@ -7,18 +7,22 @@
 (defn random-color
   "Create a random color without transparency."
   []
-  (ColorRGBA. (rand-int 255) (rand-int 255) (rand-int 255) 0))
+  (ColorRGBA. (rand-int 255) (rand-int 255) (rand-int 255) 255))
 
 (defn rgba
   "Convert integer to rgb tupel. No transparancy is supported."
-  [^Integer c]
-  (let [
-        c1 (int (/ c 256))
-        c2 (int (/ c1 256))
-        ;c1 (unchecked-divide c 256)
-        ;c2 (unchecked-divide c1 256)
-        ]
-    (ColorRGBA. (mod c 256) (mod c1 256) (mod c2 256) 0)))
+  ([^Integer c]
+    (let [
+          c1 (int (/ c 256))
+          c2 (int (/ c1 256))
+          ;c1 (unchecked-divide c 256)
+          ;c2 (unchecked-divide c1 256)
+          ]
+      (ColorRGBA. (mod c 256) (mod c1 256) (mod c2 256) 0)))
+  ([^Integer r ^Integer g ^Integer b]
+   (ColorRGBA. r g b 255))
+  ([^Integer r ^Integer g ^Integer b ^Integer a]
+   (ColorRGBA. r g b a)))
 
 (def white-d50 (ColorXYZ. 0.964221 1.0 0.825211))
 
@@ -61,3 +65,14 @@
         bs (* 200 (- fy fz))]
     (ColorLab. (int (+ (* 2.55 Ls) 0.5)) (int (+ as 0.5)) (int (+ bs 0.5)))))
 
+(def justnoticeable 2.3)
+
+(defn cie76
+  "Calculate color difference between two colors."
+  [c1 c2]
+  (let [lab1 (lab c1)
+        lab2 (lab c2)
+        ld (- (:l lab2) (:l lab1))
+        ad (- (:a lab2) (:a lab1))
+        bd (- (:b lab2) (:b lab1))]
+    (java.lang.Math/sqrt (+ (* ld ld) (+ ad ad) (* bd bd)))))
