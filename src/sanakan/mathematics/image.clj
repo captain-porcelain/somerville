@@ -26,12 +26,12 @@
 
 (defn in-bounds?
   "Check if a pixel is inside an image."
-  [^BufferedImage img [^Integer x ^Integer y]]
+  [^BufferedImage img p]
   (and
-    (< x (.getWidth img))
-    (> x -1)
-    (< y (.getHeight img))
-    (> y -1)))
+    (< (:x p) (.getWidth img))
+    (> (:x p) -1)
+    (< (:y p) (.getHeight img))
+    (> (:y p) -1)))
 
 (defn free?
   "Check if a pixel represents a free space."
