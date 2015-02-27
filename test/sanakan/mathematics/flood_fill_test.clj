@@ -97,7 +97,7 @@
                           b more-numbers]
                       (p/point a b))
         starttime (System/currentTimeMillis)
-        parts (count (ff/test-neighbours p3 (ff/add-value more-points negative-value-fn) negative-decider-fn))
+        parts (count (ff/test-neighbours p3 more-points negative-decider-fn))
         endtime (System/currentTimeMillis)]
     (dorun (println (str "fitering neighbours old " size " took " (- endtime starttime) "ms")))))
 
