@@ -1,5 +1,5 @@
 ;; Provides a simple algorithm to flood fill an area
-(ns sanakan.mathematics.flood-fill
+(ns sanakan.mathematics.fills.flood-fill
   (:require
     [sanakan.mathematics.geometry.point :as p]))
 
@@ -61,7 +61,7 @@
             np (concat (rest newpoints) n) ;; and add to list of candidates
             ap (conj accepted p)
             ;endtime (System/currentTimeMillis)
-            ;tmp (dorun (println (str "run " i ": " (count np) " - " (count ap) " took " (- endtime starttime))))
+            ;tmp (dorun (println (str "fill run " i ": " (count np) " - " (count ap) " took " (- endtime starttime))))
             ]
         (recur np (+ i 1) ap)))))
 
@@ -75,10 +75,13 @@
          partitions '()]
     (if (= 0 (count remaining))
       partitions
-      (let [seed (first remaining)
+      (let [
+            ;starttime (System/currentTimeMillis)
+            seed (first remaining)
             testpoints (rest remaining)
             part (fill seed testpoints decider-fn x1 y1 x2 y2)
             restpoints (remove (set part) testpoints)
-            ;tmp (dorun (println (str "run " i ": " (count part) " - " (count restpoints))))
+            ;endtime (System/currentTimeMillis)
+            ;tmp (dorun (println (str "partition run " i ": " (count part) " - " (count restpoints) " took " (- endtime starttime))))
             ]
         (recur restpoints (+ i 1) (conj partitions part))))))
