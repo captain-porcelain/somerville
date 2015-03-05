@@ -1,6 +1,6 @@
-(ns sanakan.mathematics.flood-fill-test
+(ns sanakan.mathematics.fills.flood-fill-test
   (:require
-    [sanakan.mathematics.flood-fill :as ff]
+    [sanakan.mathematics.fills.flood-fill :as ff]
     [sanakan.mathematics.geometry.point :as p])
   (:use midje.sweet))
 
@@ -50,8 +50,6 @@
 
 (fact (count (ff/partition points negative-decider-fn -5 -5 5 5)) => 97)
 (fact (count (ff/partition points blocked-decider-fn -5 -5 5 5)) => 3)
-
-(dorun (println "after testing first partitions"))
 
 (defn test-fill
   [size]

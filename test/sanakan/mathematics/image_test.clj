@@ -1,7 +1,8 @@
 (ns sanakan.mathematics.image-test
   (:require
     [sanakan.mathematics.image :as i]
-    [sanakan.mathematics.flood-fill :as ff]
+    [sanakan.mathematics.fills.flood-fill :as ff]
+    [sanakan.mathematics.fills.line-fill :as lf]
     [sanakan.mathematics.geometry.point :as p]
     [sanakan.mathematics.color.color :as c])
   (:use midje.sweet))
@@ -22,7 +23,10 @@
               (p/point a b)))
 
 ;(dorun (println (str (java.util.Date.) " start")))
-;(def partitions (try (ff/partition2 points decider-fn 0 0 319 319) (catch Exception e (.printStackTrace e))))
+;(def partitions (try (ff/partition points decider-fn 0 0 319 319) (catch Exception e (.printStackTrace e))))
 ;(dorun (println (str (java.util.Date.) " end")))
 
 
+;(dorun (println (str (java.util.Date.) " start")))
+;(def partitions (try (lf/partition points decider-fn 0 0 319 319) (catch Exception e (.printStackTrace e))))
+;(dorun (println (str (java.util.Date.) " end")))
