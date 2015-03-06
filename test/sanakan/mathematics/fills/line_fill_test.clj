@@ -2,7 +2,8 @@
   (:require
     [sanakan.mathematics.fills.line-fill :as lf]
     [sanakan.mathematics.geometry.commons :as c]
-    [sanakan.mathematics.geometry.point :as p])
+    [sanakan.mathematics.geometry.point :as p]
+    [sanakan.mathematics.geometry.line :as l])
   (:use midje.sweet))
 
 (defn negative-decider-fn
@@ -41,7 +42,6 @@
 (fact (count (nth (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn) 1)) =>  6)
 
 (fact (count (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn))) =>  2)
-(dorun (println (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn))))
 (fact (:p1 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 0)) =>  (p/point -5 -1))
 (fact (:p2 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 0)) =>  (p/point -1 -1))
 (fact (:p1 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 1)) =>  (p/point  0 -1))
@@ -49,20 +49,30 @@
 
 (def p1 (p/point -5 -5))
 
-(fact (count (lf/fill2 p1 5 5 negative-decider-fn)) => 11)
-(fact (count (nth (lf/fill2 p1 5 5 negative-decider-fn) 0)) => 2)
-(fact (:p1 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 0) 0))  => (p/point -5 -5))
-(fact (:p2 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 0) 0))  => (p/point -1 -5))
-(fact (:p1 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 0) 1))  => (p/point  0 -5))
-(fact (:p2 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 0) 1))  => (p/point  5 -5))
-(fact (count (nth (lf/fill2 p1 5 5 negative-decider-fn) 4)) => 2)
-(fact (:p1 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 4) 0))  => (p/point -5 -1))
-(fact (:p2 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 4) 0))  => (p/point -1 -1))
-(fact (:p1 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 4) 1))  => (p/point  0 -1))
-(fact (:p2 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 4) 1))  => (p/point  5 -1))
-(fact (count (nth (lf/fill2 p1 5 5 negative-decider-fn) 5)) => 1)
-(fact (:p1 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 5) 0))  => (p/point -5  0))
-(fact (:p2 (nth (nth (lf/fill2 p1 5 5 negative-decider-fn) 5) 0))  => (p/point  5  0))
+(fact (count (lf/lineify p1 5 5 negative-decider-fn)) => 11)
+(fact (count (nth (lf/lineify p1 5 5 negative-decider-fn) 0)) => 2)
+(fact (:p1 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 0) 0))  => (p/point -5 -5))
+(fact (:p2 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 0) 0))  => (p/point -1 -5))
+(fact (:p1 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 0) 1))  => (p/point  0 -5))
+(fact (:p2 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 0) 1))  => (p/point  5 -5))
+(fact (count (nth (lf/lineify p1 5 5 negative-decider-fn) 4)) => 2)
+(fact (:p1 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 4) 0))  => (p/point -5 -1))
+(fact (:p2 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 4) 0))  => (p/point -1 -1))
+(fact (:p1 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 4) 1))  => (p/point  0 -1))
+(fact (:p2 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 4) 1))  => (p/point  5 -1))
+(fact (count (nth (lf/lineify p1 5 5 negative-decider-fn) 5)) => 1)
+(fact (:p1 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 5) 0))  => (p/point -5  0))
+(fact (:p2 (nth (nth (lf/lineify p1 5 5 negative-decider-fn) 5) 0))  => (p/point  5  0))
+
+(fact (lf/overlaps? (l/line (p/point 1 0) (p/point 3 0)) (l/line (p/point 2 0) (p/point 4 0))) => true)
+(fact (lf/overlaps? (l/line (p/point 1 0) (p/point 4 0)) (l/line (p/point 2 0) (p/point 3 0))) => true)
+(fact (lf/overlaps? (l/line (p/point 2 0) (p/point 4 0)) (l/line (p/point 1 0) (p/point 3 0))) => true)
+(fact (lf/overlaps? (l/line (p/point 2 0) (p/point 3 0)) (l/line (p/point 1 0) (p/point 4 0))) => true)
+(fact (lf/overlaps? (l/line (p/point 1 0) (p/point 2 0)) (l/line (p/point 3 0) (p/point 4 0))) => false)
+(fact (lf/overlaps? (l/line (p/point 3 0) (p/point 4 0)) (l/line (p/point 1 0) (p/point 2 0))) => false)
+
+
+
 
 (fact (count (lf/filter-row  (p/point -5 -1) -2 negative-decider-fn)) =>  0)
 (fact (count (lf/filter-row  (p/point -5 -5)  5 negative-decider-fn)) =>  5)
