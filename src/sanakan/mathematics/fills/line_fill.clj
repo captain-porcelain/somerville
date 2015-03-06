@@ -39,6 +39,34 @@
   [line]
   (map #(l/line (first %) (last %)) line))
 
+(defn lineify
+  "Map each line to a list of line segments that have a similar color."
+  [p max-x max-y decider-fn]
+  (map #(reduce-line (filter-line2 % max-x decider-fn)) (make-column p max-y)))
+
+(defn overlaps?
+  [l1 l2]
+  (let [x11 (:x (:p1 l1))
+        x12 (:x (:p2 l1))
+        x21 (:x (:p1 l2))
+        x22 (:x (:p2 l2))]
+    (or
+      (and (< x11 x21) (< x12 x22) (> x12 x21))
+      (and (< x11 x21) (> x12 x22))
+      (and (> x11 x21) (> x12 x22) (< x11 x22))
+      (and (> x11 x21) (< x12 x22)))))
+
+(defn find-matching-segment
+  [line lines decider-fn]
+  (filter #() lines))
+
+(defn fill2
+  "Find "
+  [line others]
+  (map #(identity) line others))
+
+;; old version
+
 (defn filter-line
   "Take points of a line while decider-fn accepts the points."
   [p max-x decider-fn]
@@ -54,11 +82,6 @@
     #(and (<= (:y %) max-y) (decider-fn p %))
     (map #(p/point (:x p) %)
          (iterate inc (:y p)))))
-
-(defn fill2
-  "Start at a point and "
-  [p max-x max-y decider-fn]
-  (map #(reduce-line (filter-line2 % max-x decider-fn)) (make-column p max-y)))
 
 (defn fill
   "Start at a point and "
