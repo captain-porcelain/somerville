@@ -40,61 +40,32 @@
   (map #(l/line (first %) (last %)) line))
 
 (defn lineify
-  "Map each line to a list of line segments that have a similar color."
+  "Map each line to a list of line segments that are acceptable."
   [p max-x max-y decider-fn]
   (map #(reduce-line (filter-line2 % max-x decider-fn)) (make-column p max-y)))
 
 (defn overlaps?
+  "Check if two lines overlap on the x axis."
   [l1 l2]
   (let [x11 (:x (:p1 l1))
         x12 (:x (:p2 l1))
         x21 (:x (:p1 l2))
         x22 (:x (:p2 l2))]
     (or
-      (and (< x11 x21) (< x12 x22) (> x12 x21))
-      (and (< x11 x21) (> x12 x22))
-      (and (> x11 x21) (> x12 x22) (< x11 x22))
-      (and (> x11 x21) (< x12 x22)))))
+      (and (<= x11 x21) (<= x12 x22) (>= x12 x21))
+      (and (<= x11 x21) (>= x12 x22))
+      (and (>= x11 x21) (>= x12 x22) (<= x11 x22))
+      (and (>= x11 x21) (<= x12 x22)))))
 
-(defn find-matching-segment
+(defn find-matching-segments
+  "Find matching line segments that overlap and are acceptable."
   [line lines decider-fn]
-  (filter #() lines))
-
-(defn fill2
-  "Find "
-  [line others]
-  (map #(identity) line others))
-
-;; old version
-
-(defn filter-line
-  "Take points of a line while decider-fn accepts the points."
-  [p max-x decider-fn]
-  (take-while
-    #(and (<= (:x %) max-x) (decider-fn p %))
-    (map #(p/point % (:y p))
-         (iterate inc (:x p)))))
-
-(defn filter-row
-  "Take points of a row while decider-fn accepts the points."
-  [p max-y decider-fn]
-  (take-while
-    #(and (<= (:y %) max-y) (decider-fn p %))
-    (map #(p/point (:x p) %)
-         (iterate inc (:y p)))))
+  (filter #(and (overlaps? line %) (decider-fn (:p1 line) (:p1 %))) lines))
 
 (defn fill
-  "Start at a point and "
+  "Find clusters of line segments that are accepted by the decider function."
   [p max-x max-y decider-fn]
-  (let [ys (filter-row p max-y decider-fn)
-        xs (map #(filter-line % max-x decider-fn) ys)
-        last-points (map last xs)
-        candidates (map
-                     #(p/point
-                        (+ (:x %) 1)
-                        (:y %))
-                     (filter #(not (nil? %)) last-points))]
-    {:points (reduce concat xs) :candidates candidates}))
+  (map #(identity) (lineify p max-x max-y decider-fn)))
 
 (defn partition
   ""
