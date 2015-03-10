@@ -19,6 +19,13 @@
     (and (= (:x p1) 2) (= (:x p2) 2))
     (and (> (:x p1) 2) (> (:x p2) 2))))
 
+(defn vertical-decider-fn
+  [p1 p2]
+  (or
+    (and (< (:y p1) 2) (< (:y p2) 2))
+    (and (= (:y p1) 2) (= (:y p2) 2))
+    (and (> (:y p1) 2) (> (:y p2) 2))))
+
 (defn complex-decider-fn
   [p1 p2]
   (if (and (< (:y p1) 2) (< (:y p2) 2))
@@ -146,3 +153,9 @@
 (fact (nth   (nth parts2 2) 1) => (l/line (p/point 3 4) (p/point 5 4)))
 (fact (nth   (nth parts2 2) 2) => (l/line (p/point 3 3) (p/point 5 3)))
 (fact (nth   (nth parts2 2) 3) => (l/line (p/point 3 2) (p/point 5 2)))
+
+;; Test that partitioning works when clusters end
+(def parts3 (lf/partition (p/point -5 -5) 5 5 vertical-decider-fn))
+(fact (count      parts3)    => 3)
+
+
