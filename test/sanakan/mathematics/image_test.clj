@@ -27,11 +27,7 @@
 ;(dorun (println (str (java.util.Date.) " end")))
 
 
-(dorun (println (str (java.util.Date.) " start")))
-(def partitions (try (lf/lineify (p/point 0 0) 319 319 decider-fn) (catch Exception e (.printStackTrace e))))
-(dorun (println (str (java.util.Date.) " end")))
-(dorun (println (count partitions)))
-(dorun (println (count (nth partitions 0))))
-(dorun (println (count (nth partitions 1))))
-(dorun (println (count (nth partitions 10))))
-
+;(dorun (println (str (java.util.Date.) " start")))
+;(def partitions (try (lf/partition (p/point 0 0) 319 319 decider-fn) (catch Exception e (.printStackTrace e))))
+;(dorun (println (str (java.util.Date.) " end")))
+;(try (dorun (println (count partitions))) (catch Exception e (.printStackTrace e)))
