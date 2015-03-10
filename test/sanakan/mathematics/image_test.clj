@@ -26,8 +26,7 @@
 ;(def partitions (try (ff/partition points decider-fn 0 0 319 319) (catch Exception e (.printStackTrace e))))
 ;(dorun (println (str (java.util.Date.) " end")))
 
-
 ;(dorun (println (str (java.util.Date.) " start")))
 ;(def partitions (try (lf/partition (p/point 0 0) 319 319 decider-fn) (catch Exception e (.printStackTrace e))))
 ;(dorun (println (str (java.util.Date.) " end")))
-;(try (dorun (println (count partitions))) (catch Exception e (.printStackTrace e)))
+;(dorun (println (count partitions)))

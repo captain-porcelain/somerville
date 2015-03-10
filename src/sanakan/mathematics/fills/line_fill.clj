@@ -66,7 +66,10 @@
 (defn attach-matching-segment
   "From a list of candidates select the matching one and add it to a cluster."
   [segmentation lines decider-fn]
-  (conj segmentation (find-matching-segment (first segmentation) lines decider-fn)))
+  (let [matched (find-matching-segment (first segmentation) lines decider-fn)]
+    (if (nil? matched)
+      segmentation
+      (conj segmentation matched))))
 
 (defn cluster-line
   "Find clusters of line segments that are accepted by the decider function."
@@ -85,3 +88,4 @@
       (if (= 0 (count candidates))
         clusters
         (recur (cluster-line clusters (first candidates) decider-fn) (rest candidates))))))
+
