@@ -40,17 +40,17 @@
 (fact (= @seed (p/point 0 -1)))
 
 ;; Test that we are able to break a line of points into lists of points by applying the decider functions.
-(fact (count (lf/filter-line2 (p/point -5 -1) -2 negative-decider-fn)) =>  1)
-(fact (count (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) =>  2)
-(fact (count (nth (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn) 0)) =>  5)
-(fact (count (nth (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn) 1)) =>  6)
+(fact (count      (lf/filter-line (p/point -5 -1) -2 negative-decider-fn))    =>  1)
+(fact (count      (lf/filter-line (p/point -5 -1)  5 negative-decider-fn))    =>  2)
+(fact (count (nth (lf/filter-line (p/point -5 -1)  5 negative-decider-fn) 0)) =>  5)
+(fact (count (nth (lf/filter-line (p/point -5 -1)  5 negative-decider-fn) 1)) =>  6)
 
 ;; Also make sure that we collapse the partitioned line into a list of line segments.
-(fact (count (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn))) =>  2)
-(fact (:p1 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 0)) =>  (p/point -5 -1))
-(fact (:p2 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 0)) =>  (p/point -1 -1))
-(fact (:p1 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 1)) =>  (p/point  0 -1))
-(fact (:p2 (nth (lf/reduce-line (lf/filter-line2 (p/point -5 -1)  5 negative-decider-fn)) 1)) =>  (p/point  5 -1))
+(fact (count    (lf/reduce-line (lf/filter-line (p/point -5 -1)  5 negative-decider-fn))) =>  2)
+(fact (:p1 (nth (lf/reduce-line (lf/filter-line (p/point -5 -1)  5 negative-decider-fn)) 0)) =>  (p/point -5 -1))
+(fact (:p2 (nth (lf/reduce-line (lf/filter-line (p/point -5 -1)  5 negative-decider-fn)) 0)) =>  (p/point -1 -1))
+(fact (:p1 (nth (lf/reduce-line (lf/filter-line (p/point -5 -1)  5 negative-decider-fn)) 1)) =>  (p/point  0 -1))
+(fact (:p2 (nth (lf/reduce-line (lf/filter-line (p/point -5 -1)  5 negative-decider-fn)) 1)) =>  (p/point  5 -1))
 
 ;; Test that we can combine the functionality tested above into a an algorithm that returnes a list of lines
 ;; where each line consists of partitioned lines.

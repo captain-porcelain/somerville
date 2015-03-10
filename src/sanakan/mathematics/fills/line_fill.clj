@@ -26,7 +26,7 @@
   [p max-y]
   (map #(p/point (:x p) %) (take-while #(<= % max-y) (iterate inc (:y p)))))
 
-(defn filter-line2
+(defn filter-line
   "Take points of a line while decider-fn accepts the points."
   [p max-x decider-fn]
   (let [seed (atom p)]
@@ -42,7 +42,7 @@
 (defn lineify
   "Map each line to a list of line segments that are acceptable."
   [p max-x max-y decider-fn]
-  (map #(reduce-line (filter-line2 % max-x decider-fn)) (make-column p max-y)))
+  (map #(reduce-line (filter-line % max-x decider-fn)) (make-column p max-y)))
 
 (defn overlaps?
   "Check if two lines overlap on the x axis."
@@ -65,7 +65,10 @@
 (defn fill
   "Find clusters of line segments that are accepted by the decider function."
   [p max-x max-y decider-fn]
-  (map #(identity) (lineify p max-x max-y decider-fn)))
+  (let [lined (lineify p max-x max-y decider-fn)
+        starters (first lined)
+        candidates (rest lined)]
+    ))
 
 (defn partition
   ""
