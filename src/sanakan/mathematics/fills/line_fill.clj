@@ -10,6 +10,7 @@
   (nil? (some #(= itm %) itms)))
 
 (defn partition-fn
+  "Create a function that can be used to partition one line into segments."
   [decider-fn seed]
   (fn [p]
     (let [r (decider-fn @seed p)
@@ -57,33 +58,30 @@
       (and (>= x11 x21) (>= x12 x22) (<= x11 x22))
       (and (>= x11 x21) (<= x12 x22)))))
 
-(defn find-matching-segments
+(defn find-matching-segment
   "Find matching line segments that overlap and are acceptable."
   [line lines decider-fn]
-  (filter #(and (overlaps? line %) (decider-fn (:p1 line) (:p1 %))) lines))
+  (first (filter #(and (overlaps? line %) (decider-fn (:p1 line) (:p1 %))) lines)))
 
-(defn fill
+(defn attach-matching-segment
+  "From a list of candidates select the matching one and add it to a cluster."
+  [segmentation lines decider-fn]
+  (conj segmentation (find-matching-segment (first segmentation) lines decider-fn)))
+
+(defn cluster-line
   "Find clusters of line segments that are accepted by the decider function."
-  [p max-x max-y decider-fn]
-  (let [lined (lineify p max-x max-y decider-fn)
-        starters (first lined)
-        candidates (rest lined)]
-    ))
+  [segments line decider-fn]
+  (let [updated (map #(attach-matching-segment % line decider-fn) segments)
+        matched (map first updated)
+        unmatched (filter #(is-not-in % matched) line)]
+    (concat updated (map #(list %) unmatched))))
 
 (defn partition
-  ""
-  [decider-fn x1 y1 max-x max-y]
-  (loop [candidates (list (p/point x1 y1))
-         partitions '()]
-    (if (= 0 (count candidates))
-      partitions
-      (let [p (first candidates)
-            filled (fill p max-y max-y decider-fn)
-            r (:candidates filled)
-            ;r (filter #(is-not-in % all) (:candidates filled))
-            c (concat r (rest candidates))
-            parts (conj partitions (:points filled))
-            ;a (concat all (:points filled))
-            ]
-        (recur c parts)))))
-
+  "Find clusters of line segments that are accepted by the decider function."
+  [p max-x max-y decider-fn]
+  (let [lined (lineify p max-x max-y decider-fn)]
+    (loop [clusters (map #(list %) (first lined))
+           candidates (rest lined)]
+      (if (= 0 (count candidates))
+        clusters
+        (recur (cluster-line clusters (first candidates) decider-fn) (rest candidates))))))
