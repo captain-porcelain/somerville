@@ -156,6 +156,20 @@
 
 ;; Test that partitioning works when clusters end
 (def parts3 (lf/partition (p/point -5 -5) 5 5 vertical-decider-fn))
-(fact (count      parts3)    => 3)
+(fact (count      parts3)      => 3)
+(fact (count (nth parts3 0))   => 7)
+(fact (nth   (nth parts3 0) 0) => (l/line (p/point -5  1) (p/point 5  1)))
+(fact (nth   (nth parts3 0) 1) => (l/line (p/point -5  0) (p/point 5  0)))
+(fact (nth   (nth parts3 0) 2) => (l/line (p/point -5 -1) (p/point 5 -1)))
+(fact (nth   (nth parts3 0) 3) => (l/line (p/point -5 -2) (p/point 5 -2)))
+(fact (nth   (nth parts3 0) 4) => (l/line (p/point -5 -3) (p/point 5 -3)))
+(fact (nth   (nth parts3 0) 5) => (l/line (p/point -5 -4) (p/point 5 -4)))
+(fact (nth   (nth parts3 0) 6) => (l/line (p/point -5 -5) (p/point 5 -5)))
+(fact (count (nth parts3 1))   => 1)
+(fact (nth   (nth parts3 1) 0) => (l/line (p/point -5  2) (p/point 5  2)))
+(fact (count (nth parts3 2))   => 3)
+(fact (nth   (nth parts3 2) 0) => (l/line (p/point -5  5) (p/point 5  5)))
+(fact (nth   (nth parts3 2) 1) => (l/line (p/point -5  4) (p/point 5  4)))
+(fact (nth   (nth parts3 2) 2) => (l/line (p/point -5  3) (p/point 5  3)))
 
 
