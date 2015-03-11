@@ -87,5 +87,7 @@
            candidates (rest lined)]
       (if (= 0 (count candidates))
         clusters
+        ;(let [tmp (dorun (println (str (count clusters) " clusters and " (count candidates)  " candidates")))]
         (recur (cluster-line clusters (first candidates) decider-fn) (rest candidates))))))
+        ; )
 

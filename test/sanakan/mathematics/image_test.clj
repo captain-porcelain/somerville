@@ -13,7 +13,7 @@
   [p1 p2]
   (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
-    (< cie 5)))
+    (< cie 15)))
 
 ;(dorun (println (decider-fn (p/point 0 0) (p/point 1 1))))
 
@@ -26,7 +26,11 @@
 ;(def partitions (try (ff/partition points decider-fn 0 0 319 319) (catch Exception e (.printStackTrace e))))
 ;(dorun (println (str (java.util.Date.) " end")))
 
-;(dorun (println (str (java.util.Date.) " start")))
-;(def partitions (try (lf/partition (p/point 0 0) 319 319 decider-fn) (catch Exception e (.printStackTrace e))))
-;(dorun (println (str (java.util.Date.) " end")))
-;(dorun (println (count partitions)))
+;(def parts
+;  (let [starttime (System/currentTimeMillis)
+;        endtime (System/currentTimeMillis)
+;        partitions (lf/partition (p/point 0 0) 319 319 decider-fn)
+;        tmp (dorun (println (str "found " (count partitions) " in " (- endtime starttime) " ms.")))]
+;    partitions))
+
+;(dorun (println (count parts)))
