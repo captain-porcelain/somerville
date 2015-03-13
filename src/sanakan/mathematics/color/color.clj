@@ -12,13 +12,8 @@
 (defn rgba
   "Convert integer to rgb tupel. No transparancy is supported."
   ([^Integer c]
-    (let [
-          c1 (int (/ c 256))
-          c2 (int (/ c1 256))
-          ;c1 (unchecked-divide c 256)
-          ;c2 (unchecked-divide c1 256)
-          ]
-      (ColorRGBA. (mod c 256) (mod c1 256) (mod c2 256) 0)))
+    (let [col (java.awt.Color. c)]
+      (ColorRGBA. (.getRed col) (.getGreen col) (.getBlue col) 0)))
   ([^Integer r ^Integer g ^Integer b]
    (ColorRGBA. r g b 255))
   ([^Integer r ^Integer g ^Integer b ^Integer a]

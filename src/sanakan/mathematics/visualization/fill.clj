@@ -11,7 +11,7 @@
 (def test-image (atom nil))
 (def partitions (atom nil))
 (def draw-fill (atom true))
-(def threshold (atom 15))
+(def threshold (atom 10))
 (def image (i/load-image "./resources/test-image.jpg"))
 
 (defn decider-fn
@@ -44,7 +44,7 @@
   []
   (quil/smooth)
   (quil/fill 226)
-  (quil/frame-rate 10)
+  (quil/frame-rate 1)
   (reset! test-image (quil/load-image  "/home/sanakan/code/mathematics/resources/test-image.jpg"))
   (reset! partitions (lf/partition (p/point 0 0) 319 319 decider-fn)))
 
@@ -65,7 +65,7 @@
     (let []
       (dorun (println "partitioning ..."))
       (reset! partitions (lf/partition (p/point 0 0) 319 319 decider-fn))
-      (dorun (println "... done"))))
+      (dorun (println (str "... done. found " (count @partitions) " partitions")))))
   (if (= (quil/key-code) 68) ; d
     (reset! draw-fill (not @draw-fill))))
 
