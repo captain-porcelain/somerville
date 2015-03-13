@@ -10,13 +10,15 @@
 (def height 320)
 (def test-image (atom nil))
 (def partitions (atom nil))
+(def draw-fill (atom true))
+(def threshold (atom 15))
 (def image (i/load-image "./resources/test-image.jpg"))
 
 (defn decider-fn
   [p1 p2]
   (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
-    (< cie 20)))
+    (< cie @threshold)))
 
 (defn draw-cluster
   [cluster]
@@ -34,7 +36,7 @@
   (quil/stroke-float 0 255 0)
   (quil/fill-float 0 255 0)
   (quil/image @test-image 0 0)
-  (dorun (draw-cluster (first partitions))))
+  (when @draw-fill (dorun (draw-cluster (first @partitions)))))
 
 (defn setup
   "This function is called by quil once before drawing"
@@ -48,7 +50,23 @@
 (defn mouse-pressed [])
 (defn mouse-released [])
 
-(defn key-pressed [])
+(defn key-pressed []
+  ;;(dorun (println (str "pressed code " (quil/key-code))))
+  (if (= (quil/key-code) 521) ; +
+    (let []
+      (reset! threshold (+ @threshold 1))
+      (dorun (println (str "threshold is " @threshold)))))
+  (if (= (quil/key-code) 45) ; -
+    (let []
+      (reset! threshold (- @threshold 1))
+      (dorun (println (str "threshold is " @threshold)))))
+  (if (= (quil/key-code) 80) ; p 
+    (let []
+      (dorun (println "partitioning ..."))
+      (reset! partitions (lf/partition (p/point 0 0) 319 319 decider-fn))
+      (dorun (println "... done"))))
+  (if (= (quil/key-code) 68) ; d
+    (reset! draw-fill (not @draw-fill))))
 
 (defn show []
   (quil/sketch
