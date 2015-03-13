@@ -24,9 +24,10 @@
   [cluster]
   (dorun
     (for [l cluster]
-      (let []
-        (quil/stroke-float 255 255 0)
-        (quil/fill-float 255 255 0)
+      (let [p (:p1 (first cluster))
+            dc (c/rgba (.getRGB image (:x p) (:y p)))]
+        (quil/stroke-float (:r dc) (:g dc) (:b dc))
+        (quil/fill-float (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
@@ -36,7 +37,7 @@
   (quil/stroke-float 0 255 0)
   (quil/fill-float 0 255 0)
   (quil/image @test-image 0 0)
-  (when @draw-fill (dorun (draw-cluster (first @partitions)))))
+  (when @draw-fill (dorun (for [cl @partitions] (draw-cluster cl)))))
 
 (defn setup
   "This function is called by quil once before drawing"
