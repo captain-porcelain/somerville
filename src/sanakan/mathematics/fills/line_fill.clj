@@ -96,3 +96,15 @@
         (recur (cluster-line clusters (first candidates) decider-fn) (rest candidates))))))
         ; )
 
+(defn in-line?
+  "Check if a point is in a line."
+  [p line]
+  (and
+    (=  (:y p) (:y (:p1 line)))
+    (>= (:x p) (:x (:p1 line)))
+    (<= (:x p) (:x (:p2 line)))))
+
+(defn in-cluster?
+  "Check if a point is in a cluster."
+  [p cluster]
+  (= true (some true? (map #(in-line? p %) cluster))))

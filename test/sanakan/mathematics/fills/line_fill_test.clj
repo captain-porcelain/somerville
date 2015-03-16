@@ -176,3 +176,12 @@
 (fact (lf/cluster-size (nth parts3 0)) => 77)
 (fact (lf/cluster-size (nth parts3 1)) => 11)
 (fact (lf/cluster-size (nth parts3 2)) => 33)
+
+(fact (lf/in-line? (p/point 0 0) (l/line (p/point 1 1) (p/point 3 1))) => false)
+(fact (lf/in-line? (p/point 0 1) (l/line (p/point 1 1) (p/point 3 1))) => false)
+(fact (lf/in-line? (p/point 1 1) (l/line (p/point 1 1) (p/point 3 1))) => true)
+(fact (lf/in-line? (p/point 3 1) (l/line (p/point 1 1) (p/point 3 1))) => true)
+(fact (lf/in-line? (p/point 4 1) (l/line (p/point 1 1) (p/point 3 1))) => false)
+
+(fact (lf/in-cluster? (p/point -10 -10) (nth parts3 0)) => false)
+(fact (lf/in-cluster? (p/point   0   0) (nth parts3 0)) => true)
