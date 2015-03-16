@@ -30,13 +30,19 @@
         (quil/fill-float (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
+(defn dopartition
+  []
+  (let [parts (lf/partition (p/point 0 0) 319 319 decider-fn)
+        parts2 (filter #(> 100 (lf/cluster-size %)) parts)]
+    (reset! partitions parts2)))
+
 (defn draw
   "This function is called by quil repeatedly."
   []
   (quil/background-float 0)
   (quil/stroke-float 0 255 0)
   (quil/fill-float 0 255 0)
-  (quil/image @test-image 0 0)
+  (when (not @draw-fill) (quil/image @test-image 0 0))
   (when @draw-fill (dorun (for [cl @partitions] (draw-cluster cl)))))
 
 (defn setup
@@ -46,7 +52,7 @@
   (quil/fill 226)
   (quil/frame-rate 1)
   (reset! test-image (quil/load-image  "/home/sanakan/code/mathematics/resources/test-image.jpg"))
-  (reset! partitions (lf/partition (p/point 0 0) 319 319 decider-fn)))
+  (dopartition))
 
 (defn mouse-pressed [])
 (defn mouse-released [])
@@ -64,7 +70,7 @@
   (if (= (quil/key-code) 80) ; p 
     (let []
       (dorun (println "partitioning ..."))
-      (reset! partitions (lf/partition (p/point 0 0) 319 319 decider-fn))
+      (dopartition)
       (dorun (println (str "... done. found " (count @partitions) " partitions")))))
   (if (= (quil/key-code) 68) ; d
     (reset! draw-fill (not @draw-fill))))
