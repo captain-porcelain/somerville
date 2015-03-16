@@ -172,4 +172,7 @@
 (fact (nth   (nth parts3 2) 1) => (l/line (p/point -5  4) (p/point 5  4)))
 (fact (nth   (nth parts3 2) 2) => (l/line (p/point -5  3) (p/point 5  3)))
 
-
+(fact (lf/cluster-size nil)            =>  0)
+(fact (lf/cluster-size (nth parts3 0)) => 77)
+(fact (lf/cluster-size (nth parts3 1)) => 11)
+(fact (lf/cluster-size (nth parts3 2)) => 33)
