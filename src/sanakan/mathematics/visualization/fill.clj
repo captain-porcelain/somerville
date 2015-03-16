@@ -9,11 +9,13 @@
 (def width 320)
 (def height 320)
 (def test-image (atom nil))
+(def partitions-all (atom nil))
 (def partitions (atom nil))
 (def draw-fill (atom true))
 (def threshold-cie (atom 10))
 (def threshold-cluster (atom 50))
 (def image (i/load-image "./resources/test-image.jpg"))
+(def alt (atom false))
 
 (defn decider-fn
   [p1 p2]
@@ -31,15 +33,26 @@
         (quil/fill-float (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
-(defn dopartition
+(defn do-filter
   []
-  (let [tmp (dorun (println "partitioning ..."))
-        parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
+  (let [sizes (map lf/cluster-size @partitions-all)
+        avg1 (float (/ (reduce + sizes) (count sizes)))
+        parts2 (filter #(< @threshold-cluster (lf/cluster-size %)) @partitions-all)
+        tmp (dorun (println (str "filtered to " (count parts2))))]
+    (reset! partitions parts2)))
+
+(defn do-partition
+  []
+  (let [parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
         sizes (map lf/cluster-size parts1)
         avg1 (float (/ (reduce + sizes) (count sizes)))
-        parts2 (filter #(< @threshold-cluster (lf/cluster-size %)) parts1)
-        tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1 " and filtered to " (count parts2))))]
-    (reset! partitions parts2)))
+        tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1)))]
+    (reset! partitions-all parts1)))
+
+(defn dopartition
+  []
+  (do-partition)
+  (do-filter))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -62,16 +75,30 @@
 (defn mouse-pressed [])
 (defn mouse-released [])
 
+(defn key-released []
+  (if (= (quil/key-code) 522) ; alt
+    (reset! alt false)))
+
 (defn key-pressed []
   ;;(dorun (println (str "pressed code " (quil/key-code))))
+  (if (= (quil/key-code) 522) ; alt
+    (reset! alt true))
   (if (= (quil/key-code) 521) ; +
-    (let []
-      (reset! threshold-cie (+ @threshold-cie 1))
-      (dorun (println (str "threshold-cie is " @threshold-cie)))))
+    (if @alt
+      (let []
+        (reset! threshold-cluster (+ @threshold-cluster 100))
+        (dorun (println (str "threshold for cluster size is " @threshold-cluster))))
+      (let []
+        (reset! threshold-cie (+ @threshold-cie 1))
+        (dorun (println (str "threshold for color difference is " @threshold-cie))))))
   (if (= (quil/key-code) 45) ; -
-    (let []
-      (reset! threshold-cie (- @threshold-cie 1))
-      (dorun (println (str "threshold-cie is " @threshold-cie)))))
+    (if @alt
+      (let []
+        (reset! threshold-cluster (- @threshold-cluster 100))
+        (dorun (println (str "threshold for cluster size is " @threshold-cluster))))
+      (let []
+        (reset! threshold-cie (- @threshold-cie 1))
+        (dorun (println (str "threshold for color difference is " @threshold-cie))))))
   (if (= (quil/key-code) 80) ; p
     (dopartition))
   (if (= (quil/key-code) 68) ; d
@@ -87,5 +114,6 @@
     ;:mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed
     :mouse-released mouse-released
+    :key-released key-released
     :key-pressed key-pressed))
 
