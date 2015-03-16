@@ -13,7 +13,7 @@
 (def partitions (atom nil))
 (def draw-fill (atom true))
 (def threshold-cie (atom 10))
-(def threshold-cluster (atom 50))
+(def threshold-cluster (atom 100))
 (def image (i/load-image "./resources/test-image.jpg"))
 (def alt (atom false))
 
@@ -23,12 +23,24 @@
         cie (c/cie76 (vfn p1) (vfn p2))]
     (< cie @threshold-cie)))
 
+(defn in-line?
+  [x y line]
+  (and
+    (= y (:y (:p1 line)))
+    (<= x (:x (:p1 line)))
+    (>= x (:x (:p2 line)))))
+
+(defn in-cluster?
+  [x y cluster]
+  (if (some? (map #(in-line? x y %) cluster)) true false))
+
 (defn draw-cluster
   [cluster]
   (dorun
     (for [l cluster]
       (let [p (:p1 (first cluster))
-            dc (c/rgba (.getRGB image (:x p) (:y p)))]
+            dc (c/rgba (.getRGB image (:x p) (:y p)))
+            dc (if (in-cluster? (quil/mouse-x) (quil/mouse-y) cluster) (c/rgba 255 255 255) dc)]
         (quil/stroke-float (:r dc) (:g dc) (:b dc))
         (quil/fill-float (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
@@ -43,7 +55,8 @@
 
 (defn do-partition
   []
-  (let [parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
+  (let [tmp (dorun (println "partitionning ..."))
+        parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
         sizes (map lf/cluster-size parts1)
         avg1 (float (/ (reduce + sizes) (count sizes)))
         tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1)))]
@@ -76,18 +89,19 @@
 (defn mouse-released [])
 
 (defn key-released []
-  (if (= (quil/key-code) 522) ; alt
+  (if (= (quil/key-code) 18) ; alt
     (reset! alt false)))
 
 (defn key-pressed []
   ;;(dorun (println (str "pressed code " (quil/key-code))))
-  (if (= (quil/key-code) 522) ; alt
+  (if (= (quil/key-code) 18) ; alt
     (reset! alt true))
   (if (= (quil/key-code) 521) ; +
     (if @alt
       (let []
         (reset! threshold-cluster (+ @threshold-cluster 100))
-        (dorun (println (str "threshold for cluster size is " @threshold-cluster))))
+        (dorun (println (str "threshold for cluster size is " @threshold-cluster)))
+        (do-filter))
       (let []
         (reset! threshold-cie (+ @threshold-cie 1))
         (dorun (println (str "threshold for color difference is " @threshold-cie))))))
@@ -95,7 +109,8 @@
     (if @alt
       (let []
         (reset! threshold-cluster (- @threshold-cluster 100))
-        (dorun (println (str "threshold for cluster size is " @threshold-cluster))))
+        (dorun (println (str "threshold for cluster size is " @threshold-cluster)))
+        (do-filter))
       (let []
         (reset! threshold-cie (- @threshold-cie 1))
         (dorun (println (str "threshold for color difference is " @threshold-cie))))))
