@@ -79,6 +79,11 @@
         unmatched (filter #(is-not-in % matched) line)]
     (concat updated (map #(list %) unmatched))))
 
+(defn cluster-size
+  "Calculate size of cluster in points."
+  [c]
+  (reduce + (map #(+ 1 (- (:x (:p2 %)) (:x (:p1 %)))) c)))
+
 (defn partition
   "Find clusters of line segments that are accepted by the decider function."
   [p max-x max-y decider-fn]
