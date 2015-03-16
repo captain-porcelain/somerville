@@ -11,14 +11,15 @@
 (def test-image (atom nil))
 (def partitions (atom nil))
 (def draw-fill (atom true))
-(def threshold (atom 10))
+(def threshold-cie (atom 10))
+(def threshold-cluster (atom 50))
 (def image (i/load-image "./resources/test-image.jpg"))
 
 (defn decider-fn
   [p1 p2]
   (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
-    (< cie @threshold)))
+    (< cie @threshold-cie)))
 
 (defn draw-cluster
   [cluster]
@@ -33,9 +34,11 @@
 (defn dopartition
   []
   (let [tmp (dorun (println "partitioning ..."))
-        parts (lf/partition (p/point 0 0) 319 319 decider-fn)
-        parts2 (filter #(> 100 (lf/cluster-size %)) parts)
-        tmp (dorun (println (str "... done. found " (count @parts) " partitions and filtered to " (count parts2))))]
+        parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
+        sizes (map lf/cluster-size parts1)
+        avg1 (float (/ (reduce + sizes) (count sizes)))
+        parts2 (filter #(< @threshold-cluster (lf/cluster-size %)) parts1)
+        tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1 " and filtered to " (count parts2))))]
     (reset! partitions parts2)))
 
 (defn draw
@@ -63,13 +66,13 @@
   ;;(dorun (println (str "pressed code " (quil/key-code))))
   (if (= (quil/key-code) 521) ; +
     (let []
-      (reset! threshold (+ @threshold 1))
-      (dorun (println (str "threshold is " @threshold)))))
+      (reset! threshold-cie (+ @threshold-cie 1))
+      (dorun (println (str "threshold-cie is " @threshold-cie)))))
   (if (= (quil/key-code) 45) ; -
     (let []
-      (reset! threshold (- @threshold 1))
-      (dorun (println (str "threshold is " @threshold)))))
-  (if (= (quil/key-code) 80) ; p 
+      (reset! threshold-cie (- @threshold-cie 1))
+      (dorun (println (str "threshold-cie is " @threshold-cie)))))
+  (if (= (quil/key-code) 80) ; p
     (dopartition))
   (if (= (quil/key-code) 68) ; d
     (reset! draw-fill (not @draw-fill))))
