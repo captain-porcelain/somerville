@@ -10,9 +10,9 @@
 (fact (:b c1) => 0)
 
 (def c2 (c/rgba -1879576))
-(fact (:r c2) => 232)
-(fact (:g c2) => 82)
-(fact (:b c2) => 228)
+(fact (:r c2) => 227)
+(fact (:g c2) => 81)
+(fact (:b c2) => 232)
 
 (def c1 (c/rgba 0 0 0))
 (def c2 (c/rgba 1 1 1))
