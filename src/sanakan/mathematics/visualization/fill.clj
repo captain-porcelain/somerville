@@ -29,7 +29,7 @@
     (for [l cluster]
       (let [p (:p1 (first cluster))
             dc (c/rgba (.getRGB image (:x p) (:y p)))
-            dc (if (lf/in-cluster? (quil/mouse-x) (quil/mouse-y) cluster) (c/rgba 255 255 255) dc)]
+            dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (c/rgba 255 255 255) dc)]
         (quil/stroke-float (:r dc) (:g dc) (:b dc))
         (quil/fill-float (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
