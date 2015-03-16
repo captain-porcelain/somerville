@@ -32,8 +32,10 @@
 
 (defn dopartition
   []
-  (let [parts (lf/partition (p/point 0 0) 319 319 decider-fn)
-        parts2 (filter #(> 100 (lf/cluster-size %)) parts)]
+  (let [tmp (dorun (println "partitioning ..."))
+        parts (lf/partition (p/point 0 0) 319 319 decider-fn)
+        parts2 (filter #(> 100 (lf/cluster-size %)) parts)
+        tmp (dorun (println (str "... done. found " (count @parts) " partitions and filtered to " (count parts2))))]
     (reset! partitions parts2)))
 
 (defn draw
@@ -68,10 +70,7 @@
       (reset! threshold (- @threshold 1))
       (dorun (println (str "threshold is " @threshold)))))
   (if (= (quil/key-code) 80) ; p 
-    (let []
-      (dorun (println "partitioning ..."))
-      (dopartition)
-      (dorun (println (str "... done. found " (count @partitions) " partitions")))))
+    (dopartition))
   (if (= (quil/key-code) 68) ; d
     (reset! draw-fill (not @draw-fill))))
 
