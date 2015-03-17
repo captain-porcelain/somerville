@@ -123,9 +123,8 @@
   (quil/fill-float 0 255 0)
   (when (= 0 @draw-mode) (quil/image @test-image 0 0))
   (when (= 1 @draw-mode) (dorun (for [cl @partitions] (draw-cluster cl))))
-  (when (= 2 @draw-mode) (dorun (for [cl @partitions] (draw-cluster cl))))
-  (dorun (for [site (:points @sites)] (draw-site site)))
-  (dorun (for [site (:cells @sites)] (draw-cell site))))
+  (when (= 2 @draw-mode) (dorun (for [site (:points @sites)] (draw-site site))))
+  (when (= 2 @draw-mode) (dorun (for [site (:cells @sites)] (draw-cell site)))))
 
 (defn setup
   "This function is called by quil once before drawing"
