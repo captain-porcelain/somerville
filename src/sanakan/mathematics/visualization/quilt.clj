@@ -112,7 +112,7 @@
 
 (defn dovoronoi
   []
-  (reset! points (map lf/cluster-center @@partitions-all))
+  (reset! points (map lf/cluster-center @partitions-all))
   (reset! sites (voronoi/voronoi @points 0 0 width height)))
 
 (defn draw
