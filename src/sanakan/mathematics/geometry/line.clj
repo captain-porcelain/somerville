@@ -60,13 +60,20 @@
         s2 (if (nil? s2) s2 (+ 0.0 s2))]
     (= s1 s2)))
 
-(defn bisector
+(defn bisector-internal
   "Get the line that bisects two points."
   [p1 p2]
   (let [s (* -1 (/ 1 (p/slope p1 p2)))
         m (p/midpoint p1 p2)
         t (- (:y m) (* s (:x m)))]
     (Line2. (p/point 0 t) (p/point 1 (+ s t)))))
+
+(defn bisector
+  "Get the line that bisects two points."
+  [p1 p2]
+  (if (= (:x p1) (:x p2))
+    (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2)))
+    (bisector-internal p1 p2)))
 
 (defn intersect-sloped
   "Get intersection point of two lines."
