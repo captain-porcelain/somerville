@@ -172,6 +172,7 @@
 (fact (nth   (nth parts3 2) 1) => (l/line (p/point -5  4) (p/point 5  4)))
 (fact (nth   (nth parts3 2) 2) => (l/line (p/point -5  3) (p/point 5  3)))
 
+;; Test helper functions on clusters
 (fact (lf/cluster-size nil)            =>  0)
 (fact (lf/cluster-size (nth parts3 0)) => 77)
 (fact (lf/cluster-size (nth parts3 1)) => 11)
@@ -185,3 +186,13 @@
 
 (fact (lf/in-cluster? (p/point -10 -10) (nth parts3 0)) => false)
 (fact (lf/in-cluster? (p/point   0   0) (nth parts3 0)) => true)
+
+(fact (lf/line-weight (nth (nth parts3 0) 0)) => {:wx 0 :wy 11})
+(fact (lf/line-weight (nth (nth parts3 1) 0)) => {:wx 0 :wy 22})
+(fact (lf/line-weight (nth (nth parts2 1) 0)) => {:wx 2 :wy 5})
+(fact (lf/line-weight (nth (nth parts2 2) 0)) => {:wx 12 :wy 15})
+
+(fact (lf/cluster-center (nth parts3 0)) => (p/point 0 -2))
+(fact (lf/cluster-center (nth parts3 1)) => (p/point 0  2))
+(fact (lf/cluster-center (nth parts3 2)) => (p/point 0  4))
+(fact (lf/cluster-center (nth parts2 0)) => (p/point 1  1))

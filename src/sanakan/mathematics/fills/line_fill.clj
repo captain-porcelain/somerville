@@ -108,3 +108,20 @@
   "Check if a point is in a cluster."
   [p cluster]
   (= true (some true? (map #(in-line? p %) cluster))))
+
+(defn line-weight
+  "Calculate weight of one line."
+  [line]
+  (let [length (+ 1 (- (:x (:p2 line)) (:x (:p1 line))))
+        wx (reduce + (take length (iterate inc (:x (:p1 line)))))
+        wy (* length (:y (:p1 line)))]
+    {:wx wx :wy wy}))
+
+(defn cluster-center
+  "Calculate center point for a cluster."
+  [cluster]
+  (let [weights (map line-weight cluster)
+        wx (reduce + (map :wx weights))
+        wy (reduce + (map :wy weights))
+        c (cluster-size cluster)]
+    (p/point (int (/ wx c)) (int (/ wy c)))))
