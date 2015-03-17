@@ -97,10 +97,12 @@
 (defn do-partition
   []
   (let [tmp (dorun (println "partitionning ..."))
+        starttime (System/currentTimeMillis)
         parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
+        endtime (System/currentTimeMillis)
         sizes (map lf/cluster-size parts1)
         avg1 (float (/ (reduce + sizes) (count sizes)))
-        tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1)))]
+        tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg of " avg1 " points in " (- endtime starttime) " ms.")))]
     (reset! partitions-all parts1)))
 
 (defn dopartition
@@ -110,7 +112,7 @@
 
 (defn dovoronoi
   []
-  (reset! points (map lf/cluster-center partitions-all))
+  (reset! points (map lf/cluster-center @@partitions-all))
   (reset! sites (voronoi/voronoi @points 0 0 width height)))
 
 (defn draw
