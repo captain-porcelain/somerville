@@ -72,8 +72,12 @@
   "Get the line that bisects two points."
   [p1 p2]
   (if (= (:x p1) (:x p2))
-    (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2)))
-    (bisector-internal p1 p2)))
+    (if (= (:y p1) (:y p2))
+      nil
+      (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2))))
+    (if (= (:y p1) (:y p2))
+      (Line2. (p/point (/ (+ (:x p1) (:x p2)) 2) (:y p1)) (p/point (/ (+ (:x p1) (:x p2)) 2) (+ 1 (:y p1))))
+      (bisector-internal p1 p2))))
 
 (defn intersect-sloped
   "Get intersection point of two lines."
