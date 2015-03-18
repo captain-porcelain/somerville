@@ -56,6 +56,13 @@
 (fact (:p1 b3) => (p/point 0 2))
 (fact (:p2 b3) => (p/point 1 2))
 
+(def b4 (l/bisector (p/point 1 0) (p/point 3 0)))
+(fact (:p1 b4) => (p/point 2 0))
+(fact (:p2 b4) => (p/point 2 1))
+
+(def b5 (l/bisector (p/point 0 0) (p/point 0 0)))
+(fact (:p1 b5) => nil)
+
 ;; test calculation of intersection between two lines.
 (def i1 (l/intersect il1 il2))
 (fact (:x i1) => 2)
