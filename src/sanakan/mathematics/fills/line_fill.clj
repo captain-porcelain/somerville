@@ -36,14 +36,17 @@
       (make-line p max-x))))
 
 (defn reduce-line
-  "Reduce the points of a line to a list of line segments."
+  "Reduce the points of a list of lines to a list of line segments."
   [line]
   (map #(l/line (first %) (last %)) line))
 
 (defn lineify
-  "Map each line to a list of line segments that are acceptable."
+  "Create lines from p to max-x and max-y and map each line to a list of line segments that are acceptable."
   [p max-x max-y decider-fn]
-  (map #(reduce-line (filter-line % max-x decider-fn)) (make-column p max-y)))
+  (map
+    #(reduce-line
+       (filter-line % max-x decider-fn))
+    (make-column p max-y)))
 
 (defn overlaps?
   "Check if two lines overlap on the x axis."
@@ -58,33 +61,50 @@
       (and (>= x11 x21) (>= x12 x22) (<= x11 x22))
       (and (>= x11 x21) (<= x12 x22)))))
 
-(defn find-matching-segment
-  "Find matching line segments that overlap and are acceptable."
-  [line lines decider-fn]
-  (first (filter #(and (overlaps? line %) (decider-fn (:p1 line) (:p1 %))) lines)))
+(defn select-line
+  "Find first matching line from candidates that overlap line and are accepted by the decider-fn."
+  [line candidates decider-fn]
+  (first
+    (filter
+      #(and
+         (overlaps? line %)
+         (decider-fn (:p1 line) (:p1 %)))
+      candidates)))
 
-(defn attach-matching-segment
+(defn grow-cluster
   "From a list of candidates select the matching one and add it to a cluster."
-  [segmentation lines decider-fn]
-  (let [matched (find-matching-segment (first segmentation) lines decider-fn)]
+  [cluster lines decider-fn]
+  (let [matched (select-line (first cluster) lines decider-fn)]
     (if (nil? matched)
-      segmentation
-      (conj segmentation matched))))
+      cluster
+      (conj cluster matched))))
 
-(defn cluster-line
-  "Find clusters of line segments that are accepted by the decider function."
-  [segments line decider-fn]
-  (let [updated (map #(attach-matching-segment % line decider-fn) segments)
+(defn grow-clusters-old
+  "Add lines to clusters if they match or create new clusters from them otherwise."
+  [clusters lines decider-fn]
+  (let [updated (map #(grow-cluster % lines decider-fn) clusters)
         matched (map first updated)
-        unmatched (filter #(is-not-in % matched) line)]
+        unmatched (filter #(is-not-in % matched) lines)]
     (concat updated (map #(list %) unmatched))))
+
+(defn grow-clusters
+  "Add lines to clusters if they match or create new clusters from them otherwise."
+  [clusters lines decider-fn]
+  (loop [updated-clusters (list)
+         remaining-clusters clusters
+         candidates lines]
+    (if (= 0 (count remaining-clusters))
+      (concat updated-clusters (map #(list %) candidates))
+      (let [updated-cluster (grow-cluster (first remaining-clusters) candidates decider-fn)
+            found (first updated-cluster)]
+        (recur (conj updated-clusters updated-cluster) (rest remaining-clusters) (remove #(= found %) candidates))))))
 
 (defn cluster-size
   "Calculate size of cluster in points."
   [c]
   (reduce + (map #(+ 1 (- (:x (:p2 %)) (:x (:p1 %)))) c)))
 
-(defn partition
+(defn clusters
   "Find clusters of line segments that are accepted by the decider function."
   [p max-x max-y decider-fn]
   (let [lined (lineify p max-x max-y decider-fn)]
@@ -92,9 +112,7 @@
            candidates (rest lined)]
       (if (= 0 (count candidates))
         clusters
-        ;(let [tmp (dorun (println (str (count clusters) " clusters and " (count candidates)  " candidates")))]
-        (recur (cluster-line clusters (first candidates) decider-fn) (rest candidates))))))
-        ; )
+        (recur (grow-clusters clusters (first candidates) decider-fn) (rest candidates))))))
 
 (defn in-line?
   "Check if a point is in a line."

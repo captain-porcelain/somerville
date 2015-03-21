@@ -45,7 +45,7 @@
 (defn do-partition
   []
   (let [tmp (dorun (println "partitionning ..."))
-        parts1 (lf/partition (p/point 0 0) 319 319 decider-fn)
+        parts1 (lf/clusters (p/point 0 0) 319 319 decider-fn)
         sizes (map lf/cluster-size parts1)
         avg1 (float (/ (reduce + sizes) (count sizes)))
         tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1)))]

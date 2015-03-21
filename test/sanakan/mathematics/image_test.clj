@@ -23,7 +23,7 @@
 (defn parts
   []
   (let [starttime (System/currentTimeMillis)
-        partitions (lf/partition (p/point 0 0) 319 319 decider-fn)
+        partitions (lf/clusters (p/point 0 0) 319 319 decider-fn)
         tmp (dorun partitions)
         endtime (System/currentTimeMillis)
         tmp (dorun (println (str "found " (count partitions) " partitions in " (- endtime starttime) " ms.")))]
