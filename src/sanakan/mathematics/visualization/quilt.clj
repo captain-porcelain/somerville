@@ -13,7 +13,7 @@
 (def partitions (atom nil))
 (def draw-mode (atom 0))
 (def threshold-cie (atom 10))
-(def threshold-cluster (atom 100))
+(def threshold-cluster (atom 0))
 (def filename  "/home/sanakan/code/mathematics/resources/test-image2.jpg")
 (def image (i/load-image filename))
 (def width (.getWidth image))

@@ -94,7 +94,7 @@
          remaining-clusters clusters
          candidates lines]
     (if (= 0 (count remaining-clusters))
-      (concat updated-clusters (map #(list %) candidates))
+      (concat (reverse updated-clusters) (map #(list %) candidates))
       (let [updated-cluster (grow-cluster (first remaining-clusters) candidates decider-fn)
             found (first updated-cluster)]
         (recur (conj updated-clusters updated-cluster) (rest remaining-clusters) (remove #(= found %) candidates))))))
