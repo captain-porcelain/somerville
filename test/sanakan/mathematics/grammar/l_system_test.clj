@@ -2,6 +2,7 @@
   (:require
     [sanakan.mathematics.grammar.l-system :as ls]
     [sanakan.mathematics.geometry.point :as p]
+    [sanakan.mathematics.geometry.line :as l]
     [sanakan.mathematics.geometry.commons :as c])
   (:use midje.sweet))
 
@@ -43,12 +44,20 @@
     (conj (:points render-state) (p/point-at (first (:points render-state)) (:angle render-state) (:length render-state)))
     (:points render-state)))
 
-(def rendering (ls/render koch-product-1 (p/point 0 0) 1 (ls/renderer update-points update-angle)))
+(def rendered-points (ls/render-points koch-product-1 (p/point 0 0) 1 (ls/renderer update-points update-angle)))
 
-(fact (count rendering) => 6)
-(fact (c/close-to (p/distance (nth rendering 5) (p/point 0     0))     0) => true)
-(fact (c/close-to (p/distance (nth rendering 4) (p/point 1     0))     0) => true)
-(fact (c/close-to (p/distance (nth rendering 3) (p/point 1.707 0.707)) 0) => true)
-(fact (c/close-to (p/distance (nth rendering 2) (p/point 2.707 0.707)) 0) => true)
-(fact (c/close-to (p/distance (nth rendering 1) (p/point 3.414 0))     0) => true)
-(fact (c/close-to (p/distance (nth rendering 0) (p/point 4.414 0))     0) => true)
+(fact (count rendered-points) => 6)
+(fact (c/close-to (p/distance (nth rendered-points 0) (p/point 0     0))     0) => true)
+(fact (c/close-to (p/distance (nth rendered-points 1) (p/point 1     0))     0) => true)
+(fact (c/close-to (p/distance (nth rendered-points 2) (p/point 1.707 0.707)) 0) => true)
+(fact (c/close-to (p/distance (nth rendered-points 3) (p/point 2.707 0.707)) 0) => true)
+(fact (c/close-to (p/distance (nth rendered-points 4) (p/point 3.414 0))     0) => true)
+(fact (c/close-to (p/distance (nth rendered-points 5) (p/point 4.414 0))     0) => true)
+
+(def rendering (ls/render koch-product-1 (p/point 0 0) 1 (ls/renderer update-points update-angle)))
+(fact (count rendering) => 5)
+(fact (nth rendering 0) => (l/line (nth rendered-points 0) (nth rendered-points 1)))
+(fact (nth rendering 1) => (l/line (nth rendered-points 1) (nth rendered-points 2)))
+(fact (nth rendering 2) => (l/line (nth rendered-points 2) (nth rendered-points 3)))
+(fact (nth rendering 3) => (l/line (nth rendered-points 3) (nth rendered-points 4)))
+(fact (nth rendering 4) => (l/line (nth rendered-points 4) (nth rendered-points 5)))
