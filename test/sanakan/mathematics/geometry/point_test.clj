@@ -49,3 +49,8 @@
 (fact (c/close-to (p/angle (p/point 0 0) (p/point -1  0) (p/point  1  0)) (* -1 PI10)) => true)
 
 ;(fact (c/close-to (p/angle (p/point 5 5) (p/point  0  0) (p/point 10  0)) PI05) => true)
+
+(fact (c/close-to (p/distance (p/point-at (p/point 0 0) PI00 1) (p/point  1.0  0.0)) 0) => true)
+(fact (c/close-to (p/distance (p/point-at (p/point 0 0) PI05 1) (p/point  0.0  1.0)) 0) => true)
+(fact (c/close-to (p/distance (p/point-at (p/point 0 0) PI10 1) (p/point -1.0  0.0)) 0) => true)
+(fact (c/close-to (p/distance (p/point-at (p/point 0 0) PI15 1) (p/point  0.0 -1.0)) 0) => true)
