@@ -75,3 +75,10 @@
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3."
   [p1 p2 p3]
   (- (angle-to-x (subtract p3 p1)) (angle-to-x (subtract p2 p1))))
+
+(defn point-at
+  "Given a point find another one in dist at angle."
+  [p angle dist]
+  (point
+    (+ (:x p) (* dist (java.lang.Math/cos angle)))
+    (+ (:y p) (* dist (java.lang.Math/sin angle)))))
