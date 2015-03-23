@@ -1,4 +1,6 @@
-(ns sanakan.mathematics.grammar.l-system)
+(ns sanakan.mathematics.grammar.l-system
+  (:require
+    [sanakan.mathematics.geometry.line :as l]))
 
 ;; Define a formal l-system and rules for it.
 (defrecord Lsystem [axiom rules state])
@@ -52,11 +54,21 @@
     ((:angle-fn renderer) render-state sym)
     (:length render-state)))
 
-(defn render
+(defn connect-points
+  "Connect a list of points into a list of lines from point to point."
+  [points]
+  (map #(l/line %1 %2) (butlast points) (rest points)))
+
+(defn render-points
   "Given an L system create lines that visualizes it."
   [lsystem start-point length renderer]
   (loop [rs (RenderState. (list start-point) 0 length)
          symbols (:state lsystem)]
     (if (= 0 (count symbols))
-      (:points rs)
+      (reverse (:points rs))
       (recur (translate rs (first symbols) renderer) (rest symbols)))))
+
+(defn render
+  "Given an L system create lines that visualizes it."
+  [lsystem start-point length renderer]
+  (connect-points (render-points lsystem start-point length renderer)))
