@@ -95,6 +95,17 @@
 (fact (l/parallel? (l/line (p/point 0 0.5) (p/point 1 0.5)) (l/line (p/point 0 0) (p/point 1 0))) => true)
 (def i3 (l/intersect (l/line (p/point 1 1) (p/point 2 3)) (l/line (p/point 0 0.5) (p/point 1 0.5))))
 
+(def plt1 (l/line (p/point 0 0) (p/point 1 0)))
+(def n1 (l/normal plt1))
+(fact (c/close-to (p/distance (:p1 n1) (p/point 0.0 0.0)) 0) => true)
+(fact (c/close-to (p/distance (:p2 n1) (p/point 0.0 1.0)) 0) => true)
+(def n2 (l/normal2 plt1))
+(fact (c/close-to (p/distance (:p1 n2) (p/point 1.0 0.0)) 0) => true)
+(fact (c/close-to (p/distance (:p2 n2) (p/point 1.0 1.0)) 0) => true)
+(def pl1 (l/parallel plt1 1))
+(fact (c/close-to (p/distance (:p1 pl1) (p/point 0.0 1.0)) 0) => true)
+(fact (c/close-to (p/distance (:p2 pl1) (p/point 1.0 1.0)) 0) => true)
+
 (def cl1 (l/line (p/point 0 0) (p/point 0 1)))
 (def cl2 (l/line (p/point 1 0) (p/point 1 1)))
 (def cl3 (l/line (p/point 0 0) (p/point 1 0)))

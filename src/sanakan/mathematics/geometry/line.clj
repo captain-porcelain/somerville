@@ -58,7 +58,33 @@
         s1 (if (nil? s1) s1 (+ 0.0 s1))
         s2 (p/slope (:p1 l2) (:p2 l2))
         s2 (if (nil? s2) s2 (+ 0.0 s2))]
-    (= s1 s2)))
+    (if
+      (or (nil? s1) (nil? s2))
+      (= s1 s2)
+      (c/close-to s1 s2))))
+
+(defn normal
+  "Create a line for the normal of a line on the first point of the line."
+  [line]
+  (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
+    (Line2. (:p1 line) (p/point-at (:p1 line) (+ angle (/ java.lang.Math/PI 2)) 1.0))))
+
+(defn normal2
+  "Create a line for the normal of a line on the second point of the line."
+  [line]
+  (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
+    (Line2. (:p2 line) (p/point-at (:p2 line) (+ angle (/ java.lang.Math/PI 2)) 1.0))))
+
+(defn parallel
+  "Create a line parallel to the given one dist away."
+  [line dist]
+  (let [n1 (normal  line)
+        n2 (normal2 line)
+        x1 (x-by-t n1 dist)
+        y1 (y-by-t n1 dist)
+        x2 (x-by-t n2 dist)
+        y2 (y-by-t n2 dist)]
+    (Line2. (p/point x1 y1) (p/point x2 y2))))
 
 (defn bisector-internal
   "Get the line that bisects two points."

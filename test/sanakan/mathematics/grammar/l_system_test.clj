@@ -61,3 +61,23 @@
 (fact (nth rendering 2) => (l/line (nth rendered-points 2) (nth rendered-points 3)))
 (fact (nth rendering 3) => (l/line (nth rendered-points 3) (nth rendered-points 4)))
 (fact (nth rendering 4) => (l/line (nth rendered-points 4) (nth rendered-points 5)))
+
+(defn outline-half
+  [rendering dist]
+  (let [mapped (map #(l/parallel % dist) rendering)
+        intersections (map #(l/intersect-sloped %1 %2) (butlast mapped) (rest mapped)) 
+        points (concat (list (:p1 (first mapped))) intersections (list (:p2 (last mapped))))]
+    (ls/connect-points points)))
+
+(defn outline
+  [rendering thickness]
+  (let [lower (map #(l/parallel % (* -1 (/ thickness 2))) rendering)]
+    lower))
+
+(def upper-half (outline-half rendering 1))
+(fact (count upper-half) => 5)
+(fact (l/parallel? (nth upper-half 0) (nth rendering 0)) => true)
+(fact (l/parallel? (nth upper-half 1) (nth rendering 1)) => true)
+(fact (l/parallel? (nth upper-half 2) (nth rendering 2)) => true)
+(fact (l/parallel? (nth upper-half 3) (nth rendering 3)) => true)
+(fact (l/parallel? (nth upper-half 4) (nth rendering 4)) => true)
