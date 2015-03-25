@@ -70,12 +70,18 @@
   (when (= (quil/key-code) 18) ; alt
     (reset! alt true))
   (when (= (quil/key-code) 521) ; +
-    (reset! length (+ @length 10)))
+    (let []
+      (reset! length (+ @length 1))
+      (render)))
   (when (= (quil/key-code) 45) ; -
-    (reset! length (- @length 10)))
-  (if (= (quil/key-code) 86) ; v
-    (reset! current (ls/produce @current))
-    (render)))
+    (let []
+      (reset! length (- @length 1))
+      (render)))
+  (when (= (quil/key-code) 86) ; v
+    (let []
+      (reset! current (ls/produce @current))
+      (dorun (println (:state @current)))
+      (render))))
 
 (defn show []
   (quil/sketch
