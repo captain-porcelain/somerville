@@ -71,8 +71,9 @@
 
 (defn outline
   [rendering thickness]
-  (let [lower (map #(l/parallel % (* -1 (/ thickness 2))) rendering)]
-    lower))
+  (let [upper (outline-half rendering (/ thickness 2))
+        lower (outline-half rendering (* -1 (/ thickness 2)))]
+    {:upper upper :lower lower}))
 
 (def upper-half (outline-half rendering 1))
 (fact (count upper-half) => 5)
