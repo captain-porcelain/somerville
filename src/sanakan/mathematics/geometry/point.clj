@@ -1,8 +1,7 @@
 (ns sanakan.mathematics.geometry.point
   (:require
     [sanakan.mathematics.geometry.commons :as c]
-    [clojure.math.numeric-tower :as nt]
-    [clojure.core.typed :refer [ann AnyInteger]]))
+    [clojure.math.numeric-tower :as nt]))
 
 ;; define a two dimensional point
 (defrecord Point2 [x y]
