@@ -1,137 +1,102 @@
 (ns sanakan.mathematics.geometry.parabola-test
-  (:use [sanakan.mathematics.geometry.parabola])
-  (:use [clojure.test]))
+  (:require
+    [sanakan.mathematics.geometry.commons :as c]
+    [sanakan.mathematics.geometry.point :as p]
+    [sanakan.mathematics.geometry.parabola :as par]
+    [sanakan.mathematics.geometry.line :as l])
+  (:use [clojure.test])
+  (:use midje.sweet))
 
-(deftest test-simple-parabola
-         (let [p (parabola-from-factors 1 2 3)]
-           (is (= 1 (:a p)))
-           (is (= 2 (:b p)))
-           (is (= 3 (:c p)))))
+;; test creation of parabolas in various forms
+(def parabola1 (par/parabola-from-factors 1 2 3))
+(fact (:a parabola1) => 1)
+(fact (:b parabola1) => 2)
+(fact (:c parabola1) => 3)
 
-(deftest test-parabola-from-focuspoint-and-directrix
-         (let [point (struct-map point2 :x 0 :y 1)
-               directrix (struct-map line :a 0 :b -1)
-               p (parabola-from-focuspoint-and-directrix point directrix)]
-           (is (= (/ 1 4) (:a p)))
-           (is (= 0 (:b p)))
-           (is (= 0 (:c p)))))
+(def parabola2 (par/parabola-from-focuspoint-and-directrix (p/point 0 1) (l/line-from-slope 0 -1)))
+(fact (:a parabola2) => 1/4)
+(fact (:b parabola2) => 0)
+(fact (:c parabola2) => 0)
 
-(deftest test-discriminate
-         (let [p1 (parabola-from-factors 2 0 0)
-               dis (discriminate p1)]
-           (is (= 0 dis))))
+;; test calculation of discriminates
+(fact (par/discriminate (par/parabola-from-factors 2 0  0)) =>  0)
+(fact (par/discriminate (par/parabola-from-factors 2 0  1)) => -1/2)
+(fact (par/discriminate (par/parabola-from-factors 0 0 -1)) => -1)
 
-(deftest test-discriminate
-         (let [p1 (parabola-from-factors 2 0 1)
-               dis (discriminate p1)]
-           (is (= -0.5 dis))))
+;; test calculation of intersections
+(def intersections1
+  (par/intersect-two-parabolas
+    (par/parabola-from-factors  2 0 0)
+    (par/parabola-from-factors -2 0 1)))
+(fact (count intersections1) => 2)
+(fact (nth intersections1 0) => (p/point -0.5 0.5))
+(fact (nth intersections1 1) => (p/point  0.5 0.5))
 
-(deftest test-discriminate
-         (let [p1 (parabola-from-factors 0 0 -1)
-               dis (discriminate p1)]
-           (is (= -1 dis))))
+(def intersections2
+  (par/intersect-two-parabolas
+    (par/parabola-from-factors 1 0 0)
+    (par/parabola-from-factors 2 0 0)))
+(fact (count intersections2) => 1)
+(fact (nth intersections2 0) => (p/point 0.0 0.0))
 
-(deftest test-parabola-intersections-2
-         (let [p1 (parabola-from-factors 2 0 0)
-               p2 (parabola-from-factors -2 0 1)
-               intersections (intersect-two-parabolas p1 p2)]
-           (is (= 2 (count intersections)))
-           (is (= -0.5 (:x (first intersections))))
-           (is (= 0.5 (:y (first intersections))))
-           (is (= 0.5 (:x (second intersections))))
-           (is (= 0.5 (:y (second intersections))))))
+(def intersections3
+  (par/intersect-two-parabolas
+    (par/parabola-from-focuspoint-and-directrix (p/point 0 1) (l/line-from-slope 0 -1))
+    (par/parabola-from-focuspoint-and-directrix (p/point 1 1) (l/line-from-slope 0 -1))))
+(fact (count intersections3) => 1)
+(fact (nth intersections3 0) => (p/point 1/2 1/16))
 
-(deftest test-parabola-intersections-1
-         (let [p1 (parabola-from-factors 1 0 0)
-               p2 (parabola-from-factors 2 0 0)
-               intersections (intersect-two-parabolas p1 p2)]
-           (is (= 1 (count intersections)))
-           (is (= 0.0 (:x (first intersections))))
-           (is (= 0.0 (:y (first intersections))))))
+(def intersections4
+  (par/intersect-two-parabolas
+    (par/parabola-from-factors 1 0 0)
+    (par/parabola-from-factors 1 0 1)))
+(fact (count intersections4) => 0)
 
-(deftest test-parabola-intersections-1-2
-         (let [point1 (struct-map point2 :x 0 :y 1)
-               point2 (struct-map point2 :x 1 :y 1)
-               directrix (struct-map line :a 0 :b -1)
-               p1 (parabola-from-focuspoint-and-directrix point1 directrix)
-               p2 (parabola-from-focuspoint-and-directrix point2 directrix)
-               intersections (intersect-two-parabolas p1 p2)]
-           (is (= 1 (count intersections)))
-           (is (= 1/2 (:x (first intersections))))
-           (is (= 1/16 (:y (first intersections))))))
+;; test beachlines created by multiple parabolas
+(def beachline1 (par/beachline (list (par/parabola-from-factors 1 0 0) (par/parabola-from-factors 1 0 1))))
+(fact (count (:intersections beachline1)) => 0)
+(fact (count (:parabolas beachline1)) => 1)
+(fact (first (:parabolas beachline1)) => (par/parabola-from-factors 1 0 0))
 
-(deftest test-parabola-intersections-0
-         (let [p1 (parabola-from-factors 1 0 0)
-               p2 (parabola-from-factors 1 0 1)
-               intersections (intersect-two-parabolas p1 p2)]
-           (is (= 0 (count intersections)))))
+(def beach-2-parabola-1 (par/parabola-from-focuspoint-and-directrix (p/point 0 1) (l/line-from-slope 0 -1)))
+(def beach-2-parabola-2 (par/parabola-from-focuspoint-and-directrix (p/point 1 1) (l/line-from-slope 0 -1)))
+(def beachline2 (par/beachline (list beach-2-parabola-1 beach-2-parabola-2)))
+(fact (count (:intersections beachline2)) => 1)
+(fact (first (:intersections beachline2)) => (p/point 1/2 1/16))
+(fact (count (:parabolas beachline2)) => 2)
+(fact (first (:parabolas beachline2)) => beach-2-parabola-1)
+(fact (second (:parabolas beachline2)) => beach-2-parabola-2)
 
-(deftest test-beachline-0
-         (let [p1 (parabola-from-factors 1 0 0)
-               p2 (parabola-from-factors 1 0 1)
-               [intersections parabolas] (beachline (list p1 p2))]
-           (is (= 0 (count intersections)))
-           (is (= 1 (count parabolas)))
-           (is (= p1 (first parabolas)))))
+(def beach-3-parabola-1 (par/parabola-from-factors  2 0 0))
+(def beach-3-parabola-2 (par/parabola-from-factors -2 0 1))
+(def beachline3 (par/beachline (list beach-3-parabola-1 beach-3-parabola-2)))
+(fact (count (:intersections beachline3)) => 2)
+(fact (first (:intersections beachline3)) => (p/point -0.5 0.5))
+(fact (second (:intersections beachline3)) => (p/point 0.5 0.5))
+(fact (count (:parabolas beachline3)) => 3)
+(fact (nth (:parabolas beachline3) 0) => beach-3-parabola-2)
+(fact (nth (:parabolas beachline3) 1) => beach-3-parabola-1)
+(fact (nth (:parabolas beachline3) 2) => beach-3-parabola-2)
+(fact (par/get-parabola-from-beachline beachline3 -0.6) => beach-3-parabola-2)
+(fact (par/get-parabola-from-beachline beachline3 -0.4) => beach-3-parabola-1)
+(fact (par/get-parabola-from-beachline beachline3 0.4) => beach-3-parabola-1)
+(fact (par/get-parabola-from-beachline beachline3 0.6) => beach-3-parabola-2)
 
-(deftest test-beachline-1
-         (let [point1 (struct-map point2 :x 0 :y 1)
-               point2 (struct-map point2 :x 1 :y 1)
-               directrix (struct-map line :a 0 :b -1)
-               p1 (parabola-from-focuspoint-and-directrix point1 directrix)
-               p2 (parabola-from-focuspoint-and-directrix point2 directrix)
-               [intersections parabolas] (beachline (list p1 p2))]
-           (is (= 1 (count intersections)))
-           (is (= 1/2 (:x (first intersections))))
-           (is (= 1/16 (:y (first intersections))))
-           (is (= 2 (count parabolas)))
-           (is (= p1 (first parabolas)))
-           (is (= p2 (second parabolas)))))
 
-(deftest test-beachline-2
-         (let [p1 (parabola-from-factors 2 0 0)
-               p2 (parabola-from-factors -2 0 1)
-               [intersections parabolas] (beachline (list p1 p2))]
-           (is (= 2 (count intersections)))
-           (is (= -0.5 (:x (first intersections))))
-           (is (= 0.5 (:y (first intersections))))
-           (is (= 0.5 (:x (second intersections))))
-           (is (= 0.5 (:y (second intersections))))
-           (is (= 3 (count parabolas)))
-           (is (= p2 (nth parabolas 0)))
-           (is (= p1 (nth parabolas 1)))
-           (is (= p2 (nth parabolas 2)))
-           (is (= p2 (get-parabola-from-beachline intersections parabolas -0.6)))
-           (is (= p1 (get-parabola-from-beachline intersections parabolas -0.4)))
-           (is (= p1 (get-parabola-from-beachline intersections parabolas 0.4)))
-           (is (= p2 (get-parabola-from-beachline intersections parabolas 0.6)))
-           ))
+(def beach-4-parabola-1 (par/parabola-from-focuspoint-and-directrix (p/point 500 300) (l/line-from-slope 0 280)))
+(def beach-4-parabola-2 (par/parabola-from-focuspoint-and-directrix (p/point 400 400) (l/line-from-slope 0 280)))
+(def beachline4 (par/beachline (list beach-4-parabola-1 beach-4-parabola-2)))
+(fact (count (:intersections beachline4)) => 2)
+(fact (par/get-parabola-from-beachline beachline4 (- (:x (nth (:intersections beachline4) 0)) 1)) => beach-4-parabola-2)
+(fact (par/get-parabola-from-beachline beachline4 (+ (:x (nth (:intersections beachline4) 0)) 1)) => beach-4-parabola-1)
+(fact (par/get-parabola-from-beachline beachline4 (- (:x (nth (:intersections beachline4) 1)) 1)) => beach-4-parabola-1)
+(fact (par/get-parabola-from-beachline beachline4 (+ (:x (nth (:intersections beachline4) 1)) 1)) => beach-4-parabola-2)
 
-(deftest solve-beachline
-         (let [point1 (struct-map point2 :x 500 :y 300)
-               point2 (struct-map point2 :x 400 :y 400)
-               directrix (struct-map line :a 0 :b 280)
-               p1 (parabola-from-focuspoint-and-directrix point1 directrix)
-               p2 (parabola-from-focuspoint-and-directrix point2 directrix)
-               [intersections parabolas] (beachline (list p1 p2))]
-           (is (= 2 (count intersections)))
-           (is (= p2 (get-parabola-from-beachline intersections parabolas (- (:x (nth intersections 0)) 1))))
-           (is (= p1 (get-parabola-from-beachline intersections parabolas (+ (:x (nth intersections 0)) 1))))
-           (is (= p1 (get-parabola-from-beachline intersections parabolas (- (:x (nth intersections 1)) 1))))
-           (is (= p2 (get-parabola-from-beachline intersections parabolas (+ (:x (nth intersections 1)) 1))))
-           ))
-
-(deftest solve-beachline-2
-         (let [pnt1 (struct-map point2 :x -2 :y 2)
-               pnt2 (struct-map point2 :x 0 :y 2)
-               pnt3 (struct-map point2 :x 2 :y 2)
-               directrix (struct-map line :a 0 :b 0)
-               p1 (parabola-from-focuspoint-and-directrix pnt1 directrix)
-               p2 (parabola-from-focuspoint-and-directrix pnt2 directrix)
-               p3 (parabola-from-focuspoint-and-directrix pnt3 directrix)
-               [intersections parabolas] (beachline (list p1 p2 p3))]
-           (is (= 2 (count intersections)))
-           (is (= p1 (get-parabola-from-beachline intersections parabolas -2)))
-           (is (= p2 (get-parabola-from-beachline intersections parabolas 0)))
-           (is (= p3 (get-parabola-from-beachline intersections parabolas 2)))
-           ))
+(def beach-5-parabola-1 (par/parabola-from-focuspoint-and-directrix (p/point -2 2) (l/line-from-slope 0 0)))
+(def beach-5-parabola-2 (par/parabola-from-focuspoint-and-directrix (p/point  0 2) (l/line-from-slope 0 0)))
+(def beach-5-parabola-3 (par/parabola-from-focuspoint-and-directrix (p/point  2 2) (l/line-from-slope 0 0)))
+(def beachline5 (par/beachline (list beach-5-parabola-1 beach-5-parabola-2 beach-5-parabola-3)))
+(fact (count (:intersections beachline5)) => 2)
+(fact (par/get-parabola-from-beachline beachline5 -2) => beach-5-parabola-1)
+(fact (par/get-parabola-from-beachline beachline5  0) => beach-5-parabola-2)
+(fact (par/get-parabola-from-beachline beachline5  2) => beach-5-parabola-3)

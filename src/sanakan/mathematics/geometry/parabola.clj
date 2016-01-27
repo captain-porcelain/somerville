@@ -1,18 +1,20 @@
 (ns sanakan.mathematics.geometry.parabola
   (:require
+    [sanakan.mathematics.geometry.commons :as c]
     [sanakan.mathematics.geometry.point :as p]
     [sanakan.mathematics.geometry.line :as l]))
 
 ;; This file contains functions for handling geometric data.
 
-(defstruct parabola :a :b :c)
-(defstruct point2 :x :y)
-(defstruct line :a :b)
+(defrecord Parabola [a b c]
+  c/Printable
+  (c/out [this i] (str (c/indent i) "Parabola: " a "x² + " b "y + " c))
+  (c/out [this] (c/out this 0)))
 
 (defn parabola-from-factors
   "Create a parabola from the factors of ax² + by + c = 0"
   [a b c]
-  (struct-map parabola :a a :b b :c c))
+  (Parabola. a b c))
 
 (defn parabola-from-focuspoint-and-directrix
   "Create a parabola such that it defines all points that are
@@ -26,7 +28,7 @@
         a (/ 1 (* 2 distance))
         b (/ (* -1 x) distance)
         c (+ y (/ (* x x) (* 2 distance)))]
-    (struct-map parabola :a a :b b :c c)))
+    (Parabola. a b c)))
 
 (defn discriminate
   "The solution for a quadratic formula is the p-q formula: x1,x2 = - p/2 +- sqrt((p/2)² - q).
@@ -45,7 +47,7 @@
   (let [a (- (:a parabola1) (:a parabola2))
         b (- (:b parabola1) (:b parabola2))
         c (- (:c parabola1) (:c parabola2))]
-    (struct-map parabola :a a :b b :c c)))
+    (Parabola. a b c)))
 
 (defn solve-parabola-at
   "Solve the quadratic function representing a parabola for a given x."
@@ -55,7 +57,7 @@
 (defn find-zero-of-parabola
   "Find the points where a parabolas value is 0."
   [p]
-  (let [dif (struct-map parabola :a 1 :b (/ (:b p) (:a p)) :c (/ (:c p) (:a p)))
+  (let [dif (Parabola. 1 (/ (:b p) (:a p)) (/ (:c p) (:a p)))
         dis (discriminate dif)
         firstpart (* -0.5 (:b dif))]
     (if (> 0 dis)
@@ -74,7 +76,8 @@
 (defn find-zero-of-line
   "Find the point where a line is 0."
   [line]
-  (if (= 0 (:a line)) nil (/ (* -1 (:b line)) (:a line))))
+  (let [sloped (l/slope-intercept line)]
+    (if (= 0 (:a sloped)) nil (/ (* -1 (:b sloped)) (:a sloped)))))
 
 (defn intersect-two-parabolas
   "Find the points where two parabolas intersect if such points exist."
@@ -82,9 +85,9 @@
   (let [sub (subtract parabola1 parabola2)
         xs (if (not (= (:a sub) 0))
              (find-zero-of-parabola sub)
-             (let [line-zero (find-zero-of-line (struct-map line :a (:b sub) :b (:c sub)))]
+             (let [line-zero (find-zero-of-line (l/line-from-slope (:b sub) (:c sub)))]
                (if (nil? line-zero) (list) (list line-zero))))]
-    (map #(struct-map point2 :x % :y (solve-parabola-at parabola1 %)) xs)))
+    (map #(p/point % (solve-parabola-at parabola1 %)) xs)))
 
 (defn smaller-parabola
   "Given two parabolas return the one that has the smaller value at x"
@@ -110,6 +113,8 @@
     (concat old-parts (rest new-parts))
     (concat old-parts new-parts)))
 
+(defrecord Beachline [intersections parabolas])
+
 (defn beachline
   "Find the points where a list of parabolas intersect. We expect the list to be sorted
   by increasing x of the focal point of the parabolas."
@@ -119,20 +124,20 @@
          intersections (list)
          ps (list)]
     (if (= 0 (count rst))
-      [intersections ps]
+      (Beachline. intersections ps)
       (let [frst (first rst)
             is (intersect-two-parabolas cur frst)]
         (recur frst (rest rst) (concat intersections is) (append-beachline-parts ps (beachline-part cur frst is)))))))
 
 (defn get-parabola-from-beachline
-  [intersections parabolas x]
-  (let [bigger (count (filter #(> (:x %) x) intersections))
-        n (- (count intersections) bigger)]
-    (nth parabolas n)))
+  [beachline x]
+  (let [bigger (count (filter #(> (:x %) x) (:intersections beachline)))
+        n (- (count (:intersections beachline)) bigger)]
+    (nth (:parabolas beachline) n)))
 
 (defn solve-beachline-at-old
-  [intersections parabolas x]
-  (solve-parabola-at (get-parabola-from-beachline intersections parabolas x) x))
+  [beachline x]
+  (solve-parabola-at (get-parabola-from-beachline beachline x) x))
 
 (defn solve-beachline-at
   [sites sweepline x]
