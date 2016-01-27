@@ -14,6 +14,11 @@
   [p1 p2]
   (Line2. p1 p2))
 
+(defn line-from-slope
+  "Get a line from the slope intercept form a * x + b."
+  [a b]
+  (line (p/point 0 b) (p/point 1 (+ a b))))
+
 (defn slope-intercept
   "Get line in slope intercept form f(x) = a*x + b"
   [line]
