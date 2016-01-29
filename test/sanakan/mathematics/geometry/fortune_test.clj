@@ -23,9 +23,7 @@
 (fact (:p (nth events1 1)) => point1)
 (fact (:p (nth events1 2)) => point2)
 
-(def z [[1 2 3] [4 [5 6] 7 [8 9]]])
-
-(def zipper (z/seq-zip (seq z)))
-
-(dorun (println zipper))
-(dorun (println (z/node (z/down zipper))))
+(def voronoi1-step0 (f/voronoi points1))
+(dorun (println (c/out voronoi1-step0)))
+(def voronoi1-step1 (f/step voronoi1-step0))
+(dorun (println (c/out voronoi1-step1)))

@@ -104,7 +104,8 @@
                        "\nwith intersections at\n"
                        (reduce str (for [p points] (reduce str (for [b (:intersections p)] (c/out b (+ i 2))))))
                        "\nwith cells\n"
-                       (reduce str (for [cell cells] (c/out cell (+ i 2))))))
+                       (reduce str (for [cell cells] (c/out cell (+ i 2))))
+                       "\n\n"))
   (c/out [this] (c/out this 0)))
 
 (defn cell-corners
