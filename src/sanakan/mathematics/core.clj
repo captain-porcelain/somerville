@@ -7,5 +7,6 @@
   (:gen-class))
 
 (defn -main [& args]
-  (l-system/show))
+  ;(l-system/show))
+  (voronoi/show))
 

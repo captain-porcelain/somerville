@@ -6,7 +6,7 @@
 
 ;; Define a protocol for pretty printing geometry records.
 (defprotocol Printable
-  (out [this] [this x]))
+  (out [this] [this x] [this x k]))
 
 (defn close-to
   "Compare floats."
