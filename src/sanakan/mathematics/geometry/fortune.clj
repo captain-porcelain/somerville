@@ -27,22 +27,45 @@
   [points]
   (sort-events (map #(event % :site) points)))
 
-(defrecord TreeNode [event parabola left right]
+(defn leaf?
+  "Is this TreeNode a leaf?"
+  [node]
+  (and (nil? (:left node)) (nil? (:right node))))
+
+(defrecord Edge [start left right end]
+  c/Printable
+  (c/out [this i] (str (c/indent i) "Edge start: " (c/out start) " end: " (if (nil? end) "-" (c/out end)) " left: " (c/out left) " right: " (c/out right)))
+  (c/out [this] (c/out this 0)))
+
+(defn edge
+  ([start left right]
+   (Edge. start left right nil))
+  ([p1 p2]
+   (let [lp (if (< (:x p1) (:x p2)) p1 p2)
+         rp (if (< (:x p1) (:x p2)) p2 p1)
+         s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
+     (edge s lp rp))))
+
+(defrecord TreeNode [event edge left right]
   c/Printable
   (c/out [this i keepfirst]
     (str (when keepfirst (c/indent i)) "Node for " (c/out event) " has "
-         (if (nil? parabola) "no parabola yet " (c/out parabola)) "\n"
-         (c/indent (+ i 2)) "left:  " (if (nil? left)  "-" (c/out left  (+ i 2) false)) "\n"
-         (c/indent (+ i 2)) "right: " (if (nil? right) "-" (c/out right (+ i 2) false))))
+         (if (nil? edge) "no edge yet " (str "\n" (c/out edge (+ i 2))))
+         (if (not (leaf? this))
+           (str "\n"
+             (c/indent (+ i 2)) "left:  " (if (nil? left)  "-" (c/out left  (+ i 2) false)) "\n"
+             (c/indent (+ i 2)) "right: " (if (nil? right) "-" (c/out right (+ i 2) false))))))
   (c/out [this i] (c/out this i true))
   (c/out [this] (c/out this 0)))
 
 (defn treenode
   "Create a new TreeNode"
-  ([event parabola]
-   (TreeNode. event parabola nil nil))
-  ([event parabola left right]
-   (TreeNode. event parabola left right)))
+  ([event]
+   (TreeNode. event nil nil nil))
+  ([event edge]
+   (TreeNode. event edge nil nil))
+  ([event edge left right]
+   (TreeNode. event edge left right)))
 
 ;; define the data structure we need to represent a voronoi diagram.
 (defrecord Voronoi [points events tree step]
@@ -57,18 +80,13 @@
                        "\n\n"))
   (c/out [this] (c/out this 0)))
 
-(defn leaf?
-  "Is this TreeNode a leaf?"
-  [node]
-  (and (nil? (:left node)) (nil? (:right node))))
-
 (defn make-zipper
   "Create a zipper from the root tree node."
   [root]
   (z/zipper
     #(not (leaf? %))
     #(list (:left %) (:right %))
-    (fn [node children] (TreeNode. (:event node) (:parabola node) (first children) (second children)))
+    (fn [node children] (treenode (:event node) (:edge node) (first children) (second children)))
     root))
 
 (defn find-parabola
@@ -80,15 +98,32 @@
       (recur (z/down zipper) event)
       (recur (z/right (z/down zipper)) event))))
 
-(defn create-subtree
+(defn start-of-edge
   [node event]
-  (treenode (:event node) nil
-              (treenode (:event node) nil
-                (treenode (:event node) nil nil nil)
-                (treenode event nil nil nil))
-              (treenode (:event node) nil nil nil)))
+  (p/point
+    (:x (:point event))
+    (par/solve-parabola-at
+      (par/parabola-from-focuspoint-and-directrix
+        (:point (:event node))
+        (l/line (p/point 0 (:y (:point event))) (p/point 1 (:y (:point event)))))
+      (:x (:point event)))))
+
+(defn create-subtree
+  "Create TreeNode structure for representing a new site event."
+  [node event]
+  (let [tmp (dorun (println "test"))
+        start (start-of-edge node event)
+        tmp (dorun (println (c/out start)))]
+    (treenode (:event node)
+              (edge start (:point event) (:point (:event node)))
+              (treenode (:event node)
+                (edge start (:point (:event node)) (:point event))
+                (treenode (:event node))
+                (treenode event))
+              (treenode (:event node)))))
 
 (defn edit-tree
+  "Use zipper to append sub tree for new site event."
   [tree event]
   (z/root (z/edit
                 (find-parabola (make-zipper tree) event)
@@ -97,11 +132,12 @@
 (defn add-parabola
   [tree event]
   (if (nil? tree)
-    (treenode event nil)
+    (treenode event)
     (if (leaf? tree)
-      (treenode (:event tree) nil
-                (treenode (:event tree) nil)
-                (treenode event nil))
+      (treenode (:event tree)
+                (edge (:point (:event tree)) (:point event))
+                (treenode (:event tree))
+                (treenode event))
       (edit-tree tree event))))
 
 (defn remove-parabola
