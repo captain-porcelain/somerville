@@ -6,7 +6,8 @@
     [sanakan.mathematics.geometry.parabola :as par]
     [sanakan.mathematics.geometry.point :as p]))
 
-;; define a site event type.
+;; ==============================================================================================================
+;; define a site event type from a point and a type. Types can be :site and :circle
 (defrecord SiteEvent [point type]
   c/Printable
   (c/out [this i] (str (c/indent i) "Event " type " at " (c/out point)))
@@ -27,24 +28,31 @@
   [points]
   (sort-events (map #(event % :site) points)))
 
-(defn leaf?
-  "Is this TreeNode a leaf?"
-  [node]
-  (and (nil? (:left node)) (nil? (:right node))))
-
+;; ==============================================================================================================
+;; define the structure for tracking edges of the voronoi diagram
 (defrecord Edge [start left right end]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Edge start: " (c/out start) " end: " (if (nil? end) "-" (c/out end)) " left: " (c/out left) " right: " (c/out right)))
+  (c/out [this i] (str (c/indent i) "Edge start: " (c/out start) " end: "
+                       (if (nil? end) "-" (c/out end)) " left: " (c/out left) " right: " (c/out right)))
   (c/out [this] (c/out this 0)))
 
 (defn edge
   ([start left right]
+   "Create an unfinished edge from a start point having left and right defining points."
    (Edge. start left right nil))
   ([p1 p2]
+   "Create an unfinished edge from two points by calculating the start at 0 y."
    (let [lp (if (< (:x p1) (:x p2)) p1 p2)
          rp (if (< (:x p1) (:x p2)) p2 p1)
          s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
      (edge s lp rp))))
+
+;; ==============================================================================================================
+;; define records and functions for managing the binary search tree. 
+(defn leaf?
+  "Is this TreeNode a leaf?"
+  [node]
+  (and (nil? (:left node)) (nil? (:right node))))
 
 (defrecord TreeNode [event edge left right]
   c/Printable
@@ -67,6 +75,34 @@
   ([event edge left right]
    (TreeNode. event edge left right)))
 
+(defn make-zipper
+  "Create a zipper from the root tree node."
+  [root]
+  (z/zipper
+    #(not (leaf? %))
+    #(list (:left %) (:right %))
+    (fn [node children] (treenode (:event node) (:edge node) (first children) (second children)))
+    root))
+
+(defn right-leaf
+  "Find the child of the node that is a leaf on the right side. follow is used to track if we should be stepping to the left child."
+  [node follow?]
+  (if (leaf? node)
+    node
+    (if follow?
+      (recur (:left  node) true)
+      (recur (:right node) true))))
+
+(defn left-leaf
+  "Find the child of the node that is a leaf on the left side. follow is used to track if we should be stepping to the right child."
+  [node follow?]
+  (if (leaf? node)
+    node
+    (if follow?
+      (recur (:right node) true)
+      (recur (:left  node) true))))
+
+;; ==============================================================================================================
 ;; define the data structure we need to represent a voronoi diagram.
 (defrecord Voronoi [points events tree step]
   c/Printable
@@ -80,15 +116,6 @@
                        "\n\n"))
   (c/out [this] (c/out this 0)))
 
-(defn make-zipper
-  "Create a zipper from the root tree node."
-  [root]
-  (z/zipper
-    #(not (leaf? %))
-    #(list (:left %) (:right %))
-    (fn [node children] (treenode (:event node) (:edge node) (first children) (second children)))
-    root))
-
 (defn find-parabola
   "Find the parabola that is to be split in two by a site event."
   [zipper event]
@@ -99,6 +126,7 @@
       (recur (z/right (z/down zipper)) event))))
 
 (defn start-of-edge
+  "Define the starting point a new edge."
   [node event]
   (p/point
     (:x (:point event))
