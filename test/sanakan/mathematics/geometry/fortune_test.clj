@@ -33,23 +33,40 @@
 (def voronoi1-step3 (f/step voronoi1-step2))
 (dorun (println (c/out voronoi1-step3)))
 
-;(def zip (f/make-zipper (:tree voronoi1-step1)))
-;(dorun (println zip))
-;(dorun (println (f/find-parabola zip 1)))
+;; define a test tree
+;;                            (1,1)
+;;                   /                     \
+;;                (2,1)                  (2,2)
+;;            / i        \            /         \
+;;         (3,1)       (3,2)       (3,3)      (3,4)
+;;        /    \      /    \      /    \      /    \
+;;     (4,1) (4,2) (4,3) (4,4) (4,5) (4,6) (4,7) (4,8)
+;;    /    \
+;; (5,1) (5,2)
 
-;(def c1 (f/treenode (f/event (p/point 1 1) :site) nil nil nil))
-;(def c2 (f/treenode (f/event (p/point 4 4) :site) nil nil nil))
-;(def r1 (f/treenode (f/event (p/point 2 2) :size) nil c1  c2))
-;(def zip1 (f/make-zipper r1))
-;(dorun (println (c/out (z/node (f/find-parabola zip1 (f/event (p/point 3.5 0) :site))))))
+(def n5-1 (f/treenode (f/event (p/point 5 1) :site)))
+(def n5-2 (f/treenode (f/event (p/point 5 2) :site)))
 
-;(def c2c1 (f/treenode (f/event (p/point 3 3) :site) nil nil nil))
-;(def c2c2 (f/treenode (f/event (p/point 5 5) :site) nil nil nil))
-;(def c22  (f/treenode (f/event (p/point 4 4) :site) nil c2c1 c2c2))
-;(def r2   (f/treenode (f/event (p/point 2 2) :size) nil c1  c22))
+(def n4-1 (f/treenode (f/event (p/point 4 1) :site) nil n5-1 n5-2))
+(def n4-2 (f/treenode (f/event (p/point 4 2) :site)))
+(def n4-3 (f/treenode (f/event (p/point 4 3) :site)))
+(def n4-4 (f/treenode (f/event (p/point 4 4) :site)))
+(def n4-5 (f/treenode (f/event (p/point 4 5) :site)))
+(def n4-6 (f/treenode (f/event (p/point 4 6) :site)))
+(def n4-7 (f/treenode (f/event (p/point 4 7) :site)))
+(def n4-8 (f/treenode (f/event (p/point 4 8) :site)))
 
-;(def zip2 (f/make-zipper r2))
-;(dorun (println (c/out (z/node (f/find-parabola zip2 (f/event (p/point 3.5 0) :site))))))
+(def n3-1 (f/treenode (f/event (p/point 3 1) :site) nil n4-1 n4-2))
+(def n3-2 (f/treenode (f/event (p/point 3 2) :site) nil n4-3 n4-4))
+(def n3-3 (f/treenode (f/event (p/point 3 3) :site) nil n4-5 n4-6))
+(def n3-4 (f/treenode (f/event (p/point 3 4) :site) nil n4-7 n4-8))
 
-;(def zip3 (f/make-zipper (z/root (z/edit (-> zip1 z/down z/right) (fn [n] c22)))))
-;(dorun (println (c/out (z/node (f/find-parabola zip3 (f/event (p/point 3.5 0) :site))))))
+(def n2-1 (f/treenode (f/event (p/point 2 1) :site) nil n3-1 n3-2))
+(def n2-2 (f/treenode (f/event (p/point 2 2) :site) nil n3-3 n3-4))
+
+(def n1-1 (f/treenode (f/event (p/point 1 1) :site) nil n2-1 n2-2))
+
+(fact (f/left-leaf  n1-1) => n4-4)
+(fact (f/right-leaf n1-1) => n4-5)
+(fact (f/left-leaf  n3-1) => n5-2)
+(fact (f/right-leaf n3-1) => n4-2)
