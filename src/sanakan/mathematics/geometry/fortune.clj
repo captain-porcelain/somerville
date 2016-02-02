@@ -86,21 +86,25 @@
 
 (defn right-leaf
   "Find the child of the node that is a leaf on the right side. follow is used to track if we should be stepping to the left child."
-  [node follow?]
-  (if (leaf? node)
-    node
-    (if follow?
-      (recur (:left  node) true)
-      (recur (:right node) true))))
+  ([node follow?]
+    (if (leaf? node)
+      node
+      (if follow?
+        (recur (:left  node) true)
+        (recur (:right node) true))))
+  ([node]
+   (right-leaf node false)))
 
 (defn left-leaf
   "Find the child of the node that is a leaf on the left side. follow is used to track if we should be stepping to the right child."
-  [node follow?]
-  (if (leaf? node)
-    node
-    (if follow?
-      (recur (:right node) true)
-      (recur (:left  node) true))))
+  ([node follow?]
+    (if (leaf? node)
+      node
+      (if follow?
+        (recur (:right node) true)
+        (recur (:left  node) true))))
+  ([node]
+   (left-leaf node false)))
 
 ;; ==============================================================================================================
 ;; define the data structure we need to represent a voronoi diagram.
@@ -121,9 +125,18 @@
   [zipper event]
   (if (leaf? (z/node zipper))
     zipper
-    (if (< (:x (:point event)) (:x (:point (:event (z/node zipper)))))
-      (recur (z/down zipper) event)
-      (recur (z/right (z/down zipper)) event))))
+    (let [left-point (:point (:event (left-leaf (z/node zipper))))
+          right-point (:point (:event (right-leaf (z/node zipper))))
+          event-point (:point event)
+          line (l/line (p/point 0 (:y event-point)) (p/point 1 (:y event-point)))
+          parabola-left (par/parabola-from-focuspoint-and-directrix left-point line)
+          parabola-right (par/parabola-from-focuspoint-and-directrix right-point line)
+          parabola (par/subtract parabola-left parabola-right)
+          zeros (par/find-zero-of-parabola parabola)
+          x (if (< (:y left-point) (:y right-point)) (second zeros) (first zeros))]
+      (if (< (:x (:point event)) x)
+        (recur (z/down zipper) event)
+        (recur (z/right (z/down zipper)) event)))))
 
 (defn start-of-edge
   "Define the starting point a new edge."
@@ -139,9 +152,7 @@
 (defn create-subtree
   "Create TreeNode structure for representing a new site event."
   [node event]
-  (let [tmp (dorun (println "test"))
-        start (start-of-edge node event)
-        tmp (dorun (println (c/out start)))]
+  (let [start (start-of-edge node event)]
     (treenode (:event node)
               (edge start (:point event) (:point (:event node)))
               (treenode (:event node)
