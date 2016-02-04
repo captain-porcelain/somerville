@@ -8,6 +8,7 @@
     [sanakan.mathematics.geometry.line :as l])
   (:use midje.sweet))
 
+;; ==============================================================================================================
 ;; check creation and sorting of events
 (def point1 (p/point 2 2))
 (def event1 (f/event point1 :site))
@@ -24,20 +25,13 @@
 (fact (:point (nth events1 1)) => point1)
 (fact (:point (nth events1 2)) => point2)
 
-(def voronoi1-step0 (f/voronoi points1))
-(dorun (println (c/out voronoi1-step0)))
-(def voronoi1-step1 (f/step voronoi1-step0))
-(dorun (println (c/out voronoi1-step1)))
-(def voronoi1-step2 (f/step voronoi1-step1))
-(dorun (println (c/out voronoi1-step2)))
-(def voronoi1-step3 (f/step voronoi1-step2))
-(dorun (println (c/out voronoi1-step3)))
-
+;; ==============================================================================================================
+;; Test tree navigation
 ;; define a test tree
 ;;                            (1,1)
 ;;                   /                     \
 ;;                (2,1)                  (2,2)
-;;            / i        \            /         \
+;;            /          \            /         \
 ;;         (3,1)       (3,2)       (3,3)      (3,4)
 ;;        /    \      /    \      /    \      /    \
 ;;     (4,1) (4,2) (4,3) (4,4) (4,5) (4,6) (4,7) (4,8)
@@ -66,7 +60,23 @@
 
 (def n1-1 (f/treenode (f/event (p/point 1 1) :site) nil n2-1 n2-2))
 
-(fact (f/left-leaf  n1-1) => n4-4)
-(fact (f/right-leaf n1-1) => n4-5)
-(fact (f/left-leaf  n3-1) => n5-2)
-(fact (f/right-leaf n3-1) => n4-2)
+(fact (z/node (f/left-leaf  (f/make-zipper n1-1))) => n4-4)
+(fact (z/node (f/right-leaf (f/make-zipper n1-1))) => n4-5)
+(fact (z/node (f/left-leaf  (f/make-zipper n3-1))) => n5-2)
+(fact (z/node (f/right-leaf (f/make-zipper n3-1))) => n4-2)
+
+(fact (f/right-parent (z/right (z/down (f/make-zipper n1-1)))) => nil)
+(fact (z/node (f/right-parent (z/right (z/down (z/down (f/make-zipper n1-1)))))) => n1-1)
+(fact (f/left-parent (z/down (f/make-zipper n1-1))) => nil)
+(fact (z/node (f/left-parent (z/right (z/down (f/make-zipper n1-1))))) => n1-1)
+
+;; ==============================================================================================================
+;; check creation of voronois
+(def voronoi1-step0 (f/voronoi points1))
+(dorun (println (c/out voronoi1-step0)))
+(def voronoi1-step1 (f/step voronoi1-step0))
+(dorun (println (c/out voronoi1-step1)))
+(def voronoi1-step2 (f/step voronoi1-step1))
+(dorun (println (c/out voronoi1-step2)))
+(def voronoi1-step3 (f/step voronoi1-step2))
+(dorun (println (c/out voronoi1-step3)))
