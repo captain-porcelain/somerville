@@ -48,7 +48,7 @@
      (edge s lp rp))))
 
 ;; ==============================================================================================================
-;; define records and functions for managing the binary search tree. 
+;; define records and functions for managing the binary search tree.
 (defn leaf?
   "Is this TreeNode a leaf?"
   [node]
@@ -85,26 +85,48 @@
     root))
 
 (defn right-leaf
-  "Find the child of the node that is a leaf on the right side. follow is used to track if we should be stepping to the left child."
-  ([node follow?]
-    (if (leaf? node)
-      node
+  "Find the child of the current zipper position that is a leaf on the right side.
+  The follow flag is used to track if we should be stepping to the left child."
+  ([zipper follow?]
+    (if (or (nil? zipper) (leaf? (z/node zipper)))
+      zipper
       (if follow?
-        (recur (:left  node) true)
-        (recur (:right node) true))))
-  ([node]
-   (right-leaf node false)))
+        (recur (z/down zipper) true)
+        (recur (z/right (z/down zipper)) true))))
+  ([zipper]
+   (right-leaf zipper false)))
 
 (defn left-leaf
-  "Find the child of the node that is a leaf on the left side. follow is used to track if we should be stepping to the right child."
-  ([node follow?]
-    (if (leaf? node)
-      node
+  "Find the child of the current zipper position that is a leaf on the left side.
+  The follow flag is used to track if we should be stepping to the right child."
+  ([zipper follow?]
+    (if (or (nil? zipper) (leaf? (z/node zipper)))
+      zipper
       (if follow?
-        (recur (:right node) true)
-        (recur (:left  node) true))))
-  ([node]
-   (left-leaf node false)))
+        (recur (z/right (z/down zipper)) true)
+        (recur (z/down zipper) true))))
+  ([zipper]
+   (left-leaf zipper false)))
+
+(defn right-parent
+  "Find the parent of the current zipper position so that the current node is not a right child."
+  [zipper]
+  (let [parent (z/up zipper)]
+    (if (nil? parent)
+      nil
+      (if (= (:right (z/node parent)) (z/node zipper))
+        (recur parent)
+        parent))))
+
+(defn left-parent
+  "Find the parent of the current zipper position so that the current node is not a left child."
+  [zipper]
+  (let [parent (z/up zipper)]
+    (if (nil? parent)
+      nil
+      (if (= (:left (z/node parent)) (z/node zipper))
+        (recur parent)
+        parent))))
 
 ;; ==============================================================================================================
 ;; define the data structure we need to represent a voronoi diagram.
@@ -125,8 +147,8 @@
   [zipper event]
   (if (leaf? (z/node zipper))
     zipper
-    (let [left-point (:point (:event (left-leaf (z/node zipper))))
-          right-point (:point (:event (right-leaf (z/node zipper))))
+    (let [left-point  (:point (:event (z/node (left-leaf  zipper))))
+          right-point (:point (:event (z/node (right-leaf zipper))))
           event-point (:point event)
           line (l/line (p/point 0 (:y event-point)) (p/point 1 (:y event-point)))
           parabola-left (par/parabola-from-focuspoint-and-directrix left-point line)
@@ -137,6 +159,15 @@
       (if (< (:x (:point event)) x)
         (recur (z/down zipper) event)
         (recur (z/right (z/down zipper)) event)))))
+
+(defn check-circle
+  ""
+  [zipper]
+  (let [lp (left-parent zipper)
+        rp (right-parent zipper)
+        ll (left-leaf lp)
+        rl (right-leaf rp)]
+    nil))
 
 (defn start-of-edge
   "Define the starting point a new edge."
@@ -161,39 +192,50 @@
                 (treenode event))
               (treenode (:event node)))))
 
+(defn new-nodes
+  "From the zipper where new nodes have been added get the zippers moved to these nodes."
+  [zipper]
+  (list
+    (z/down  (z/down zipper))
+    (z/right (z/down zipper))))
+
 (defn edit-tree
   "Use zipper to append sub tree for new site event."
   [tree event]
-  (z/root (z/edit
-                (find-parabola (make-zipper tree) event)
-                (fn [n] (create-subtree n event)))))
+  (let [updated (z/edit (find-parabola (make-zipper tree) event) (fn [n] (create-subtree n event)))]
+    [(z/root updated) (new-nodes updated)]))
 
 (defn add-parabola
+  "A new site event causes the tree to be updated and returns the new nodes to check for circle events."
   [tree event]
   (if (nil? tree)
-    (treenode event)
+    [(treenode event) (list)]
     (if (leaf? tree)
-      (treenode (:event tree)
+      [(treenode (:event tree)
                 (edge (:point (:event tree)) (:point event))
                 (treenode (:event tree))
                 (treenode event))
+       (list)]
       (edit-tree tree event))))
 
 (defn remove-parabola
   [tree point]
-  tree)
+  [tree (list)])
 
 (defn step
   "Process first event in events and update event queue and tree."
   [v]
   (let [e (first (:events v))
-        tree (:tree v)]
+        events (rest (:events v))
+        tree (:tree v)
+        [new-tree new-nodes] (if (= :site (:type e))
+                               (add-parabola tree e)
+                               (remove-parabola tree e))
+        new-events (filter #(not (nil? %)) (map check-circle new-nodes))]
     (Voronoi.
       (:points v)
-      (rest (:events v))
-      (if (= :site (:type e))
-        (add-parabola tree e)
-        (remove-parabola tree e))
+      (sort-events (concat events new-events))
+      new-tree
       (+ 1 (:step v)))))
 
 (defn voronoi
