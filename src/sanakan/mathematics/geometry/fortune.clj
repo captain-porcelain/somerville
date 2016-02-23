@@ -167,7 +167,9 @@
         rp (right-parent zipper)
         ll (left-leaf lp)
         rl (right-leaf rp)]
-    nil))
+    (if (or (nil? ll) (nil? rl) (= (:point (:event ll)) (:point (:event rl))))
+      nil
+      nil)))
 
 (defn start-of-edge
   "Define the starting point a new edge."
