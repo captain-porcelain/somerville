@@ -5,3 +5,5 @@ lib
 classes
 target
 .lein-failures
+.nrepl-port
+.lein-*

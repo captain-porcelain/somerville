@@ -9,4 +9,6 @@
   :plugins
   [[lein-marginalia "0.8.0"] ; create documentation
    [lein-midje "3.2"]]
-  :main sanakan.mathematics.core)
+  :main sanakan.mathematics.core
+  :repl-options
+  {:timeout 120000})
