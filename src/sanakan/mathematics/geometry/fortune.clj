@@ -133,6 +133,11 @@
         (recur parent)
         parent))))
 
+(defn tree-seq
+  "Create a sequence of the tree."
+  [tree]
+  (map z/node (take-while (complement z/end?) (iterate z/next (make-zipper tree)))))
+
 ;; ==============================================================================================================
 ;; define the data structure we need to represent a voronoi diagram.
 (defrecord Voronoi [points events tree step]
