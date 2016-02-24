@@ -16,19 +16,25 @@
   [a b c]
   (Parabola. a b c))
 
-(defn parabola-from-focuspoint-and-directrix
+(defn parabola-from-focuspoint-and-directrix-y
   "Create a parabola such that it defines all points that are
   equidistant from the directrix and the focuspoint. The created
-  parabola is open towards the positive y."
-  [point directrix]
+  parabola is open towards the positive y. The directrix is given by the y value only."
+  [point directrix-y]
   (let [x (:x point)
-        directrix-y (l/solve-line-at-sloped directrix x)
         distance (- (:y point) directrix-y)
         y (- (:y point) (/ distance 2))
         a (/ 1 (* 2 distance))
         b (/ (* -1 x) distance)
         c (+ y (/ (* x x) (* 2 distance)))]
     (Parabola. a b c)))
+
+(defn parabola-from-focuspoint-and-directrix
+  "Create a parabola such that it defines all points that are
+  equidistant from the directrix and the focuspoint. The created
+  parabola is open towards the positive y."
+  [point directrix]
+  (parabola-from-focuspoint-and-directrix-y point (l/solve-line-at-sloped directrix (:x point))))
 
 (defn discriminate
   "The solution for a quadratic formula is the p-q formula: x1,x2 = - p/2 +- sqrt((p/2)² - q).

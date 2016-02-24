@@ -18,6 +18,11 @@
   [p t]
   (SiteEvent. p t))
 
+(defn sort-points
+  "Sort points by y position."
+  [points]
+  (sort-by #(:y %) points))
+
 (defn sort-events
   "Sort events by y position."
   [events]
@@ -242,4 +247,4 @@
 
 (defn voronoi
   [points]
-  (Voronoi. points (events points) nil 0))
+  (Voronoi. (sort-points points) (events points) nil 0))
