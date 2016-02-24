@@ -4,6 +4,7 @@
             [sanakan.mathematics.geometry.point :as p]
             [sanakan.mathematics.geometry.parabola :as parabola]
             [sanakan.mathematics.geometry.fortune :as fortune]
+            [sanakan.mathematics.geometry.voronoi :as voronoi]
             [quil.core :as quil])
   (:gen-class))
 
@@ -15,6 +16,7 @@
 (def p4 (p/point 250 50))
 (def points (atom (list p1 p2 p3 p4)))
 (def sites (atom (fortune/voronoi @points)))
+(def vsites (atom (voronoi/voronoi @points 0 0 width height)))
 
 (defn draw-intersection
   [i]
@@ -37,7 +39,7 @@
     (quil/fill-float 255 255 0)
     (dorun
       (for [x xs]
-        (quil/rect x (parabola/solve-parabola-at parabola x) 1 1)))))
+        (quil/line x (parabola/solve-parabola-at parabola x) (+ x 1) (parabola/solve-parabola-at parabola (+ x 1)))))))
 
 (defn draw-sweepline
   [y]
@@ -57,7 +59,22 @@
   (quil/fill-float 255 255 0)
   (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4))
 
-(def highlighted (atom nil))
+(defn draw-edge
+  [edge]
+  (quil/stroke-float 55 255 55)
+  (quil/fill-float 55 255 55)
+  (when (and (not (nil? (:left edge))) (not (nil? (:right edge))))
+    (let [m (p/midpoint (:left edge) (:right edge))]
+      (quil/line (:x (:start edge)) (:y (:start edge)) (:x m) (:y m)))))
+
+(defn draw-cell
+  [cell]
+  (dorun
+    (for [l (:lines cell)]
+      (let []
+        (quil/stroke-float 200 200 200)
+        (quil/fill-float 200 200 200)
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -66,13 +83,19 @@
   (quil/stroke-float 0 255 0)
   (quil/fill-float 0 255 0)
   (dorun
+    (for [site (:cells @vsites)]
+      (draw-cell site)))
+  (dorun
     (for [site (:points @sites)]
       (draw-site site)))
   (dorun
     (for [site (:events @sites)]
       (draw-event site)))
+  (dorun
+    (for [node (fortune/tree-seq (:tree @sites))]
+      (when (not (nil? (:edge node))) (draw-edge (:edge node)))))
   (let [step (- (:step @sites) 1)
-        sweep-y (if (>= step 0)
+        sweep-y (if (and (>= step 0) (< step (count (:points @sites))))
                   (:y (nth (:points @sites) step))
                   nil)]
     (if (not (nil? sweep-y))
@@ -94,6 +117,7 @@
   (let [mx (quil/mouse-x)
         my (quil/mouse-y)]
     (reset! points (cons (p/point mx my) @points))
+	(reset! vsites (voronoi/voronoi @points 0 0 width height))
     (reset! sites (fortune/voronoi @points))))
 
 (defn key-pressed []
@@ -104,11 +128,14 @@
   (if (= (quil/key-code) 67) ; c for clearing
     (do
       (reset! points (list))
+	  (reset! vsites (voronoi/voronoi @points 0 0 width height))
       (reset! sites (fortune/voronoi @points))))
   (if (= (quil/key-code) 68) ; d for debugging
     (dorun (println (c/out @sites))))
   (if (= (quil/key-code) 82) ; r for resetting to step 0
-    (reset! sites (fortune/voronoi @points))))
+    (do
+	  (reset! vsites (voronoi/voronoi @points 0 0 width height))
+      (reset! sites (fortune/voronoi @points)))))
 
 (defn show []
   (quil/sketch
