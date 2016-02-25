@@ -7,7 +7,7 @@
     [sanakan.mathematics.geometry.point :as p]))
 
 ;; ==============================================================================================================
-;; define a site event type from a point and a type. Types can be :site and :circle
+;; Define a site event type from a point and a type. Types can be :site and :circle
 (defrecord SiteEvent [point type]
   c/Printable
   (c/out [this i] (str (c/indent i) "Event " type " at " (c/out point)))
@@ -34,7 +34,7 @@
   (sort-events (map #(event % :site) points)))
 
 ;; ==============================================================================================================
-;; define the structure for tracking edges of the voronoi diagram
+;; Define the structure for tracking edges of the voronoi diagram
 (defrecord Edge [start left right end]
   c/Printable
   (c/out [this i] (str (c/indent i) "Edge start: " (c/out start) " end: "
@@ -46,14 +46,16 @@
    "Create an unfinished edge from a start point having left and right defining points."
    (Edge. start left right nil))
   ([p1 p2]
-   "Create an unfinished edge from two points by calculating the start at 0 y."
+   "Create an unfinished edge from two points by calculating the start at y = 0."
    (let [lp (if (< (:x p1) (:x p2)) p1 p2)
          rp (if (< (:x p1) (:x p2)) p2 p1)
          s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
      (edge s lp rp))))
 
 ;; ==============================================================================================================
-;; define records and functions for managing the binary search tree.
+;; Define records and functions for managing a binary search tree.
+;; Each tree node contains one site event and represents a part of a parabola for that event.
+;; Nodes also contain the edges separating voronoi cells.
 (defn leaf?
   "Is this TreeNode a leaf?"
   [node]
@@ -66,8 +68,8 @@
          (if (nil? edge) "no edge yet " (str "\n" (c/out edge (+ i 2))))
          (if (not (leaf? this))
            (str "\n"
-             (c/indent (+ i 2)) "left:  " (if (nil? left)  "-" (c/out left  (+ i 2) false)) "\n"
-             (c/indent (+ i 2)) "right: " (if (nil? right) "-" (c/out right (+ i 2) false))))))
+                (c/indent (+ i 2)) "left:  " (if (nil? left)  "-" (c/out left  (+ i 2) false)) "\n"
+                (c/indent (+ i 2)) "right: " (if (nil? right) "-" (c/out right (+ i 2) false))))))
   (c/out [this i] (c/out this i true))
   (c/out [this] (c/out this 0)))
 
@@ -93,11 +95,11 @@
   "Find the child of the current zipper position that is a leaf on the right side.
   The follow flag is used to track if we should be stepping to the left child."
   ([zipper follow?]
-    (if (or (nil? zipper) (leaf? (z/node zipper)))
-      zipper
-      (if follow?
-        (recur (z/down zipper) true)
-        (recur (z/right (z/down zipper)) true))))
+   (if (or (nil? zipper) (leaf? (z/node zipper)))
+     zipper
+     (if follow?
+       (recur (z/down zipper) true)
+       (recur (z/right (z/down zipper)) true))))
   ([zipper]
    (right-leaf zipper false)))
 
@@ -105,11 +107,11 @@
   "Find the child of the current zipper position that is a leaf on the left side.
   The follow flag is used to track if we should be stepping to the right child."
   ([zipper follow?]
-    (if (or (nil? zipper) (leaf? (z/node zipper)))
-      zipper
-      (if follow?
-        (recur (z/right (z/down zipper)) true)
-        (recur (z/down zipper) true))))
+   (if (or (nil? zipper) (leaf? (z/node zipper)))
+     zipper
+     (if follow?
+       (recur (z/right (z/down zipper)) true)
+       (recur (z/down zipper) true))))
   ([zipper]
    (left-leaf zipper false)))
 
@@ -139,7 +141,9 @@
   (map z/node (take-while (complement z/end?) (iterate z/next (make-zipper tree)))))
 
 ;; ==============================================================================================================
-;; define the data structure we need to represent a voronoi diagram.
+;; Define the data structure we need to represent a voronoi diagram.
+;; It contains all the inital points and the event queue created from those points.
+;; The tree is initially empty and step is set to 0.
 (defrecord Voronoi [points events tree step]
   c/Printable
   (c/out [this i] (str (c/indent i) "Voronoi step " step " for the points\n"
@@ -153,16 +157,18 @@
   (c/out [this] (c/out this 0)))
 
 (defn find-parabola
-  "Find the parabola that is to be split in two by a site event."
+  "Find the parabola that is to be split in two by a site event. This is done by walking down
+  the tree, calculating the parabolas for each child node and intersecting the parabolas.
+  Depending if the event is left or right of the intersection the child node is selected for
+  continuing the search until a leaf is found."
   [zipper event]
   (if (leaf? (z/node zipper))
     zipper
     (let [left-point  (:point (:event (z/node (left-leaf  zipper))))
           right-point (:point (:event (z/node (right-leaf zipper))))
           event-point (:point event)
-          line (l/line (p/point 0 (:y event-point)) (p/point 1 (:y event-point)))
-          parabola-left (par/parabola-from-focuspoint-and-directrix left-point line)
-          parabola-right (par/parabola-from-focuspoint-and-directrix right-point line)
+          parabola-left (par/parabola-from-focuspoint-and-directrix-y left-point (:y event-point))
+          parabola-right (par/parabola-from-focuspoint-and-directrix-y right-point (:y event-point))
           parabola (par/subtract parabola-left parabola-right)
           zeros (par/find-zero-of-parabola parabola)
           x (if (< (:y left-point) (:y right-point)) (second zeros) (first zeros))]
@@ -171,37 +177,45 @@
         (recur (z/right (z/down zipper)) event)))))
 
 (defn check-circle
+  ;; TODO use
   ""
   [zipper]
   (let [lp (left-parent zipper)
         rp (right-parent zipper)
         ll (left-leaf lp)
         rl (right-leaf rp)]
+    ;; TODO finish implementation
     (if (or (nil? ll) (nil? rl) (= (:point (:event ll)) (:point (:event rl))))
       nil
       nil)))
 
 (defn start-of-edge
-  "Define the starting point a new edge."
-  [node event]
+  "Define the starting point a new edge. It is defined by the newly split parabola's value at x."
+  [parabola event]
   (p/point
     (:x (:point event))
     (par/solve-parabola-at
-      (par/parabola-from-focuspoint-and-directrix
-        (:point (:event node))
-        (l/line (p/point 0 (:y (:point event))) (p/point 1 (:y (:point event)))))
+      (par/parabola-from-focuspoint-and-directrix-y
+        (:point (:event (z/node parabola)))
+        (:y (:point event)))
       (:x (:point event)))))
 
 (defn create-subtree
-  "Create TreeNode structure for representing a new site event."
-  [node event]
-  (let [start (start-of-edge node event)]
+  "Create TreeNode structure for representing a new site event.
+  If p1 is the parabola that is to be split the created tree is as follows:
+                 (p1)
+               //    \\
+             (p1)    (p1)
+            //   \\
+          (p1)   (p2)"
+  [node event parabola]
+  (let [start (start-of-edge parabola event)]
     (treenode (:event node)
               (edge start (:point event) (:point (:event node)))
               (treenode (:event node)
-                (edge start (:point (:event node)) (:point event))
-                (treenode (:event node))
-                (treenode event))
+                        (edge start (:point (:event node)) (:point event))
+                        (treenode (:event node))
+                        (treenode event))
               (treenode (:event node)))))
 
 (defn new-nodes
@@ -211,24 +225,14 @@
     (z/down  (z/down zipper))
     (z/right (z/down zipper))))
 
-(defn edit-tree
-  "Use zipper to append sub tree for new site event."
-  [tree event]
-  (let [updated (z/edit (find-parabola (make-zipper tree) event) (fn [n] (create-subtree n event)))]
-    [(z/root updated) (new-nodes updated)]))
-
 (defn add-parabola
   "A new site event causes the tree to be updated and returns the new nodes to check for circle events."
   [tree event]
   (if (nil? tree)
     [(treenode event) (list)]
-    (if (leaf? tree)
-      [(treenode (:event tree)
-                (edge (:point (:event tree)) (:point event))
-                (treenode (:event tree))
-                (treenode event))
-       (list)]
-      (edit-tree tree event))))
+    (let [parabola (find-parabola (make-zipper tree) event)
+          updated (z/edit parabola (fn [n] (create-subtree n event parabola)))]
+      [(z/root updated) (new-nodes updated)])))
 
 (defn remove-parabola
   [tree point]
