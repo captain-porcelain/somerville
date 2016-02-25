@@ -35,34 +35,34 @@
 (defn draw-parabola
   [parabola]
   (let [xs (range (quil/width))]
-    (quil/stroke-float 255 255 0)
-    (quil/fill-float 255 255 0)
+    (quil/stroke-float 237 237 177)
+    (quil/fill-float 237 237 177)
     (dorun
       (for [x xs]
         (quil/line x (parabola/solve-parabola-at parabola x) (+ x 1) (parabola/solve-parabola-at parabola (+ x 1)))))))
 
 (defn draw-sweepline
   [y]
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/stroke-float 211 248 226)
+  (quil/fill-float 211 248 226)
   (quil/line 0 y width y))
 
 (defn draw-site
   [site]
-  (quil/stroke-float 255 0 0)
-  (quil/fill-float 255 0 0)
+  (quil/stroke-float 246 148 193)
+  (quil/fill-float 246 148 193)
   (quil/rect (- (:x site) 2) (- (:y site) 2) 4 4))
 
 (defn draw-event
   [site]
-  (quil/stroke-float 255 255 0)
-  (quil/fill-float 255 255 0)
+  (quil/stroke-float 211 248 226)
+  (quil/fill-float 211 248 226)
   (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4))
 
 (defn draw-edge
   [edge]
-  (quil/stroke-float 55 255 55)
-  (quil/fill-float 55 255 55)
+  (quil/stroke-float 169 222 249)
+  (quil/fill-float 169 222 249)
   (when (and (not (nil? (:left edge))) (not (nil? (:right edge))))
     (let [m (p/midpoint (:left edge) (:right edge))]
       (quil/line (:x (:start edge)) (:y (:start edge)) (:x m) (:y m)))))

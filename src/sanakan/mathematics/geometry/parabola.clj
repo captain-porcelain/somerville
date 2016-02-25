@@ -75,7 +75,7 @@
         (let [x1 (- firstpart (Math/sqrt dis))
               x2 (+ firstpart (Math/sqrt dis))]
           (if (< x1 x2)
-            ;; otherwise we have to intersections which we sort by x for convenience.
+            ;; otherwise we have two intersections which we sort by x for convenience.
             (list x1 x2)
             (list x2 x1)))))))
 
