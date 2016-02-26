@@ -71,7 +71,17 @@
 (fact (z/node (f/left-parent (z/right (z/down (f/make-zipper n1-1))))) => n1-1)
 
 ;; ==============================================================================================================
-;; check creation of voronois
+;; Test edge handling
+(def edge1 (f/edge (p/point 1 4) (p/point 1 2) (p/point 3 4)))
+(def edge2 (f/edge (p/point 5 3) (p/point 4 3) (p/point 5 2)))
+(def edge3 (f/edge (p/point 5 4) (p/point 4 4) (p/point 5 3)))
+(def i-edge1-edge2 (f/edge-intersection edge1 edge2))
+(fact i-edge1-edge2 => (p/point 7/2 3/2))
+(def i-edge2-edge3 (f/edge-intersection edge2 edge3))
+(fact i-edge2-edge3 => nil)
+
+;; ==============================================================================================================
+;; Check creation of voronois
 (def voronoi1-step0 (f/voronoi points1))
 (dorun (println (c/out voronoi1-step0)))
 (def voronoi1-step1 (f/step voronoi1-step0))
