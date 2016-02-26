@@ -176,18 +176,33 @@
         (recur (z/down zipper) event)
         (recur (z/right (z/down zipper)) event)))))
 
+(defn edge-intersection
+  "Find the intersection of two edges."
+  [e1 e2]
+  (when (and
+          (not (nil? (:left e1))) (not (nil? (:right e1)))
+          (not (nil? (:left e2))) (not (nil? (:right e2))))
+    (l/intersect
+      (l/line (:start e1) (p/midpoint (:left e1) (:right e1)))
+      (l/line (:start e2) (p/midpoint (:left e2) (:right e2))))))
+
 (defn check-circle
-  ;; TODO use
   ""
-  [zipper]
+  [zipper sweep-y]
   (let [lp (left-parent zipper)
         rp (right-parent zipper)
         ll (left-leaf lp)
-        rl (right-leaf rp)]
-    ;; TODO finish implementation
-    (if (or (nil? ll) (nil? rl) (= (:point (:event ll)) (:point (:event rl))))
-      nil
-      nil)))
+        rl (right-leaf rp)
+        tmp (dorun (println (str "checking circle for " (c/out (:point (:event (z/node zipper)))))))]
+    (when (not (or (nil? ll) (nil? rl) (= (:point (:event (z/node ll))) (:point (:event (z/node rl))))))
+      (let [intersection (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))
+            tmp (dorun (println (str "intersection " (c/out intersection))))]
+        (when (not (nil? intersection))
+          (let [distance (p/distance (:point (:event (z/node ll))) intersection)
+                circle-y (- (:y intersection) distance)
+                tmp (dorun (println (str "sweepline: "  sweep-y ", circle: " circle-y)))]
+            (when (< circle-y sweep-y)
+              (event (p/point (:x intersection) circle-y) :circle))))))))
 
 (defn start-of-edge
   "Define the starting point a new edge. It is defined by the newly split parabola's value at x."
@@ -247,7 +262,7 @@
         [new-tree new-nodes] (if (= :site (:type e))
                                (add-parabola tree e)
                                (remove-parabola tree e))
-        new-events (filter #(not (nil? %)) (map check-circle new-nodes))]
+        new-events (filter #(not (nil? %)) (map #(check-circle % (:y (:point e))) new-nodes))]
     (Voronoi.
       (:points v)
       (sort-events (concat events new-events))
