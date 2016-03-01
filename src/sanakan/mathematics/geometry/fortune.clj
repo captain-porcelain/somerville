@@ -213,7 +213,7 @@
         rp (right-parent zipper)
         ll (left-leaf lp)
         rl (right-leaf rp)]
-    (let [intersection (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))]
+    (let [intersection (circle-intersection lp rp ll rl)]
       (when (not (nil? intersection))
         (let [distance (p/distance (:point (:event (z/node ll))) intersection)
               circle-y (- (:y intersection) distance)]
