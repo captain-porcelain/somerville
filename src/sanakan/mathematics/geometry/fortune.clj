@@ -52,6 +52,25 @@
          s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
      (edge s lp rp))))
 
+(defn edge-intersection
+  "Find the intersection of two edges."
+  [e1 e2]
+  (when (and
+          (not (nil? (:left e1))) (not (nil? (:right e1)))
+          (not (nil? (:left e2))) (not (nil? (:right e2))))
+    (l/intersect
+      (l/line (:start e1) (p/midpoint (:left e1) (:right e1)))
+      (l/line (:start e2) (p/midpoint (:left e2) (:right e2))))))
+
+(defn start-of-edge
+  "Define the starting point a new edge. It is defined by a newly split parabola's value at x."
+  [focuspoint event]
+  (p/point
+    (:x (:point event))
+    (par/solve-parabola-at
+      (par/parabola-from-focuspoint-and-directrix-y focuspoint (:y (:point event)))
+      (:x (:point event)))))
+
 ;; ==============================================================================================================
 ;; Define records and functions for managing a binary search tree.
 ;; Each tree node contains one site event and represents a part of a parabola for that event.
@@ -176,44 +195,30 @@
         (recur (z/down zipper) event)
         (recur (z/right (z/down zipper)) event)))))
 
-(defn edge-intersection
-  "Find the intersection of two edges."
-  [e1 e2]
-  (when (and
-          (not (nil? (:left e1))) (not (nil? (:right e1)))
-          (not (nil? (:left e2))) (not (nil? (:right e2))))
-    (l/intersect
-      (l/line (:start e1) (p/midpoint (:left e1) (:right e1)))
-      (l/line (:start e2) (p/midpoint (:left e2) (:right e2))))))
+(defn circle-points-valid?
+  "Check that the leafs to the left and the right of a newly created tree node exist and are different."
+  [ll rl]
+  (not (or (nil? ll) (nil? rl) (= (:point (:event (z/node ll))) (:point (:event (z/node rl)))))))
+
+(defn circle-intersection
+  "Calculate the intersections of the edges of the left and right parents of a new tree node if they exist."
+  [lp rp ll rl]
+  (when (circle-points-valid? ll rl)
+    (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))))
 
 (defn check-circle
-  ""
+  "Check if the event at the zipper position has a circle event and return it."
   [zipper sweep-y]
   (let [lp (left-parent zipper)
         rp (right-parent zipper)
         ll (left-leaf lp)
-        rl (right-leaf rp)
-        tmp (dorun (println (str "checking circle for " (c/out (:point (:event (z/node zipper)))))))]
-    (when (not (or (nil? ll) (nil? rl) (= (:point (:event (z/node ll))) (:point (:event (z/node rl))))))
-      (let [intersection (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))
-            tmp (dorun (println (str "intersection " (c/out intersection))))]
-        (when (not (nil? intersection))
-          (let [distance (p/distance (:point (:event (z/node ll))) intersection)
-                circle-y (- (:y intersection) distance)
-                tmp (dorun (println (str "sweepline: "  sweep-y ", circle: " circle-y)))]
-            (when (< circle-y sweep-y)
-              (event (p/point (:x intersection) circle-y) :circle))))))))
-
-(defn start-of-edge
-  "Define the starting point a new edge. It is defined by the newly split parabola's value at x."
-  [parabola event]
-  (p/point
-    (:x (:point event))
-    (par/solve-parabola-at
-      (par/parabola-from-focuspoint-and-directrix-y
-        (:point (:event (z/node parabola)))
-        (:y (:point event)))
-      (:x (:point event)))))
+        rl (right-leaf rp)]
+    (let [intersection (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))]
+      (when (not (nil? intersection))
+        (let [distance (p/distance (:point (:event (z/node ll))) intersection)
+              circle-y (- (:y intersection) distance)]
+          (when (< circle-y sweep-y)
+            (event (p/point (:x intersection) circle-y) :circle)))))))
 
 (defn create-subtree
   "Create TreeNode structure for representing a new site event.
@@ -224,7 +229,7 @@
             //   \\
           (p1)   (p2)"
   [node event parabola]
-  (let [start (start-of-edge parabola event)]
+  (let [start (start-of-edge (:point (:event (z/node parabola))) event)]
     (treenode (:event node)
               (edge start (:point event) (:point (:event node)))
               (treenode (:event node)
