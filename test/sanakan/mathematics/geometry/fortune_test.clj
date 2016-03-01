@@ -26,6 +26,18 @@
 (fact (:point (nth events1 2)) => point2)
 
 ;; ==============================================================================================================
+;; Test edge handling
+(def edge1 (f/edge (p/point 1 4) (p/point 1 2) (p/point 3 4)))
+(def edge2 (f/edge (p/point 5 3) (p/point 4 3) (p/point 5 2)))
+(def edge3 (f/edge (p/point 5 4) (p/point 4 4) (p/point 5 3)))
+(def i-edge1-edge2 (f/edge-intersection edge1 edge2))
+(fact i-edge1-edge2 => (p/point 7/2 3/2))
+(def i-edge2-edge3 (f/edge-intersection edge2 edge3))
+(fact i-edge2-edge3 => nil)
+
+(fact (f/start-of-edge (p/point 2 3) (f/event (p/point 2 1) :site)) => (p/point 2 2))
+
+;; ==============================================================================================================
 ;; Test tree navigation
 ;; define a test tree
 ;;                            (1,1)
@@ -60,6 +72,9 @@
 
 (def n1-1 (f/treenode (f/event (p/point 1 1) :site) nil n2-1 n2-2))
 
+(fact (f/leaf? n5-1) => true)
+(fact (f/leaf? n4-1) => false)
+
 (fact (z/node (f/left-leaf  (f/make-zipper n1-1))) => n4-4)
 (fact (z/node (f/right-leaf (f/make-zipper n1-1))) => n4-5)
 (fact (z/node (f/left-leaf  (f/make-zipper n3-1))) => n5-2)
@@ -70,23 +85,53 @@
 (fact (f/left-parent (z/down (f/make-zipper n1-1))) => nil)
 (fact (z/node (f/left-parent (z/right (z/down (f/make-zipper n1-1))))) => n1-1)
 
-;; ==============================================================================================================
-;; Test edge handling
-(def edge1 (f/edge (p/point 1 4) (p/point 1 2) (p/point 3 4)))
-(def edge2 (f/edge (p/point 5 3) (p/point 4 3) (p/point 5 2)))
-(def edge3 (f/edge (p/point 5 4) (p/point 4 4) (p/point 5 3)))
-(def i-edge1-edge2 (f/edge-intersection edge1 edge2))
-(fact i-edge1-edge2 => (p/point 7/2 3/2))
-(def i-edge2-edge3 (f/edge-intersection edge2 edge3))
-(fact i-edge2-edge3 => nil)
+(fact (:point (:event (z/node (f/find-parabola (f/make-zipper n5-1) (f/event (p/point 2 1) :site))))) => (p/point 5 1))
+
+;; test building the tree and finding parabolas
+(def e1 (f/event (p/point 3 2) :site))
+(def e2 (f/event (p/point 2 4) :site))
+(def e3 (f/event (p/point 5 5) :site))
+(def e4 (f/event (p/point 4 7) :site))
+
+;; first the tree looks like this:
+;; (3,2)
+(def tree1-1 (first (f/add-parabola nil e1)))
+(def new-nodes1-1 (second (f/add-parabola nil e1)))
+(fact (count (f/tree-seq tree1-1)) => 1)
+(fact (count new-nodes1-1) => 0)
+
+;; then it becomes
+;;        (3,2)
+;;      //     \\
+;;    (3,2)    (3,2)
+;;   //   \\
+;; (3,2)   (2,4)
+(def tree1-2 (first (f/add-parabola tree1-1 e2)))
+(def new-nodes1-2 (second (f/add-parabola tree1-1 e2)))
+(fact (count (f/tree-seq tree1-2)) => 5)
+(fact (count new-nodes1-2) => 2)
+(fact (z/node (first  new-nodes1-2)) => (z/node (z/down  (z/down (f/make-zipper tree1-2)))))
+(fact (z/node (second new-nodes1-2)) => (z/node (z/right (z/down (f/make-zipper tree1-2)))))
+
+;; adding the third event makes it:
+;;           (3,2)
+;;       //        \\
+;;    (3,2)         (3,2)
+;;   //   \\       //   \\
+;; (3,2)   (2,4) (3,2)   (3,2)
+;;              //  \\
+;;            (3,2) (5,5)
+(fact (f/find-parabola (f/make-zipper tree1-2) e3) => (z/right (z/down (f/make-zipper tree1-2))))
+(def tree1-3 (first (f/add-parabola tree1-2 e3)))
+(fact (count (f/tree-seq tree1-3)) => 9)
 
 ;; ==============================================================================================================
 ;; Check creation of voronois
-(def voronoi1-step0 (f/voronoi points1))
-(dorun (println (c/out voronoi1-step0)))
-(def voronoi1-step1 (f/step voronoi1-step0))
-(dorun (println (c/out voronoi1-step1)))
-(def voronoi1-step2 (f/step voronoi1-step1))
-(dorun (println (c/out voronoi1-step2)))
-(def voronoi1-step3 (f/step voronoi1-step2))
-(dorun (println (c/out voronoi1-step3)))
+;(def voronoi1-step0 (f/voronoi points1))
+;(dorun (println (c/out voronoi1-step0)))
+;(def voronoi1-step1 (f/step voronoi1-step0))
+;(dorun (println (c/out voronoi1-step1)))
+;(def voronoi1-step2 (f/step voronoi1-step1))
+;(dorun (println (c/out voronoi1-step2)))
+;(def voronoi1-step3 (f/step voronoi1-step2))
+;(dorun (println (c/out voronoi1-step3)))
