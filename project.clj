@@ -1,14 +1,11 @@
-(defproject mathematics "1.0.0-SNAPSHOT"
+(defproject somerville "1.0.0-SNAPSHOT"
   :description "Implementation of some mathematical functions."
   :dependencies
   [[org.clojure/clojure "1.8.0"]
-   [quil "2.3.0"]
-   [org.clojure/math.numeric-tower "0.0.4"]
-   ;; tools
-   [midje "1.8.3"]]
+   [quil "2.6.0"]
+   [org.clojure/math.numeric-tower "0.0.4"]]
   :plugins
-  [[lein-marginalia "0.8.0"] ; create documentation
-   [lein-midje "3.2"]]
-  :main sanakan.mathematics.core
+  [[lein-marginalia "0.8.0"]]
+  :main somerville.core
   :repl-options
   {:timeout 120000})
