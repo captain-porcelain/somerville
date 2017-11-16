@@ -26,3 +26,12 @@
   "List resources available at path."
   [path]
   (line-seq (BufferedReader. (InputStreamReader. (resource-stream path)))))
+
+(defn parse-int
+  "Try to parse a string as a integer."
+  ([^String n default]
+   (try
+     (Integer/parseInt n)
+     (catch Exception e default)))
+  ([^String n]
+   (parse-int n 0)))
