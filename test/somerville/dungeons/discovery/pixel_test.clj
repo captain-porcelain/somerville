@@ -1,7 +1,7 @@
-;; Test the geometry functions.
+;; Test the rasterize functions.
 (ns somerville.dungeons.discovery.pixel-test
   (:require
-    [somerville.dungeons.discovery.geometry :as geometry]
+    [somerville.dungeons.discovery.rasterize :as rasterize]
     [somerville.image :as image]
     [fs.core :as fs])
   (:use clojure.test)
@@ -10,7 +10,7 @@
 (deftest discovered-points
   (def dis (create-undiscovered 640 400))
   (def tstart (System/currentTimeMillis))
-  (def sightlines (geometry/translate-lines (geometry/sight-lines 100) [100 100]))
+  (def sightlines (rasterize/translate-lines (rasterize/sight-lines 100) [100 100]))
   (def wall (image/load-image "./test-resources/dungeon-wallmap.png"))
   (def filtered (map #(filter-line wall %) sightlines))
   (is (= (.getWidth dis) 640))
