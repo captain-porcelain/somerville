@@ -2,8 +2,8 @@
 (ns somerville.dungeons.discovery.discover-test
   (:require
     [somerville.dungeons.discovery.discover :as discover]
-    [somerville.geometry.point :as point]
-    [somerville.geometry.line :as line])
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as l])
   (:use clojure.test))
 
 (def wall-description
@@ -16,5 +16,5 @@
 (deftest parsing
   (let [parsed (discover/parse wall-description)]
     (is (= 2 (count parsed)))
-    (is (= (line/line (point/point 10 10) (point/point 20 10)) (nth parsed 0)))
-    (is (= (line/line (point/point 20 10) (point/point 20 20)) (nth parsed 1)))))
+    (is (= (l/line (p/point 10 10) (p/point 20 10)) (nth parsed 0)))
+    (is (= (l/line (p/point 20 10) (p/point 20 20)) (nth parsed 1)))))

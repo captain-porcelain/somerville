@@ -2,9 +2,12 @@
 (ns somerville.dungeons.discovery.discover
   (:require
     [somerville.commons :as commons]
-    [somerville.geometry.point :as point]
-    [somerville.geometry.line :as line]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as l]
     [taoensso.timbre :as log]))
+
+;;==================================================================================================================
+;; Parsing wall description
 
 (defn translate-line
   "Translate a line description into an actual line."
@@ -14,7 +17,7 @@
     (let [parts (reduce concat (map #(clojure.string/split % #",") parameters))
           iparts (filter #(not (nil? %)) (map #(commons/parse-int % nil) parts))]
       (when (= 4 (count iparts))
-        (line/line (point/point (nth iparts 0) (nth iparts 1)) (point/point (nth iparts 2) (nth iparts 3)))))))
+        (l/line (p/point (nth iparts 0) (nth iparts 1)) (p/point (nth iparts 2) (nth iparts 3)))))))
 
 (defn translate-description
   "Translate one wall description."
@@ -28,6 +31,9 @@
 (defn parse
   "Given a string representation of wall descriptions create the geometrical representations for them."
   [^String wall-description]
-  (let [slines (clojure.string/split wall-description #"\n")
-        dlines (filter #(not (nil? %)) (map translate-description slines))]
-    dlines))
+  (filter #(not (nil? %)) (map translate-description (clojure.string/split wall-description #"\n"))))
+
+
+;;==================================================================================================================
+;; 
+
