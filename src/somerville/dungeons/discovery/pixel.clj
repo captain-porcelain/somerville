@@ -10,7 +10,7 @@
     [taoensso.timbre :as log]
     [somerville.commons :as commons]
     [somerville.image :as image]
-    [somerville.dungeons.discovery.geometry :as geometry]))
+    [somerville.dungeons.discovery.rasterize :as rasterize]))
 
 (def black (.getRGB (Color. 0 0 0 0)))
 (def transparent (.getRGB (Color. 0 0 0 1)))
@@ -96,8 +96,8 @@
         height (.getHeight wall)
         img (create-undiscovered-graphics width height)
         ;img (create-undiscovered width height)
-        lines (geometry/sight-lines visualrange)
-        sightlines (map #(geometry/translate-lines lines %) points)
+        lines (rasterize/sight-lines visualrange)
+        sightlines (map #(rasterize/translate-lines lines %) points)
         filteredlines (map #(filter-all % wall) sightlines)
         tmp (dorun (println (str "Total: " (reduce + (map #(reduce + (map count %)) filteredlines)))))
         tmp (update-list-discovered-line filteredlines img)]
