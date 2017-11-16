@@ -121,3 +121,10 @@
 (def c (l/cuts cl1 (list cl2 cl3 cl4)))
 (deftest cuts
   (is (= (count c) 2)))
+
+(deftest segment-test
+  (let [l1 (l/line (p/point -2 0) (p/point 2 0))
+        p1 (p/point -2 0)
+        p2 (p/point -2 1)]
+    (is (= (l/point-on-segment? l1 p1) true))
+    (is (= (l/point-on-segment? l1 p2) false))))

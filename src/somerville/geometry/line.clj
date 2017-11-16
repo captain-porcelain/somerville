@@ -56,6 +56,20 @@
       nil
       (y-by-t line t))))
 
+(defn point-at
+  "For a line given by two points this function returns the point at x."
+  [line x]
+  (p/point x (solve-line-at line x)))
+
+(defn point-on-segment?
+  "Check if given point is on the segment of line given by the lines defining points."
+  [l p]
+  (let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
+        ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
+    (and
+      (<= (first xs) (:x p)) (>= (last xs) (:x p))
+      (<= (first ys) (:y p)) (>= (last ys) (:y p)))))
+
 (defn parallel?
   "Check if two lines are parallel."
   [l1 l2]
