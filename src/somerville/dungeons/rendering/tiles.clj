@@ -1,11 +1,11 @@
 ;; Provides the facilities to manipulate images
-(ns somerville.dungeons.generators.tiles
+(ns somerville.dungeons.rendering.tiles
   (:import
     [java.awt Graphics2D]
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
-    [somerville.dungeons.image :as image]
+    [somerville.image :as image]
     [somerville.dungeons.generators.grid :as grid]))
 
 (defn image-size-rect

@@ -1,7 +1,6 @@
 ;; Provides functions for handling geometric objects.
-(ns somerville.dungeons.geometry
-  (:require [clojure.math.numeric-tower :as math]
-            [clojure.zip :as zip]))
+(ns somerville.dungeons.discovery.rasterize
+  (:require [clojure.math.numeric-tower :as math]))
 
 (defn circlefn
   "Build a function that calculates the positive y values at x for a circle with a radius of r."
