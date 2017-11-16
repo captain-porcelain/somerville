@@ -1,16 +1,17 @@
 ;; Test the geometry functions.
-(ns somerville.dungeons.image-test
+(ns somerville.dungeons.discovery.pixel-test
   (:require
-    [somerville.dungeons.geometry :as geometry]
+    [somerville.dungeons.discovery.geometry :as geometry]
+    [somerville.image :as image]
     [fs.core :as fs])
   (:use clojure.test)
-  (:use somerville.dungeons.image))
+  (:use somerville.dungeons.discovery.pixel))
 
 (deftest discovered-points
   (def dis (create-undiscovered 640 400))
   (def tstart (System/currentTimeMillis))
   (def sightlines (geometry/translate-lines (geometry/sight-lines 100) [100 100]))
-  (def wall (load-image "./test-resources/dungeon-wallmap.png"))
+  (def wall (image/load-image "./test-resources/dungeon-wallmap.png"))
   (def filtered (map #(filter-line wall %) sightlines))
   (is (= (.getWidth dis) 640))
   (is (= (.getWidth wall) 640))
@@ -18,7 +19,7 @@
   (is (= (.getWidth dis) 640))
   (def tend (System/currentTimeMillis))
   ;(dorun (println (str "time for discovery of 1 point: " (- tend tstart) "ms")))
-  (write-image "/tmp/dis1.png" dis))
+  (image/write-image "/tmp/dis1.png" dis))
 
 (defn test-points
   [wallmap points visualrange]
@@ -26,7 +27,7 @@
         dis2 (discover-list wallmap points visualrange)
         tend (System/currentTimeMillis)
         tmp (dorun (println (str "time for discovery of " (count points) " points: " (- tend tstart) "ms")))]
-    (write-image (str "/tmp/dis-" (count points) ".png") dis2)))
+    (image/write-image (str "/tmp/dis-" (count points) ".png") dis2)))
 
 (def points1 (list [30 200]))
 ;(test-points "dungeon-wallmap.png" points1 100)

@@ -1,4 +1,4 @@
-(ns somerville.dungeons.generators.ascii
+(ns somerville.dungeons.rendering.ascii
   (:require
     [somerville.commons :as commons]
     [somerville.dungeons.generators.grid :as grid]))

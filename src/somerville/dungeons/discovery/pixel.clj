@@ -1,5 +1,5 @@
 ;; Provides the facilities to manipulate images
-(ns somerville.dungeons.image
+(ns somerville.dungeons.discovery.pixel
   (:import
     [java.awt Color Graphics2D Rectangle]
     [java.awt.image BufferedImage]
@@ -9,58 +9,16 @@
     [clojure.java.io :as io]
     [taoensso.timbre :as log]
     [somerville.commons :as commons]
-    [somerville.dungeons.geometry :as geometry]))
+    [somerville.image :as image]
+    [somerville.dungeons.discovery.geometry :as geometry]))
 
 (def black (.getRGB (Color. 0 0 0 0)))
 (def transparent (.getRGB (Color. 0 0 0 1)))
 
-(defn load-image
-  "Load an image file containing a map from disc."
-  [^String filename]
-  (ImageIO/read (File. filename)))
-
-(defn size
-  "Get size of image from disc."
-  [^String filename]
-  (let [i ^BufferedImage (load-image filename)]
-    {:width (.getWidth i) :height (.getHeight i)}))
-
-(defn load-image-resource
-  "Load an image file containing a map from jar resources."
-  [^String filename]
-  (ImageIO/read (io/resource filename)))
-
-(defn size-resource
-  "Get size of image from jar resources."
-  [^String filename]
-  (let [i ^BufferedImage (load-image-resource filename)]
-    {:width (.getWidth i) :height (.getHeight i)}))
-
-(defn write-image
-  "Write an image file containing a map to disc."
-  [^String filename ^BufferedImage img]
-  (ImageIO/write img "png" (File. filename)))
-
-(defn in-bounds?
-  "Check if a pixel is inside an image."
-  [^BufferedImage img [^Integer x ^Integer y]]
-  (and
-    (< x (.getWidth img))
-    (> x -1)
-    (< y (.getHeight img))
-    (> y -1)))
-
-(defn free?
-  "Check if a pixel represents a free space."
-  [^BufferedImage img [^Integer x ^Integer y]]
-  (if (in-bounds? img [x y])
-    (= Color/WHITE (Color. (.getRGB img x y)))
-    false))
-
 (defn filter-line
   "Filter a line to those pixels that represent free space."
   [^BufferedImage img l]
-  (take-while #(free? img %) l))
+  (take-while #(image/free? img %) l))
 
 (defn filter-all
   "User filter-line to filter a list lines to those pixels that represent free space."
@@ -74,7 +32,7 @@
     (for [line sightlines]
       (dorun
         (for [[x y] line]
-          (when-not (free? img [x y])
+          (when-not (image/free? img [x y])
             (.setRGB img x y (.getRGB (Color. 0 0 0 1)))))))))
 
 (defn update-list-discovered
@@ -133,7 +91,7 @@
 (defn discover-list
   "Load a wallmap and create a fresh discovered image. For each point given the discovered image is updated."
   [wallmap points visualrange]
-  (let [wall ^BufferedImage (load-image wallmap)
+  (let [wall ^BufferedImage (image/load-image wallmap)
         width (.getWidth wall)
         height (.getHeight wall)
         img (create-undiscovered-graphics width height)

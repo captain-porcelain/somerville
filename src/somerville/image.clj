@@ -1,9 +1,12 @@
 ;; Provides the facilities to manipulate images
 (ns somerville.image
-  (:import java.awt.image.BufferedImage)
-  (:import java.awt.Color)
-  (:import javax.imageio.ImageIO)
-  (:import java.io.File))
+  (:import
+    [java.awt Color]
+    [java.awt.image BufferedImage]
+    [javax.imageio ImageIO]
+    [java.io File])
+  (:require
+    [clojure.java.io :as io]))
 
 ;; try to improve performance by having hints when reflection is needed.
 (set! *warn-on-reflection* true)
@@ -13,10 +16,21 @@
   [^String filename]
   (ImageIO/read (File. filename)))
 
+(defn load-image-resource
+  "Load an image file containing a map from jar resources."
+  [^String filename]
+  (ImageIO/read (io/resource filename)))
+
 (defn size
   "Get size of image from disc."
   [^String filename]
-  (let [i (load-image filename)]
+  (let [i ^BufferedImage (load-image filename)]
+    {:width (.getWidth i) :height (.getHeight i)}))
+
+(defn size-resource
+  "Get size of image from jar resources."
+  [^String filename]
+  (let [i ^BufferedImage (load-image-resource filename)]
     {:width (.getWidth i) :height (.getHeight i)}))
 
 (defn write-image
@@ -24,29 +38,24 @@
   [^String filename ^BufferedImage img]
   (ImageIO/write img "png" (File. filename)))
 
+(defn in-bounds-raw?
+  "Check if a pixel is inside an image."
+  [^BufferedImage img [^Integer x ^Integer y]]
+  (and
+    (< x (.getWidth img))
+    (> x -1)
+    (< y (.getHeight img))
+    (> y -1)))
+
 (defn in-bounds?
   "Check if a pixel is inside an image."
   [^BufferedImage img p]
-  (and
-    (< (:x p) (.getWidth img))
-    (> (:x p) -1)
-    (< (:y p) (.getHeight img))
-    (> (:y p) -1)))
+  (in-bounds-raw? img [(:x p) (:y p)]))
 
 (defn free?
   "Check if a pixel represents a free space."
   [^BufferedImage img [^Integer x ^Integer y]]
-  (if (in-bounds? img [x y])
+  (if (in-bounds-raw? img [x y])
     (= Color/WHITE (Color. (.getRGB img x y)))
     false))
-
-(defn update-discovered
-  "Update an image and set the pixels in the sightlines to be discovered."
-  [^BufferedImage img sightlines]
-  (dorun
-    (for [line sightlines]
-      (dorun
-        (for [[x y] line]
-          (.setRGB img x y (.getRGB (Color. 0 0 0 1))))))))
-
 
