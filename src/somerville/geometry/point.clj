@@ -5,6 +5,13 @@
 
 ;; define a two dimensional point
 (defrecord Point2 [x y]
+  java.lang.Comparable
+  (java.lang.Comparable/compareTo
+    [this other]
+    (if
+      (= (:x this) (:x other))
+      (.compareTo (:y this) (:y other))
+      (.compareTo (:x this) (:x other))))
   c/Printable
   (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
   (c/out [this] (c/out this 0)))

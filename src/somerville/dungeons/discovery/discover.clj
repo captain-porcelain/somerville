@@ -4,6 +4,7 @@
     [somerville.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
+    [somerville.geometry.circle :as c]
     [taoensso.timbre :as log]))
 
 ;;==================================================================================================================
@@ -35,5 +36,19 @@
 
 
 ;;==================================================================================================================
-;; 
+;; Geometric discovery
+;;
+;; Have a list of lines and filter them by having intersections with the current view circle.
+;; Next check the pixels in the bounding box for those that are
+;; - inside the view circle
+;; - do not intersect any relevant wall lines when drawing a line from the circle center to the pixel
+;;
+;; Possible improvements are to check the overlap between circles and remove them if possible to reduce
+;; the amount of pixels to check.
+;; Could that be done by instead checking the complete image pixels?
+;; Maybe do both and decide upon the strategy by calculating the amount of pixels to check for each strategy.
+
+(defn intersections
+  [circle lines]
+  (map #(hash-map :line % :intersections (c/intersect-line circle %)) lines))
 

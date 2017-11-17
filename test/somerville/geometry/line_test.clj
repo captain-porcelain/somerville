@@ -102,6 +102,10 @@
   (is (= (l/parallel? (l/line (p/point 0 0) (p/point 0 1)) (l/line (p/point 0 0.5) (p/point 0 0.5))) true))
   (is (= (l/parallel? (l/line (p/point 0 0.5) (p/point 1 0.5)) (l/line (p/point 0 0) (p/point 1 0))) true)))
 
+(deftest verticals
+  (is (= (l/vertical? (l/line (p/point 0 0) (p/point 1 0))) false))
+  (is (= (l/vertical? (l/line (p/point 0 0) (p/point 0 1))) true)))
+
 (def plt1 (l/line (p/point 0 0) (p/point 1 0)))
 (def n1 (l/normal plt1))
 (def n2 (l/normal2 plt1))
