@@ -82,6 +82,11 @@
       (= s1 s2)
       (c/close-to s1 s2))))
 
+(defn vertical?
+  "Check if a line is vertical."
+  [l]
+  (= (:x (:p1 l)) (:x (:p2 l))))
+
 (defn normal
   "Create a line for the normal of a line on the first point of the line."
   [line]
