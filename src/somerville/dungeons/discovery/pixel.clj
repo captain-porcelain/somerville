@@ -103,3 +103,25 @@
         tmp (update-list-discovered-line filteredlines img)]
         ;tmp (update-list-discovered filteredlines img)]
     img))
+
+(defn discover-rect
+  "Load a wallmap and create a fresh discovered image. For each point given the discovered image is updated."
+  [wall-image discovered-image visualrange origin]
+  (let [x-1 (- (nth origin 0) visualrange)
+        y-1 (- (nth origin 1) visualrange)
+        x-2 (+ (nth origin 0) visualrange 1)
+        y-2 (+ (nth origin 1) visualrange 1)
+        tmp (dorun
+              (for [x (range x-1 x-2)
+                    y (range y-1 y-2)]
+                (when (every? #(image/free? wall-image %) (rasterize/line origin [x y]))
+                  (.setRGB discovered-image x y (.getRGB (Color. 0 0 0 1))))))]
+    discovered-image))
+
+(defn discover
+  "Load a wallmap and create a fresh discovered image. For each point given the discovered image is updated."
+  [wallmap points visualrange]
+  (let [wall-image ^BufferedImage (image/load-image wallmap)
+        discovered-image (create-undiscovered-graphics (.getWidth wall-image) (.getHeight wall-image))
+        tmp (dorun (map #(discover-rect wall-image discovered-image visualrange %) points))]
+    discovered-image))

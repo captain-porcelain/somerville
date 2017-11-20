@@ -1,7 +1,11 @@
 ;; Functions to create overlay images that only show parts of an image that have been discovered.
 (ns somerville.dungeons.discovery.discover
+  (:import
+    [java.awt Color Graphics2D Rectangle]
+    [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
+    [somerville.image :as image]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
@@ -48,7 +52,83 @@
 ;; Could that be done by instead checking the complete image pixels?
 ;; Maybe do both and decide upon the strategy by calculating the amount of pixels to check for each strategy.
 
-(defn intersections
-  [circle lines]
-  (map #(hash-map :line % :intersections (c/intersect-line circle %)) lines))
+(defn create-undiscovered-graphics
+  "Create an image of size width x height with transparency and paint it completely black."
+  [^Integer width ^Integer height]
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setPaint graphics Color/black)
+        tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.dispose graphics)]
+    img))
 
+(defn discover-box
+  "Given a point of origin, check all pixels in the bounding box around the circle given by this origin for:
+  - pixel is inside the circle
+  - line from origin to pixel does not intersect any wall lines
+  If this is true the pixel is considered visible and set to transparent."
+  [wall-lines ^BufferedImage discovered-image visualrange origin]
+  (let [x-1 (max 0 (- (nth origin 0) visualrange))
+        y-1 (max 0 (- (nth origin 1) visualrange))
+        x-2 (min (+ (nth origin 0) visualrange 1) (dec (.getWidth discovered-image)))
+        y-2 (min (+ (nth origin 1) visualrange 1) (dec (.getHeight discovered-image)))
+        free-rgb (.getRGB (Color. 0 0 0 1))
+        center (p/point (nth origin 0) (nth origin 1))
+        circle (c/circle center visualrange)
+        relevant-lines (filter #(< 0 (count (c/intersect-line-segment circle %))) wall-lines)
+        tmp (dorun
+              (for [x (range x-1 x-2)
+                    y (range y-1 y-2)]
+                (let [point (p/point x y)
+                      in-circle (c/point-in? circle point)
+                      center-line (l/line center (p/point x y))
+                      intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-lines))]
+                  (when (and (= 0 (count intersections)) in-circle)
+                    (.setRGB discovered-image x y free-rgb)))))]
+    discovered-image))
+
+(defn discover-bounding-boxes
+  "Set all visible pixels in the bounding boxes of the given points to transparent."
+  [points wall-lines ^BufferedImage discovered-image visualrange]
+  (let [tmp (dorun (map #(discover-box wall-lines discovered-image visualrange %) points))]
+    discovered-image))
+
+(defn check-circle
+  [circle wall-lines point]
+  (let [relevant-lines (filter #(< 0 (count (c/intersect-line-segment circle %))) wall-lines)
+        center-line (l/line (:p circle) point)
+        intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-lines))]
+    (= 0 (count intersections))))
+
+(defn discover-all
+  "Set all visible pixels in the image to transparent."
+  [points wall-lines ^BufferedImage discovered-image visualrange]
+  (let [circles (map #(c/circle (p/point (nth % 0) (nth % 1)) visualrange) points)
+        free-rgb (.getRGB (Color. 0 0 0 1))
+        tmp (dorun
+              (for [x (range (.getWidth discovered-image))
+                    y (range (.getHeight discovered-image))]
+                (let [point (p/point x y)
+                      relevant-circles (filter #(c/point-in? % point) circles)
+                      visible-in (filter #(check-circle % wall-lines point) relevant-circles)]
+                  (when (< 0 (count visible-in))
+                    (.setRGB discovered-image x y free-rgb)))))]
+    discovered-image))
+
+(defn discover
+  "Create a black image that is set to transparent in areas that are visible from discovered points.
+  Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
+  around the points or just check all pixels of the image."
+  [points wall-lines width height visualrange]
+  (let [discovered-image (create-undiscovered-graphics width height)
+
+        points-by-bounding-boxes (* (count points) (* 4 visualrange visualrange))
+        points-by-width-height (* width height)
+
+        tmp (dorun (println (str "Points to check by bounding boxes: " points-by-bounding-boxes)))
+        tmp (dorun (println (str "Points to check by width and height: " points-by-width-height)))
+
+        tmp (if (< points-by-bounding-boxes points-by-width-height)
+              (discover-bounding-boxes points wall-lines discovered-image visualrange)
+              (discover-all points wall-lines discovered-image visualrange)) ]
+    discovered-image))

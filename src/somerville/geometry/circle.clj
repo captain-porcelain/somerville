@@ -27,7 +27,7 @@
   (let [sl (l/slope-intercept line)
         A (+ (* (:a sl) (:a sl)) 1)
         B (* 2 (- (* (:a sl) (:b sl)) (* (:a sl) (:y (:p circle))) (:x (:p circle))))
-        C (+ (- (* (:y (:p circle)) (:y (:p circle))) (* (:r circle) (:r circle)) (* (:x (:p circle))) (:x (:p circle)) (* 2 (:b sl) (:y (:p circle)))) (* (:b sl) (:b sl)))
+        C (+ (- (* (:y (:p circle)) (:y (:p circle))) (* (:r circle) (:r circle)) (* 2 (:b sl) (:y (:p circle)))) (* (:x (:p circle)) (:x (:p circle))) (* (:b sl) (:b sl)))
         indicator (- (* B B) (* 4 A C))]
     (cond
       (< indicator 0) (list)
