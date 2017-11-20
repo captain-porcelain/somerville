@@ -37,3 +37,6 @@
 
 (def points3 (list [30 200] [150 210] [550 200]))
 ;(test-points "dungeon-wallmap.png" points3 100)
+
+(def points1 (list [130 200]))
+(time (image/write-image "/tmp/discovered.png" (discover "./test-resources/dungeon-wallmap.png" points1 100)))

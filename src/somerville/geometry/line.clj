@@ -152,22 +152,29 @@
         p22x (:x (:p2 l2))
         p22y (:y (:p2 l2))
         d2y (- p22y p21y)
-        tmp (when (or (= 0.0 d2y) (= 0 d2y)) (dorun (println (str "d2y is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
+        ;tmp (when (or (= 0.0 d2y) (= 0 d2y)) (dorun (println (str "d2y is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
         d2y (if (or (= 0.0 d2y) (= 0 d2y)) 0.000000001 d2y)
         g (+ (- (/ (* (- p11y p21y) (- p22x p21x)) d2y) p11x) p21x)
         h (/ (- (* (- p12x p11x) (- p22y p21y)) (* (- p12y p11y) (- p22x p21x))) d2y)
-        tmp (when (or (= 0.0 h) (= 0 h)) (dorun (println (str "h is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
+        ;tmp (when (or (= 0.0 h) (= 0 h)) (dorun (println (str "h is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
         h (if (or (= 0.0 h) (= 0 h)) 0.00000001 h)
         t (/ g h)]
     (p/point (x-by-t l1 t) (y-by-t l1 t))))
 
 (defn intersect
+  "Intersect two lines."
   [l1 l2]
   (if (parallel? l1 l2)
     nil
     (if (parallel? l2 (line (p/point 0 0) (p/point 1 0)))
       (intersect-parameterized l2 l1)
       (intersect-parameterized l1 l2))))
+
+(defn intersect-segments
+  "Intersect two line segments."
+  [l1 l2]
+  (let [i (intersect l1 l2)]
+    (when (and (not (nil? i)) (point-on-segment? l1 i) (point-on-segment? l2 i)) i)))
 
 (defn cuts
   "Get list of intersections of one line with a list of lines."
