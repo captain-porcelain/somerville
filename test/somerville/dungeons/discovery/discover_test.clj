@@ -161,7 +161,7 @@
      line 325,375 400,375
     "))
 
-(def points-5 (list [10 110]))
+(def points-5 (list [10 110] [100 120] [190 115] [65 95]))
 (test-settings points-5 walls-6)
 
 

@@ -56,7 +56,7 @@
 ;; Helpers
 
 (defn relevant-lines
-  "Filter given lines to those that intersect the circle."
+  "Filter given lines to those that intersect the circle or are contained by it."
   [circle lines]
   (filter #(or
              (c/point-in? circle (:p1 %))
@@ -106,12 +106,36 @@
         tmp (dorun
               (for [x (range x-1 x-2)
                     y (range y-1 y-2)]
-                (let [point (p/point x y)
-                      in-circle (c/point-in? circle point)
-                      center-line (l/line center (p/point x y))
-                      intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))]
-                  (when (and (= 0 (count intersections)) in-circle)
-                    (.setRGB discovered-image x y free-rgb)))))]
+                (let [point (p/point x y)]
+                  (when (c/point-in? circle point)
+                    (let [center-line (l/line center point)
+                          intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))]
+                      (when (= 0 (count intersections))
+                        (.setRGB discovered-image x y free-rgb)))))))]
+    discovered-image))
+
+(defn discover-circle
+  "Given a point of origin, check all pixels on the circle given by this origin for
+  intersections of the line from origin to the pixel with any wall lines.
+  Find the outermost visible pixel and consider the line from the center to the pixel as visible."
+  [wall-lines ^BufferedImage discovered-image visualrange origin]
+  (let [x-1 (max 0 (- (nth origin 0) visualrange))
+        y-1 (max 0 (- (nth origin 1) visualrange))
+        x-2 (min (+ (nth origin 0) visualrange 1) (dec (.getWidth discovered-image)))
+        y-2 (min (+ (nth origin 1) visualrange 1) (dec (.getHeight discovered-image)))
+        free-rgb (.getRGB (Color. 0 0 0 1))
+        center (p/point (nth origin 0) (nth origin 1))
+        circle (c/circle center visualrange)
+        relevant-walls (relevant-lines circle wall-lines)
+        tmp (dorun
+              (for [x (range x-1 x-2)
+                    y (range y-1 y-2)]
+                (let [point (p/point x y)]
+                  (when (c/point-in? circle point)
+                    (let [center-line (l/line center point)
+                          intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))]
+                      (when (= 0 (count intersections))
+                        (.setRGB discovered-image x y free-rgb)))))))]
     discovered-image))
 
 (defn discover-bounding-boxes
