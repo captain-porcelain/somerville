@@ -39,4 +39,4 @@
 ;(test-points "dungeon-wallmap.png" points3 100)
 
 (def points1 (list [130 200]))
-(time (image/write-image "/tmp/discovered.png" (discover "./test-resources/dungeon-wallmap.png" points1 100)))
+;(time (image/write-image "/tmp/discovered.png" (discover "./test-resources/dungeon-wallmap.png" points1 100)))

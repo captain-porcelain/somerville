@@ -5,7 +5,7 @@
 (defn circlefn
   "Build a function that calculates the positive y values at x for a circle with a radius of r."
   [^Integer r]
-  (fn [x] (math/round (math/sqrt (- (* r r) (* x x))))))
+  (fn [x] (math/round (Math/sqrt (- (* r r) (* x x))))))
 
 (defn linefn
   "Build a function that calculates the y values at x for a line from [x1, y1] to [x2, y2]."
