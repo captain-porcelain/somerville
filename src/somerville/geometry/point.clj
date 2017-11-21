@@ -1,7 +1,6 @@
 (ns somerville.geometry.point
   (:require
-    [somerville.geometry.commons :as c]
-    [clojure.math.numeric-tower :as nt]))
+    [somerville.geometry.commons :as c]))
 
 ;; define a two dimensional point
 (defrecord Point2 [x y]
@@ -51,7 +50,7 @@
   [p1 p2]
   (let [dx (- (:x p1) (:x p2))
         dy (- (:y p1) (:y p2))]
-    (nt/sqrt (+ (* dx dx) (* dy dy)))))
+    (Math/sqrt (+ (* dx dx) (* dy dy)))))
 
 (defn quadrant
   "Get the quadrant a point is in."
