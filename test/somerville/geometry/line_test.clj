@@ -1,6 +1,5 @@
 (ns somerville.geometry.line-test
   (:require
-    [clojure.math.numeric-tower :as nt]
     [somerville.geometry.point :as p]
     [somerville.geometry.commons :as c]
     [somerville.geometry.line :as l])

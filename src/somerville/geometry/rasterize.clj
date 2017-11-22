@@ -1,11 +1,10 @@
 ;; Provides functions for handling geometric objects.
-(ns somerville.dungeons.discovery.rasterize
-  (:require [clojure.math.numeric-tower :as math]))
+(ns somerville.geometry.rasterize)
 
 (defn circlefn
   "Build a function that calculates the positive y values at x for a circle with a radius of r."
   [^Integer r]
-  (fn [x] (math/round (Math/sqrt (- (* r r) (* x x))))))
+  (fn [x] (Math/round (Math/sqrt (- (* r r) (* x x))))))
 
 (defn linefn
   "Build a function that calculates the y values at x for a line from [x1, y1] to [x2, y2]."
@@ -14,7 +13,7 @@
         dy (- y2 y1)
         a (/ dy dx)
         b (- y1 (* a x1))]
-    (fn [x] (math/round (+ (* a x) b)))))
+    (fn [x] (Math/round ^Double (+ (* a x) b)))))
 
 (defn cnext
   "Given a function and a pixel on the graph of that function get the next pixel with potentially growing x."
