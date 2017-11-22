@@ -71,15 +71,16 @@
   (let [center (p/point (nth origin 0) (nth origin 1))
         circle (c/circle center visualrange)
         relevant-walls (relevant-lines circle wall-lines)
-        circle-points (rasterize/translate-lines circle-base-points origin)]
-    (for [[x y] circle-points]
-      (let [point (p/point x y)
-            center-line (l/line center point)
-            intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))
-            nearest (first (sort-by #(p/distance % center) intersections))
-            visible-to (if (nil? nearest) point nearest)
-            tmp (.drawLine graphics x y (nth origin 0) (nth origin 1))]
-        graphics))))
+        circle-points (rasterize/translate-line circle-base-points origin)]
+    (dorun
+      (for [[x y] circle-points]
+        (let [point (p/point x y)
+              center-line (l/line center point)
+              intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))
+              nearest (first (sort-by #(p/distance % center) intersections))
+              visible-to (if (nil? nearest) point nearest)
+              tmp (.drawLine graphics (:x visible-to) (:y visible-to) (nth origin 0) (nth origin 1))]
+          graphics)))))
 
 (defn discover-circles
   "Given a point of origin, check all pixels on the circle given by this origin for
@@ -99,5 +100,5 @@
   [points wall-description width height visualrange]
   (let [discovered-image (create-undiscovered-graphics width height)
         wall-lines (parse wall-description)
-        tmp (dorun (discover-circles points wall-lines discovered-image visualrange))]
+        tmp (do (discover-circles points wall-lines discovered-image visualrange))]
     discovered-image))
