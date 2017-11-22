@@ -10,7 +10,7 @@
     [taoensso.timbre :as log]
     [somerville.commons :as commons]
     [somerville.image :as image]
-    [somerville.dungeons.discovery.rasterize :as rasterize]))
+    [somerville.geometry.rasterize :as rasterize]))
 
 (def black (.getRGB (Color. 0 0 0 0)))
 (def transparent (.getRGB (Color. 0 0 0 1)))

@@ -9,6 +9,7 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
+    [somerville.geometry.rasterize :as rasterize]
     [taoensso.timbre :as log]))
 
 ;;==================================================================================================================
@@ -118,24 +119,29 @@
   "Given a point of origin, check all pixels on the circle given by this origin for
   intersections of the line from origin to the pixel with any wall lines.
   Find the outermost visible pixel and consider the line from the center to the pixel as visible."
-  [wall-lines ^BufferedImage discovered-image visualrange origin]
-  (let [x-1 (max 0 (- (nth origin 0) visualrange))
-        y-1 (max 0 (- (nth origin 1) visualrange))
-        x-2 (min (+ (nth origin 0) visualrange 1) (dec (.getWidth discovered-image)))
-        y-2 (min (+ (nth origin 1) visualrange 1) (dec (.getHeight discovered-image)))
-        free-rgb (.getRGB (Color. 0 0 0 1))
-        center (p/point (nth origin 0) (nth origin 1))
+  [wall-lines ^Graphics2D graphics visualrange origin circle-base-points]
+  (let [center (p/point (nth origin 0) (nth origin 1))
         circle (c/circle center visualrange)
         relevant-walls (relevant-lines circle wall-lines)
-        tmp (dorun
-              (for [x (range x-1 x-2)
-                    y (range y-1 y-2)]
-                (let [point (p/point x y)]
-                  (when (c/point-in? circle point)
-                    (let [center-line (l/line center point)
-                          intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))]
-                      (when (= 0 (count intersections))
-                        (.setRGB discovered-image x y free-rgb)))))))]
+        circle-points (rasterize/translate-lines circle-base-points origin)]
+    (for [[x y] circle-points]
+      (let [point (p/point x y)
+            center-line (l/line center point)
+            intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))
+            nearest (first (sort-by #(p/distance % center) intersections))
+            visible-to (if (nil? nearest) point nearest)
+            tmp (.drawLine graphics x y (nth origin 0) (nth origin 1))]
+        graphics))))
+
+(defn discover-circles
+  "Given a point of origin, check all pixels on the circle given by this origin for
+  intersections of the line from origin to the pixel with any wall lines.
+  Find the outermost visible pixel and consider the line from the center to the pixel as visible."
+  [points wall-lines ^BufferedImage discovered-image visualrange]
+  (let [circle-base-points (rasterize/circle visualrange)
+        graphics ^Graphics2D (.createGraphics discovered-image)
+        tmp (dorun (map #(discover-circle wall-lines graphics visualrange % circle-base-points) points))
+        tmp (.dispose graphics)]
     discovered-image))
 
 (defn discover-bounding-boxes

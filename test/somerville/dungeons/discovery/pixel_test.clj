@@ -1,7 +1,7 @@
 ;; Test the rasterize functions.
 (ns somerville.dungeons.discovery.pixel-test
   (:require
-    [somerville.dungeons.discovery.rasterize :as rasterize]
+    [somerville.geometry.rasterize :as rasterize]
     [somerville.image :as image]
     [fs.core :as fs])
   (:use clojure.test)

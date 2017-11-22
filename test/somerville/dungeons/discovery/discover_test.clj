@@ -3,6 +3,7 @@
   (:require
     [somerville.image :as image]
     [somerville.dungeons.discovery.discover :as discover]
+    [somerville.geometry.rasterize :as rasterize]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c])
@@ -22,38 +23,43 @@
     (is (= (l/line (p/point 30 10) (p/point 30 30)) (nth parsed 1)))))
 
 (defn test-settings
-  [points walls]
+  [test-name points walls]
   (let [width 400
         height 400
         visualrange 100
         points-by-bounding-boxes (* (count points) (* 4 visualrange visualrange))
         points-by-width-height (* width height)
+        points-by-circle (* (count points) (count (rasterize/circle visualrange)))
         tmp (dorun (println "======================================================================="))
         tmp (dorun (println (str "Testing " (count points) " points and " (count walls) " walls:")))
         tmp (dorun (println (str "Pixels by bounding boxes: " points-by-bounding-boxes)))
         tmp (dorun (println (str "Pixels by width and height: " points-by-width-height)))
+        tmp (dorun (println (str "Pixels by circle rasterization: " points-by-circle)))
         discovered-image (discover/create-undiscovered-graphics width height)
         tmp (dorun (println (str "Runtime by bounding boxes:")))
         img-boxed (time (discover/discover-bounding-boxes points walls discovered-image visualrange))
-        tmp (image/write-image "/tmp/discovered-lines-boxed.png" img-boxed)
+        tmp (image/write-image (str "/tmp/discovered-lines-" test-name "-boxed.png") img-boxed)
         tmp (dorun (println (str "Runtime by width and height:")))
         img-all (time (discover/discover-all points walls discovered-image visualrange))
-        tmp (image/write-image "/tmp/discovered-lines-all.png" img-all)]
+        tmp (image/write-image (str "/tmp/discovered-lines-" test-name "-all.png") img-all)
+        tmp (dorun (println (str "Runtime by circle rasterization:")))
+        img-circles (time (discover/discover-circles points walls discovered-image visualrange))
+        tmp (image/write-image (str "/tmp/discovered-lines-" test-name "-circle.png") img-circles)]
     ))
 
 (def points-1 (list [130 200]))
 (def walls-1 (list))
-;(test-settings points-1 walls-1)
+;(test-settings "1" points-1 walls-1)
 
 
 (def points-2 (list [200 200]))
 (def walls-2 (discover/parse "line 0,150 400,150"))
-;(test-settings points-2 walls-2)
+;(test-settings "2" points-2 walls-2)
 
 
 (def points-3 (list [200 200] [10 10] [100 100] [300 300] [10 155]))
 (def walls-3 (discover/parse "line 0,150 400,150"))
-;(test-settings points-3 walls-3)
+;(test-settings "3" points-3 walls-3)
 
 (def walls-4
   (discover/parse
@@ -64,11 +70,11 @@
      line 120,30 220,10
      line 130,30 230,10
      line 30,10 30,30"))
-;(test-settings points-2 walls-4)
-;(test-settings points-3 walls-4)
+;(test-settings "4" points-2 walls-4)
+;(test-settings "5" points-3 walls-4)
 
 (def points-4 (list [200 200] [10 10] [100 100] [300 300] [10 155] [200 200] [10 10] [100 100] [300 300] [10 155]))
-;(test-settings points-4 walls-4)
+;(test-settings "6" points-4 walls-4)
 
 (def walls-5
   (discover/parse
@@ -121,8 +127,8 @@
      line 120,30 220,10
      line 130,30 230,10
      line 30,10 30,30"))
-;(test-settings points-1 walls-5)
-;(test-settings points-4 walls-5)
+;(test-settings "7" points-1 walls-5)
+;(test-settings "8" points-4 walls-5)
 
 (def walls-6
   (discover/parse
@@ -162,6 +168,6 @@
     "))
 
 (def points-5 (list [10 110] [100 120] [190 115] [65 95]))
-(test-settings points-5 walls-6)
+;(test-settings "9" points-5 walls-6)
 
 

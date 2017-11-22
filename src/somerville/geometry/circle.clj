@@ -70,3 +70,4 @@
 (defn point-in?
   [circle point]
   (< (p/distance (:p circle) point) (:r circle)))
+
