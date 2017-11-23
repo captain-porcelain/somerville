@@ -1,7 +1,7 @@
 ;; Functions to create overlay images that only show parts of an image that have been discovered.
 (ns somerville.dungeons.discovery
   (:import
-    [java.awt Color Graphics2D Rectangle]
+    [java.awt Color Graphics2D Rectangle AlphaComposite]
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
@@ -89,6 +89,8 @@
   [points wall-lines ^BufferedImage discovered-image visualrange]
   (let [circle-base-points (rasterize/circle visualrange)
         graphics ^Graphics2D (.createGraphics discovered-image)
+        tmp (.setPaint graphics (Color. 255 255 255 0))
+        tmp (.setComposite graphics AlphaComposite/Clear)
         tmp (dorun (map #(discover-circle wall-lines graphics visualrange % circle-base-points) points))
         tmp (.dispose graphics)]
     discovered-image))
