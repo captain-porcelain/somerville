@@ -59,3 +59,5 @@
         points-1 (list [10 110] [100 120] [190 115] [65 95])
         i (discovery/discover points-1 walls-1 400 400 100)]
     (image/write-image "/tmp/discovery.png" i)))
+
+;(run-manual-test)
