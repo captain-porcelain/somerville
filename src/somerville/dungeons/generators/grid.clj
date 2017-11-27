@@ -283,7 +283,7 @@
 ; Grid Iterators
 
 (defn walk
-  "Execute function for every element in grid.
+  "Execute function for every element in grid and return grid.
   The function should take the grid and the current element as arguments."
   [g f]
   (dorun
@@ -291,6 +291,14 @@
           x (range (:width g))]
       (f g (get-from g x y))))
   g)
+
+(defn walk-result
+  "Execute function for every element in grid and return walking result.
+  The function should take the grid and the current element as arguments."
+  [g f]
+  (for [y (range (:height g))
+        x (range (:width g))]
+    (f g (get-from g x y))))
 
 (defn walk-lines
   "Execute function for every line in grid.

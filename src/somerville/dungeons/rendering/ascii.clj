@@ -98,7 +98,7 @@
 
 (defn upper-hex
   [g c print-gold]
-  (if (= {} c)
+  (if (or (= {} c) (= 0 (count (:links c))))
     "    "
     (str (if (commons/in? :north-west (:links c)) " " "/")
          (if
@@ -109,7 +109,7 @@
 
 (defn lower-hex
   [g c]
-  (if (= {} c)
+  (if (or (= {} c) (= 0 (count (:links c))))
     "    "
     (str (if (commons/in? :south-west (:links c)) " " "\\")
          (if (commons/in? :south      (:links c)) "  " "__")
