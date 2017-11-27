@@ -38,11 +38,11 @@
       (let [hwl (int (Math/floor (/ wall-length 2)))
             h (int (Math/floor (Math/sqrt (- (* wall-length wall-length) (* hwl hwl)))))
             cx (+ wall-length (* 3 (:x c) hwl))
+            cy (if (even? (:x c)) (* 2 h (inc (:y c))) (* h (inc (* (:y c) 2))))
             x1 (- cx wall-length)
             x2 (- cx hwl)
             x3 (+ cx hwl)
             x4 (+ wall-length cx)
-            cy (if (even? (:x c)) (* h (inc (:y c))) (* h (inc (* (:y c) 2))))
             y1 (- cy h)
             y2 cy
             y3 (+ cy h)]
@@ -79,8 +79,10 @@
   "Render grid walls to image."
   [g wall-length imagename]
   (let [walls (convert-to-walls g wall-length)
-        iw (* wall-length (:width g))
-        ih (* wall-length (:height g))
+        hwl (int (Math/floor (/ wall-length 2)))
+        h (int (Math/floor (Math/sqrt (- (* wall-length wall-length) (* hwl hwl)))))
+        iw (+ hwl (* 3 hwl (:width g)))
+        ih (+ h (* 2 h (:height g)))
         img ^BufferedImage (new-image iw ih)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setPaint graphics Color/white)
