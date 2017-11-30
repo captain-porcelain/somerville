@@ -1,4 +1,4 @@
-(defproject somerville "1.0.4-SNAPSHOT"
+(defproject somerville "1.0.4"
   :description "Implementation of some mathematical functions."
   :dependencies
   [[org.clojure/clojure "1.8.0"]
@@ -8,5 +8,6 @@
   :plugins
   [[lein-marginalia "0.8.0"]]
   :main somerville.core
+  :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :repl-options
   {:timeout 120000})
