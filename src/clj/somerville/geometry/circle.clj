@@ -79,14 +79,7 @@
     (take steps (map #(* angle %) (iterate inc 0)))))
 
 (defn circle-points
-  "Create the points on a circle."
+  "Create list of equidistant points on a circle."
   [circle steps]
   (map #(p/point (- (:x (:p circle)) (* (:r circle) (Math/sin %))) (- (:y (:p circle)) (* (:r circle) (Math/cos %)))) (angles steps)))
-
-(defn to-lines
-  "Create a list of lines approximating the circle."
-  [circle steps]
-  (let [points (circle-points circle steps)
-        shifted (concat (rest points) (list (first points)))]
-    (map #(l/line %1 %2) points shifted)))
 
