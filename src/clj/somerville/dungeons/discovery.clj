@@ -71,6 +71,7 @@
   (let [center (p/point (nth origin 0) (nth origin 1))
         circle (c/circle center visualrange)
         relevant-walls (relevant-lines circle wall-lines)
+        tmp (dorun (println (str "Circle intersects lines: " (count relevant-walls))))
         circle-points (rasterize/translate-line circle-base-points origin)]
     (dorun
       (for [[x y] circle-points]
@@ -88,6 +89,8 @@
   Find the outermost visible pixel and consider the line from the center to the pixel as visible."
   [points wall-lines ^BufferedImage discovered-image visualrange]
   (let [circle-base-points (rasterize/circle visualrange)
+        tmp (dorun (println (str "Discovered points: " (count points))))
+        tmp (dorun (println (str "Circle base points: " (count circle-base-points))))
         graphics ^Graphics2D (.createGraphics discovered-image)
         tmp (.setPaint graphics (Color. 255 255 255 0))
         tmp (.setComposite graphics AlphaComposite/Clear)

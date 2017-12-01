@@ -22,8 +22,8 @@
     (is (= (l/line (p/point 30 10) (p/point 30 30)) (nth parsed 1)))))
 
 (defn run-manual-test
-  [walls points]
-  (let [i (discovery/discover points walls 400 400 100)]
+  [walls points width height visualrange]
+  (let [i (discovery/discover points walls width height visualrange)]
     (image/write-image "/tmp/discovery.png" i)))
 
 
@@ -95,4 +95,4 @@
               line 168,940 168,868
               line 168,868 75,868")
 
-;(run-manual-test)
+;(time (run-manual-test walls-2 points-2 1300 1517 300))
