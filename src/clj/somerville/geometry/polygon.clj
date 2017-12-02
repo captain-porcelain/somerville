@@ -50,6 +50,11 @@
         )
     :else (list)))
 
+(defn visible?
+  [polygon-line wall center]
+  (and (nil? (l/intersect-segments wall (l/line center (:p1 polygon-line))))
+       (nil? (l/intersect-segments wall (l/line center (:p2 polygon-line))))))
+
 (defn cut
   "Cut polygon by intersecting with a line segment. Four cases are possible:
   - Line segment doesn't intersect polygon at all -> do nothing
@@ -61,6 +66,6 @@
   (let [intersections (map #(vector % (l/intersect % line)) (:lines polygon))
         intersected (filter #(not (nil? (second %))) intersections)
         new-lines (cut-new-lines polygon line intersected)
-        start (map first (take-while #(nil? (second %)) intersections))
-        end (map first (reverse (take-while #(nil? (second %)) (reverse intersections))))]
+        start (map first (take-while #(visible? (first %) line (:center polygon)) intersections))
+        end (map first (reverse (take-while #(visible? (first %) line (:center polygon)) (reverse intersections))))]
     (Polygon2. (concat start new-lines end) (:center polygon))))
