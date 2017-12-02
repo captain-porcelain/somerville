@@ -70,22 +70,24 @@
       (<= (first xs) (:x p)) (>= (last xs) (:x p))
       (<= (first ys) (:y p)) (>= (last ys) (:y p)))))
 
-(defn parallel?
-  "Check if two lines are parallel."
-  [l1 l2]
-  (let [s1 (p/slope (:p1 l1) (:p2 l1))
-        s1 (if (nil? s1) s1 (+ 0.0 s1))
-        s2 (p/slope (:p1 l2) (:p2 l2))
-        s2 (if (nil? s2) s2 (+ 0.0 s2))]
-    (if
-      (or (nil? s1) (nil? s2))
-      (= s1 s2)
-      (c/close-to s1 s2))))
-
 (defn vertical?
   "Check if a line is vertical."
   [l]
   (= (:x (:p1 l)) (:x (:p2 l))))
+
+(defn parallel?
+  "Check if two lines are parallel."
+  [l1 l2]
+  (if (or (vertical? l1) (vertical? l2))
+    (and (vertical? l1) (vertical? l2))
+    (let [s1 (p/slope (:p1 l1) (:p2 l1))
+          s1 (if (nil? s1) s1 (+ 0.0 s1))
+          s2 (p/slope (:p1 l2) (:p2 l2))
+          s2 (if (nil? s2) s2 (+ 0.0 s2))]
+      (if
+        (or (nil? s1) (nil? s2))
+        (= s1 s2)
+        (c/close-to s1 s2)))))
 
 (defn normal
   "Create a line for the normal of a line on the first point of the line."
