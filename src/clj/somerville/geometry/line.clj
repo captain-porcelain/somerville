@@ -3,7 +3,7 @@
     [somerville.geometry.commons :as c]
     [somerville.geometry.point :as p]))
 
-;; Define a line by two points
+
 (defrecord Line2 [p1 p2]
   c/Printable
   (c/out [this i] (str (c/indent i) "Line from " (c/out p1) " to " (c/out p2)))
@@ -67,8 +67,8 @@
   (let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
         ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
     (and
-      (<= (first xs) (:x p)) (>= (last xs) (:x p))
-      (<= (first ys) (:y p)) (>= (last ys) (:y p)))))
+      (<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p))
+      (<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))
 
 (defn vertical?
   "Check if a line is vertical."
@@ -182,3 +182,4 @@
   "Get list of intersections of one line with a list of lines."
   [line lines]
   (filter #(not (nil? %)) (map #(intersect line %) lines)))
+

@@ -38,7 +38,7 @@
   [p1 p2]
   (let [dx (- (:x p2) (:x p1))
         dy (- (:y p2) (:y p1))]
-    (if (= dx 0) nil (/ dy dx))))
+    (if (or (= dx 0.0) (= dx 0)) nil (/ dy dx))))
 
 (defn subtract
   "Subtract second point from first"
