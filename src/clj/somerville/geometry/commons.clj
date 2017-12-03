@@ -8,7 +8,9 @@
 (defprotocol Printable
   (out [this] [this x] [this x k]))
 
+(def epsilon 0.001)
+
 (defn close-to
   "Compare floats."
   [x y]
-  (and (< x (+ y 0.001)) (> x (- y 0.001))))
+  (and (< x (+ y epsilon)) (> x (- y epsilon))))
