@@ -54,27 +54,18 @@
 (defn update-intersections
   "Given the intersections (as polygon line and intersection point pairs) update these in case the line is partially or completely contained in the polygon."
   [polygon line intersections]
-  (let [intersection-count (intersection-count intersections)
-        ;tmp (dorun (println (str "case: " intersection-count)))
-        ]
-    (case intersection-count
-      1 (let [in-point (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line))))
-              ;tmp (dorun (println (str "in-point " (c/out in-point))))
-              shadow-point (cast-shadow polygon in-point)
-              ;tmp (dorun (println (str "shadow-point " (c/out shadow-point))))
-              ]
-          (map #(if (l/point-on-segment? (:line %) shadow-point) (assoc % :intersections (conj (:intersections %) shadow-point)) %) intersections))
-      0 (let [shadow-point-1 (assoc (cast-shadow polygon (:p1 line)) :wall-point (:p1 line))
-              shadow-point-2 (assoc (cast-shadow polygon (:p2 line)) :wall-point (:p2 line))
-              ;tmp (dorun (println (str "shadow-point 1 " (c/out shadow-point-1))))
-              ;tmp (dorun (println (str "shadow-point 2 " (c/out shadow-point-2))))
-              ]
-          (map #(let [result %
-                      result (if (l/point-on-segment? (:line result) shadow-point-1) (assoc result :intersections (conj (:intersections result) shadow-point-1)) result)
-                      result (if (l/point-on-segment? (:line result) shadow-point-2) (assoc result :intersections (conj (:intersections result) shadow-point-2)) result)]
-                  result)
-               intersections))
-      intersections)))
+  (case (intersection-count intersections)
+    1 (let [in-point (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line))))
+            shadow-point (assoc (cast-shadow polygon in-point) :wall-point in-point)]
+        (map #(if (l/point-on-segment? (:line %) shadow-point) (assoc % :intersections (conj (:intersections %) shadow-point)) %) intersections))
+    0 (let [shadow-point-1 (assoc (cast-shadow polygon (:p1 line)) :wall-point (:p1 line))
+            shadow-point-2 (assoc (cast-shadow polygon (:p2 line)) :wall-point (:p2 line))]
+        (map #(let [result %
+                    result (if (l/point-on-segment? (:line result) shadow-point-1) (assoc result :intersections (conj (:intersections result) shadow-point-1)) result)
+                    result (if (l/point-on-segment? (:line result) shadow-point-2) (assoc result :intersections (conj (:intersections result) shadow-point-2)) result)]
+                result)
+             intersections))
+    intersections))
 
 (defn cut-new-lines
   [polygon line intersections updated-intersections]
@@ -86,6 +77,24 @@
         (l/line (:p1 (:line (first intersected))) (first (:intersections (first intersected))))
         (l/line (first (:intersections (first intersected))) (first (:intersections (second intersected))))
         (l/line (first (:intersections (second intersected))) (:p2 (:line (second intersected)))))
+      (and (= 1 (count intersected)) (= 2 (count updated-intersected)))
+      (let [i1 (first (:intersections (first updated-intersected)))
+            i2 (first (:intersections (second updated-intersected)))
+            wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))]
+        (list
+          (l/line (:p1 (:line (first updated-intersected))) i1)
+          (l/line i1 wall-point)
+          (l/line wall-point i2)
+          (l/line i2 (:p2 (:line (second updated-intersected))))))
+      (and (= 1 (count intersected)) (= 1 (count updated-intersected)))
+      (let [i1 (second (:intersections (first updated-intersected)))
+            i2 (first (:intersections (first updated-intersected)))
+            wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))]
+        (list
+          (l/line (:p1 (:line (first updated-intersected))) i1)
+          (l/line i1 wall-point)
+          (l/line wall-point i2)
+          (l/line i2 (:p2 (:line (first updated-intersected))))))
       (and (= 0 (count intersected)) (= 1 (count updated-intersected)))
       (list
         (l/line (:p1 (:line (first updated-intersected))) (first (:intersections (first updated-intersected))))
