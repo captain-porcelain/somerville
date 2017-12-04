@@ -42,47 +42,74 @@
         intersections (intersect polygon ray)]
     (first (sort-by #(p/distance point %) intersections))))
 
-(defn shadow-on-wall
-  [polygon wall-point]
-  (= 0 (count (intersect-segments polygon (l/line (:center polygon) wall-point)))))
+(defn point-inside-polygon?
+  "Check if point is inside the polygon."
+  [polygon point]
+  (= 0 (count (intersect-segments polygon (l/line (:center polygon) point)))))
+
+(defn intersection-count
+  [intersections]
+  (reduce + (map #(count (:intersections %)) intersections)))
 
 (defn update-intersections
   "Given the intersections (as polygon line and intersection point pairs) update these in case the line is partially or completely contained in the polygon."
   [polygon line intersections]
-  (let [intersected (filter #(not (nil? (second %))) intersections)
-        tmp (dorun (println (str "case: " (count intersected))))]
-    (case (count intersected)
-      1 (let [in-point (first (filter #(shadow-on-wall polygon %) (list (:p1 line) (:p2 line))))
-              tmp (dorun (println (str "in-point " (c/out in-point))))
+  (let [intersection-count (intersection-count intersections)
+        ;tmp (dorun (println (str "case: " intersection-count)))
+        ]
+    (case intersection-count
+      1 (let [in-point (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line))))
+              ;tmp (dorun (println (str "in-point " (c/out in-point))))
               shadow-point (cast-shadow polygon in-point)
-              tmp (dorun (println (str "shadow-point " (c/out shadow-point))))
+              ;tmp (dorun (println (str "shadow-point " (c/out shadow-point))))
               ]
-          (map #(if (l/point-on-segment? (first %) shadow-point) [(first %) shadow-point] %) intersections))
-      0 (let [shadow-point-1 (cast-shadow polygon (:p1 line))
-              shadow-point-2 (cast-shadow polygon (:p2 line))
-              tmp (dorun (println (str "shadow-point 1 " (c/out shadow-point-1))))
-              tmp (dorun (println (str "shadow-point 2 " (c/out shadow-point-2))))
+          (map #(if (l/point-on-segment? (:line %) shadow-point) (assoc % :intersections (conj (:intersections %) shadow-point)) %) intersections))
+      0 (let [shadow-point-1 (assoc (cast-shadow polygon (:p1 line)) :wall-point (:p1 line))
+              shadow-point-2 (assoc (cast-shadow polygon (:p2 line)) :wall-point (:p2 line))
+              ;tmp (dorun (println (str "shadow-point 1 " (c/out shadow-point-1))))
+              ;tmp (dorun (println (str "shadow-point 2 " (c/out shadow-point-2))))
               ]
-          (map #(cond
-                  (l/point-on-segment? (first %) shadow-point-1) [(first %) shadow-point-1]
-                  (l/point-on-segment? (first %) shadow-point-2) [(first %) shadow-point-2]
-                  :else %)
+          (map #(let [result %
+                      result (if (l/point-on-segment? (:line result) shadow-point-1) (assoc result :intersections (conj (:intersections result) shadow-point-1)) result)
+                      result (if (l/point-on-segment? (:line result) shadow-point-2) (assoc result :intersections (conj (:intersections result) shadow-point-2)) result)]
+                  result)
                intersections))
       intersections)))
 
 (defn cut-new-lines
-  [polygon line intersections]
-  (let [update-intersections (update-intersections polygon line intersections)
-        intersected (filter #(not (nil? (second %))) intersections)]
+  [polygon line intersections updated-intersections]
+  (let [intersected (filter #(< 0 (count (:intersections %))) intersections)
+        updated-intersected (filter #(< 0 (count (:intersections %))) updated-intersections)]
+    (cond
+      (= 2 (count intersected))
       (list
-        (l/line (:p1 (first (first intersected))) (second (first intersected)))
-        (l/line (second (first intersected)) (second (second intersected)))
-        (l/line (second (second intersected)) (:p2 (first (second intersected)))))))
+        (l/line (:p1 (:line (first intersected))) (first (:intersections (first intersected))))
+        (l/line (first (:intersections (first intersected))) (first (:intersections (second intersected))))
+        (l/line (first (:intersections (second intersected))) (:p2 (:line (second intersected)))))
+      (and (= 0 (count intersected)) (= 1 (count updated-intersected)))
+      (list
+        (l/line (:p1 (:line (first updated-intersected))) (first (:intersections (first updated-intersected))))
+        (l/line (first (:intersections (first updated-intersected))) (:wall-point (first (:intersections (first updated-intersected)))))
+        (l/line (:wall-point (first (:intersections (first updated-intersected)))) (:wall-point (second (:intersections (first updated-intersected)))))
+        (l/line (:wall-point (second (:intersections (first updated-intersected)))) (second (:intersections (first updated-intersected))))
+        (l/line (second (:intersections (first updated-intersected))) (:p2 (:line (first updated-intersected)))))
+      (and (= 0 (count intersected)) (= 2 (count updated-intersected)))
+      (list
+        (l/line (:p1 (:line (first updated-intersected))) (first (:intersections (first updated-intersected))))
+        (l/line (first (:intersections (first updated-intersected))) (:wall-point (first (:intersections (first updated-intersected)))))
+        (l/line (:wall-point (first (:intersections (first updated-intersected)))) (:wall-point (first (:intersections (second updated-intersected)))))
+        (l/line (:wall-point (first (:intersections (second updated-intersected)))) (first (:intersections (second updated-intersected))))
+        (l/line (first (:intersections (second updated-intersected))) (:p2 (:line (second updated-intersected)))))
+      :else (list))))
 
 (defn visible?
   [polygon-line wall center]
   (and (nil? (l/intersect-segments wall (l/line center (:p1 polygon-line))))
        (nil? (l/intersect-segments wall (l/line center (:p2 polygon-line))))))
+
+(defn find-intersections
+  [polygon line]
+  (map #(hash-map :line % :intersections (filter (fn [i] (not (nil? i))) (list (l/intersect-segments % line)))) (:lines polygon)))
 
 (defn cut
   "Cut polygon by intersecting with a line segment. Four cases are possible:
@@ -92,8 +119,9 @@
   - Line has one intersection -> cast a line to the contained segment endpoint to the polygon lines. Introduces two new lines.
   - Line has two intersections -> introduce one new line."
   [polygon line]
-  (let [intersections (map #(vector % (l/intersect-segments % line)) (:lines polygon))
-        new-lines (cut-new-lines polygon line intersections)
-        start (map first (take-while #(visible? (first %) line (:center polygon)) intersections))
-        end (map first (reverse (take-while #(visible? (first %) line (:center polygon)) (reverse intersections))))]
+  (let [intersections (find-intersections polygon line)
+        updated-intersections (update-intersections polygon line intersections)
+        new-lines (cut-new-lines polygon line intersections updated-intersections)
+        start (map :line (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) updated-intersections))
+        end (map :line (reverse (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) (reverse updated-intersections))))]
     (Polygon2. (concat start new-lines end) (:center polygon))))
