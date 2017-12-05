@@ -1,14 +1,16 @@
 ;; Functions to create overlay images that only show parts of an image that have been discovered.
 (ns somerville.dungeons.discovery
   (:import
-    [java.awt Color Graphics2D Rectangle AlphaComposite]
+    [java.awt Color Graphics2D Rectangle AlphaComposite Polygon]
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
     [somerville.image :as image]
+    [somerville.geometry.commons :as gcommons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
+    [somerville.geometry.polygon :as poly]
     [somerville.geometry.rasterize :as rasterize]
     [taoensso.timbre :as log]))
 
@@ -63,6 +65,11 @@
         tmp (.dispose graphics)]
     img))
 
+
+;;==================================================================================================================
+;; Discovery based on circle rasterization and line cuts from center to circle points
+;;
+
 (defn discover-circle
   "Given a point of origin, check all pixels on the circle given by this origin for
   intersections of the line from origin to the pixel with any wall lines.
@@ -98,6 +105,44 @@
         tmp (.dispose graphics)]
     discovered-image))
 
+
+;;==================================================================================================================
+;; Discovery based on representing circle as polygon and cutting it with walls.
+;;
+
+(defn cut-polygon
+  [polygon wall-lines]
+  (loop [cut polygon
+         lines wall-lines]
+    (if (= 0 (count lines))
+      cut
+      (recur (poly/cut cut (first lines)) (rest lines)))))
+
+(defn discover-polygon
+  [polygon wall-lines graphics]
+  (let [cut (cut-polygon polygon wall-lines)
+        xs (into-array Integer/TYPE (map #(:x (:p1 %)) (:lines cut)))
+        ys (into-array Integer/TYPE (map #(:y (:p1 %)) (:lines cut)))
+        p (Polygon. xs ys (count xs))]
+    (.drawPolygon graphics p)))
+
+(defn discover-polygons
+  [points wall-lines ^BufferedImage discovered-image visualrange]
+  (let [polygon-steps 16
+        ps (map #(p/point (nth % 0) (nth % 1)) points)
+        polygons (map #(poly/from-points (c/circle-points (c/circle % visualrange) polygon-steps) %) ps)
+        tmp (dorun (println (str "Discovered points: " (count points))))
+        tmp (dorun (println (str "Circle lines: " polygon-steps)))
+        graphics ^Graphics2D (.createGraphics discovered-image)
+        tmp (.setPaint graphics (Color. 255 255 255 0))
+        tmp (.setComposite graphics AlphaComposite/Clear)
+        tmp (dorun (map #(discover-polygon % wall-lines graphics) polygons))
+        tmp (.dispose graphics)]
+    discovered-image))
+
+
+
+
 (defn discover
   "Create a black image that is set to transparent in areas that are visible from discovered points.
   Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
@@ -106,4 +151,16 @@
   (let [discovered-image (create-undiscovered-graphics width height)
         wall-lines (parse wall-description)
         tmp (do (discover-circles points wall-lines discovered-image visualrange))]
+        ;tmp (do (discover-polygons points wall-lines discovered-image visualrange))]
     discovered-image))
+
+(defn discover-poly
+  "Create a black image that is set to transparent in areas that are visible from discovered points.
+  Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
+  around the points or just check all pixels of the image."
+  [points wall-description width height visualrange]
+  (let [discovered-image (create-undiscovered-graphics width height)
+        wall-lines (parse wall-description)
+        tmp (do (discover-polygons points wall-lines discovered-image visualrange))]
+    discovered-image))
+

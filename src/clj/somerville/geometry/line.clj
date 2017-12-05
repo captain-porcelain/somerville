@@ -1,12 +1,13 @@
 (ns somerville.geometry.line
   (:require
     [somerville.geometry.commons :as c]
-    [somerville.geometry.point :as p]))
+    [somerville.geometry.point :as p]
+    [taoensso.timbre :as log]))
 
 
 (defrecord Line2 [p1 p2]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Line from " (c/out p1) " to " (c/out p2)))
+  (c/out [this i] (str (c/indent i) "Line from " (if (nil? p1) "NIL" (c/out p1)) " to " (if (nil? p2) "NIL" (c/out p2))))
   (c/out [this] (c/out this 0)))
 
 (defn line
@@ -78,16 +79,20 @@
 (defn parallel?
   "Check if two lines are parallel."
   [l1 l2]
-  (if (or (vertical? l1) (vertical? l2))
-    (and (vertical? l1) (vertical? l2))
-    (let [s1 (p/slope (:p1 l1) (:p2 l1))
-          s1 (if (nil? s1) s1 (+ 0.0 s1))
-          s2 (p/slope (:p1 l2) (:p2 l2))
-          s2 (if (nil? s2) s2 (+ 0.0 s2))]
-      (if
-        (or (nil? s1) (nil? s2))
-        (= s1 s2)
-        (c/close-to s1 s2)))))
+  (try
+    (if (or (vertical? l1) (vertical? l2))
+      (and (vertical? l1) (vertical? l2))
+      (let [s1 (p/slope (:p1 l1) (:p2 l1))
+            s1 (if (nil? s1) s1 (+ 0.0 s1))
+            s2 (p/slope (:p1 l2) (:p2 l2))
+            s2 (if (nil? s2) s2 (+ 0.0 s2))]
+        (if
+          (or (nil? s1) (nil? s2))
+          (= s1 s2)
+          (c/close-to s1 s2))))
+    (catch Exception e
+      (dorun (println "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
+      ;(log/info (str "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
 
 (defn normal
   "Create a line for the normal of a line on the first point of the line."

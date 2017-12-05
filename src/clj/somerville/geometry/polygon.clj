@@ -8,7 +8,7 @@
 ;; This polygon is specifically used for calculating visibility.
 (defrecord Polygon2 [lines center]
   c/Printable
-  (c/out [this i] (str (c/indent i) "Polygon of lines:\n" (clojure.string/join "\n" (map #(c/out % (inc i)) lines))))
+  (c/out [this i] (str (c/indent i) "Polygon of lines:\n" (clojure.string/join "\n" (map #(if (nil? %) "NIL" (c/out % (inc i))) lines))))
   (c/out [this] (c/out this 0)))
 
 (defn polygon
@@ -120,9 +120,26 @@
   [polygon line]
   (map #(hash-map :line % :intersections (filter (fn [i] (not (nil? i))) (list (l/intersect-segments % line)))) (:lines polygon)))
 
-(defn cut
+(defn cut-old
   "Cut polygon by intersecting with a line segment. Four cases are possible:
   - Line segment doesn't intersect polygon at all -> do nothing
+  - Line segment is contained in circle -> get intersections by casting lines from center over segment start and end
+                                           to polygon lines, thus introducing three new lines.
+  - Line has one intersection -> cast a line to the contained segment endpoint to the polygon lines. Introduces two new lines.
+  - Line has two intersections -> introduce one new line."
+  [polygon line]
+  (let [tmp (dorun (println "====================================================="))
+        tmp (dorun (println (c/out polygon)))
+        tmp (dorun (println line))
+        intersections (find-intersections polygon line)
+        updated-intersections (update-intersections polygon line intersections)
+        new-lines (cut-new-lines polygon line intersections updated-intersections)
+        start (map :line (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) updated-intersections))
+        end (map :line (reverse (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) (reverse updated-intersections))))]
+    (Polygon2. (concat start new-lines end) (:center polygon))))
+
+(defn do-cut
+  "Cut polygon by intersecting with a line segment. Four cases are possible:
   - Line segment is contained in circle -> get intersections by casting lines from center over segment start and end
                                            to polygon lines, thus introducing three new lines.
   - Line has one intersection -> cast a line to the contained segment endpoint to the polygon lines. Introduces two new lines.
@@ -134,3 +151,21 @@
         start (map :line (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) updated-intersections))
         end (map :line (reverse (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) (reverse updated-intersections))))]
     (Polygon2. (concat start new-lines end) (:center polygon))))
+
+(defn cut
+  "Cut polygon by intersecting with a line segment. Four cases are possible:
+  - Line segment doesn't intersect polygon at all -> do nothing
+  - Line segment is contained in circle -> get intersections by casting lines from center over segment start and end
+                                           to polygon lines, thus introducing three new lines.
+  - Line has one intersection -> cast a line to the contained segment endpoint to the polygon lines. Introduces two new lines.
+  - Line has two intersections -> introduce one new line."
+  [polygon line]
+  (let [intersections (count (intersect-segments polygon line))
+        not-relevant (and (= 0 intersections) (not (point-inside-polygon? polygon (:p1 line))) (not (point-inside-polygon? polygon (:p2 line))))
+        tmp (when-not not-relevant (dorun (println "=====================================================")))
+        tmp (when-not not-relevant (dorun (println (str "Intersections: " intersections))))
+        tmp (when-not not-relevant (dorun (println (c/out polygon))))
+        tmp (when-not not-relevant (dorun (println (c/out line))))]
+    (if not-relevant
+      polygon
+      (do-cut polygon line))))
