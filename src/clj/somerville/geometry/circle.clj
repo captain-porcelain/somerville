@@ -75,7 +75,7 @@
 (defn angles
   "Get angles dividing circle in steps."
   [steps]
-  (let [angle (/ Math/PI steps)]
+  (let [angle (/ (* 2 Math/PI) steps)]
     (take steps (map #(* angle %) (iterate inc 0)))))
 
 (defn circle-points

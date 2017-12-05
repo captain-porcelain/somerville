@@ -277,7 +277,7 @@
 
 (defn debug-draw
   "Create an image of size width x height with transparency and paint it completely black."
-  [^String filename ^Integer width ^Integer height circle polygon lines]
+  [^String filename ^Integer width ^Integer height circle points polygon lines]
   (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setPaint graphics Color/white)
@@ -285,30 +285,33 @@
         tmp (.setPaint graphics Color/black)
         tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) lines))
         tmp (.setPaint graphics Color/red)
-        tmp (.drawOval graphics (:x (:p circle)) (:y (:p circle)) (:r circle) (:r circle))
+        tmp (.drawOval graphics (- (:x (:p circle)) (:r circle)) (- (:y (:p circle)) (:r circle)) (* 2 (:r circle)) (* 2 (:r circle)))
         tmp (.drawLine graphics (- (:x (:p circle)) 5) (- (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (+ (:y (:p circle)) 5))
         tmp (.drawLine graphics (- (:x (:p circle)) 5) (+ (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (- (:y (:p circle)) 5))
+        tmp (.setPaint graphics Color/blue)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+        tmp (.setPaint graphics Color/green)
+        tmp (dorun (map #(do
+                           (.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
+                           (.drawLine graphics (- (:x %) 5) (+ (:y %) 5) (+ (:x %) 5) (- (:y %) 5))) points))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
 
-(def center (p/point 161 1172))
-(def circle (c/circle center 300))
-(def polygon (poly/from-points (c/circle-points circle 16) center))
-(def line-1 (l/line (p/point 1059 1402) (p/point 1302 1372)))
-(def line-2 (l/line (p/point 1061 1405) (p/point 1062 1120)))
-(def line-3 (l/line (p/point  747 1401) (p/point 1061 1405)))
-(def line-4 (l/line (p/point   40  940) (p/point   40 1373)))
-(def lines (list line-1 line-2 line-3 line-4))
+(def center (p/point 500 500))
+(def circle (c/circle center 100))
+(def points (c/circle-points circle 16))
+(def polygon (poly/from-points points center))
+(def line-1 (l/line (p/point 610 640) (p/point 105 140)))
+(def line-2 (l/line (p/point 100 300) (p/point 600 300)))
+(def line-3 (l/line (p/point 747 451) (p/point  61 505)))
+(def lines (list line-1 line-2 line-3))
+(debug-draw "/tmp/cut-0.png" 800 800 circle points polygon lines)
 (def cut-1 (poly/cut polygon line-1))
-(debug-draw "/tmp/cut-1.png" 2000 2000 circle cut-1 lines)
-(dorun (println (commons/out cut-1)))
+(debug-draw "/tmp/cut-1.png" 800 800 circle points cut-1 lines)
 (def cut-2 (poly/cut cut-1 line-2))
-(dorun (println (commons/out cut-2)))
+(debug-draw "/tmp/cut-2.png" 800 800 circle points cut-2 lines)
 (def cut-3 (poly/cut cut-2 line-3))
-(dorun (println (commons/out cut-3)))
-(def cut-4 (poly/cut cut-3 line-4))
-(dorun (println (commons/out cut-4)))
-
+(debug-draw "/tmp/cut-3.png" 800 800 circle points cut-3 lines)
 
 (dorun (println "=========================================================================="))
 
