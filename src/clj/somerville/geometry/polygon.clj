@@ -151,7 +151,10 @@
         new-lines (cut-new-lines polygon line intersections updated-intersections)
         tmp (dorun (map #(println (c/out %)) new-lines))
         start (map :line (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) updated-intersections))
-        end (map :line (reverse (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) (reverse updated-intersections))))]
+        tmp (dorun (println (str "Start: " (count start))))
+        end (map :line (reverse (take-while #(and (visible? (:line %) line (:center polygon)) (= 0 (count (:intersections %)))) (reverse updated-intersections))))
+        tmp (dorun (println (str "End: " (count end))))
+        ]
     (Polygon2. (concat start new-lines end) (:center polygon))))
 
 (defn cut
