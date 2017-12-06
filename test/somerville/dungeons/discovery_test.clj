@@ -28,7 +28,7 @@
       (image/write-image "/tmp/discovery.png" i))
     (catch Exception e (.printStackTrace e))))
 
-
+;; Some room layout
 (def points-1 '([10 110] [100 120] [190 115] [65 95]))
 (def walls-1 "line   0,100  50,100
               line  75,100 200,100
@@ -58,6 +58,7 @@
               line 325,250 400,250
               line 325,375 400,375")
 
+;; Map Baramzigli
 (def points-2 '([161 1472])); [151 1235] [226 996] [515 981] [663 959] [616 883] [806 740] [1065 885] [848 1035] [768 1302] [957 1339]))
 (def walls-2 "line 1059,1402 1302,1372
               line 552,1297 749,1404
@@ -97,4 +98,4 @@
               line 168,940 168,868
               line 168,868 75,868")
 
-;(time (run-manual-test walls-2 points-2 1300 1517 300))
+(time (run-manual-test walls-2 points-2 1300 1517 300))

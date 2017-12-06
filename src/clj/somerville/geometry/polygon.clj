@@ -91,94 +91,81 @@
         r (list [1 2] [1 3] [2 2] [2 3] [3 3])]
     (commons/in? iqs r)))
 
+(defn select-visible-point
+  [line wall center]
+  (let [l1p1 (:p1 line)
+        l1p2 (:p2 line)]
+    (if (point-visible? l1p1 wall center) l1p1 l1p2)))
+
 (defn new-lines-two-intersections
   [intersected wall center]
-  (let [l1p1 (:p1 (:line (first intersected)))
-        l1p2 (:p2 (:line (first intersected)))
-        l2p1 (:p1 (:line (second intersected)))
-        l2p2 (:p2 (:line (second intersected)))
-        p1 (if (point-visible? l1p1 wall center) l1p1 l1p2)
-        i1 (first (:intersections (first intersected)))
-        i2 (first (:intersections (second intersected)))
-        p2 (if (point-visible? l2p1 wall center) l2p1 l2p2)]
-    (if (reverse? i1 i2)
-      (list
-        (l/line p2 i2)
-        (l/line i2 i1)
-        (l/line i1 p1))
-      (list
-        (l/line p1 i1)
-        (l/line i1 i2)
-        (l/line i2 p2)))))
+  (list
+    (select-visible-point (:line (first intersected)) wall center)
+    (first (:intersections (first intersected)))
+    (first (:intersections (second intersected)))
+    (select-visible-point (:line (second intersected)) wall center)))
 
 (defn new-lines-one-intersection-shadow-other
-  [intersected]
-  (let [p1 (:p1 (:line (first intersected)))
+  [intersected wall center]
+  (let [p1 (select-visible-point (:line (first intersected)) wall center)
         i1 (first (:intersections (first intersected)))
         i2 (first (:intersections (second intersected)))
         wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))
-        p2 (:p2 (:line (second intersected)))]
-    (list
-      (l/line p1 i1)
-      (l/line i1 wall-point)
-      (l/line wall-point i2)
-      (l/line i2 p2))))
+        p2 (select-visible-point (:line (second intersected)) wall center)]
+    (list p1 i1 wall-point i2 p2)))
 
 (defn new-lines-one-intersection-shadow-same
-  [intersected]
+  [intersected wall center]
   (let [p1 (:p1 (:line (first intersected)))
         i1 (second (:intersections (first intersected)))
         i2 (first (:intersections (first intersected)))
         wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))
         p2 (:p2 (:line (first intersected)))]
-    (list
-      (l/line p1 i1)
-      (l/line i1 wall-point)
-      (l/line wall-point i2)
-      (l/line i2 p2))))
+    (list p1 i1 wall-point i2 p2)))
 
 (defn new-lines-no-intersections-shadow-same
-  [intersected]
-  (let [p1 (:p1 (:line (first intersected)))
-        i1 (first (:intersections (first intersected)))
-        wall-point-1 (:wall-point (first (:intersections (first intersected))))
-        wall-point-2 (:wall-point (second (:intersections (first intersected))))
-        i2 (second (:intersections (first intersected)))
-        p2 (:p2 (:line (first intersected)))]
-    (list
-      (l/line p1 i1)
-      (l/line i1 wall-point-1)
-      (l/line wall-point-1 wall-point-2)
-      (l/line wall-point-2 i2)
-      (l/line i2 p2))))
+  [intersected wall center]
+  (list
+    (:p1 (:line (first intersected)))
+    (first (:intersections (first intersected)))
+    (:wall-point (first (:intersections (first intersected))))
+    (:wall-point (second (:intersections (first intersected))))
+    (second (:intersections (first intersected)))
+    (:p2 (:line (first intersected)))))
 
 (defn new-lines-no-intersections-shadow-other
-  [intersected]
-  (let [p1 (:p1 (:line (first intersected)))
-        i1 (first (:intersections (first intersected)))
-        wall-point-1 (:wall-point (first (:intersections (first intersected))))
-        wall-point-2 (:wall-point (first (:intersections (second intersected))))
-        i2 (first (:intersections (second intersected)))
-        p2 (:p2 (:line (second intersected)))]
-    (list
-      (l/line p1 i1)
-      (l/line i1 wall-point-1)
-      (l/line wall-point-1 wall-point-2)
-      (l/line wall-point-2 i2)
-      (l/line i2 p2))))
+  [intersected wall center]
+  (list
+    (select-visible-point (:line (first intersected)) wall center)
+    (first (:intersections (first intersected)))
+    (:wall-point (first (:intersections (first intersected))))
+    (:wall-point (first (:intersections (second intersected))))
+    (first (:intersections (second intersected)))
+    (select-visible-point (:line (second intersected)) wall center)))
+
+(defn to-lines
+  "Given a set of points create a list of lines connecting them, without closing back from the last to the first point"
+  [points reversed]
+  (let [ps (if reversed (reverse points) points)]
+    (map #(l/line %1 %2) (butlast ps) (rest ps))))
 
 (defn cut-new-lines
   "Create a set of lines that represent the affected part of polygon."
   [polygon line intersections updated-intersections]
   (let [intersected (filter #(< 0 (count (:intersections %))) intersections)
-        updated-intersected (filter #(< 0 (count (:intersections %))) updated-intersections)]
-    (cond
-      (= 2 (count intersected)) (new-lines-two-intersections intersected line (:center polygon))
-      (and (= 1 (count intersected)) (= 2 (count updated-intersected))) (new-lines-one-intersection-shadow-other updated-intersected)
-      (and (= 1 (count intersected)) (= 1 (count updated-intersected))) (new-lines-one-intersection-shadow-same updated-intersected)
-      (and (= 0 (count intersected)) (= 1 (count updated-intersected))) (new-lines-no-intersections-shadow-same updated-intersected)
-      (and (= 0 (count intersected)) (= 2 (count updated-intersected))) (new-lines-no-intersections-shadow-other updated-intersected)
-      :else (list))))
+        updated-intersected (filter #(< 0 (count (:intersections %))) updated-intersections)
+        intersections (reduce concat (map :intersections updated-intersected))
+        center (:center polygon)
+        reversed (reverse? (first intersections) (second intersections))]
+    (to-lines
+      (cond
+        (= 2 (count intersected))                                         (new-lines-two-intersections intersected line center)
+        (and (= 1 (count intersected)) (= 2 (count updated-intersected))) (new-lines-one-intersection-shadow-other updated-intersected line center)
+        (and (= 1 (count intersected)) (= 1 (count updated-intersected))) (new-lines-one-intersection-shadow-same updated-intersected line center)
+        (and (= 0 (count intersected)) (= 1 (count updated-intersected))) (new-lines-no-intersections-shadow-same updated-intersected line center)
+        (and (= 0 (count intersected)) (= 2 (count updated-intersected))) (new-lines-no-intersections-shadow-other updated-intersected line center)
+        :else (list))
+      reversed)))
 
 (defn find-intersections
   "Find intersections between polygon lines and given line. Associate each line and the intersections in a map."
@@ -212,10 +199,11 @@
   [polygon line]
   (let [intersections (count (intersect-segments polygon line))
         not-relevant (and (= 0 intersections) (not (point-inside-polygon? polygon (:p1 line))) (not (point-inside-polygon? polygon (:p2 line))))
-        ;tmp (when-not not-relevant (dorun (println "=====================================================")))
-        ;tmp (when-not not-relevant (dorun (println (str "Intersections: " intersections))))
-        ;tmp (when-not not-relevant (dorun (println (c/out polygon))))
-        ;tmp (when-not not-relevant (dorun (println (c/out line))))
+        tmp (dorun (println "====================================================="))
+        tmp (dorun (println (c/out line)))
+        tmp (dorun (println (str "Relevant: " (not not-relevant))))
+        tmp (when-not not-relevant (dorun (println (str "Intersections: " intersections))))
+        tmp (when-not not-relevant (dorun (println (c/out polygon))))
         ]
     (if not-relevant
       polygon
