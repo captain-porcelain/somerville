@@ -55,11 +55,13 @@
 (defn quadrant
   "Get the quadrant a point is in."
   [p]
-  (cond (and (=  (:x p) 0) (=  (:y p) 0)) 1
-        (and (>  (:x p) 0) (>= (:y p) 0)) 1
-        (and (<= (:x p) 0) (>  (:y p) 0)) 2
-        (and (<  (:x p) 0) (<= (:y p) 0)) 3
-        (and (>= (:x p) 0) (<  (:y p) 0)) 4))
+  (if (nil? p)
+    0
+    (cond (and (=  (:x p) 0) (=  (:y p) 0)) 1
+          (and (>  (:x p) 0) (>= (:y p) 0)) 1
+          (and (<= (:x p) 0) (>  (:y p) 0)) 2
+          (and (<  (:x p) 0) (<= (:y p) 0)) 3
+          (and (>= (:x p) 0) (<  (:y p) 0)) 4)))
 
 (defn angle-to-x
   "Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p."
