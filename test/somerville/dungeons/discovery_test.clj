@@ -98,4 +98,4 @@
               line 168,940 168,868
               line 168,868 75,868")
 
-(time (run-manual-test walls-2 points-2 1300 1517 300))
+;(time (run-manual-test walls-2 points-2 1300 1517 300))

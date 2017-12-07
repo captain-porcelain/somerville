@@ -8,7 +8,8 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
-    [somerville.geometry.polygon :as poly])
+    [somerville.geometry.polygon :as poly]
+    [somerville.dungeons.discovery :as discovery])
   (:use clojure.test))
 
 (deftest polygon-creation
@@ -289,49 +290,140 @@
         (is (commons/close-to 0 (p/distance i2 (:p2 (nth (:lines cut-result) 3)))))
         (is (commons/close-to 0 (p/distance i2 (:p1 (nth (:lines cut-result) 4)))))
         (is (commons/close-to 0 (p/distance p2 (:p2 (nth (:lines cut-result) 4)))))))
+    (testing "Line causing duplicate intersections"
+      (let [l1p1 (p/point 0.5 0.25)
+            l1p2 (p/point 1.5 0.25)
+            line-1 (l/line l1p1 l1p2)
+            i1 (p/point 1 0.5)
+            i2 (p/point 1 0.25)
+            cut-result-1 (poly/cut polygon line-1)
+            l2p1 (p/point -0.5 0.25)
+            l2p2 (p/point  0.5 0.25)
+            line-2 (l/line l2p1 l2p2)
+            cut-result-2 (poly/cut cut-result-1 line-2)
+            ]
+        (is (= 7 (count (:lines cut-result-1))))
+        (dorun (map #(println (commons/out %)) (:lines cut-result-1)))
+        (dorun (println "===================="))
+        (dorun (map #(println (commons/out %)) (:lines cut-result-2)))
+        (is (commons/close-to 0 (p/distance p1 (:p1 (nth (:lines cut-result-1) 0)))))
+        (is (commons/close-to 0 (p/distance p2 (:p2 (nth (:lines cut-result-1) 0)))))
+        (is (commons/close-to 0 (p/distance p2 (:p1 (nth (:lines cut-result-1) 1)))))
+        (is (commons/close-to 0 (p/distance i1 (:p2 (nth (:lines cut-result-1) 1)))))
+        (is (commons/close-to 0 (p/distance i1 (:p1 (nth (:lines cut-result-1) 2)))))
+        (is (commons/close-to 0 (p/distance l1p1 (:p2 (nth (:lines cut-result-1) 2)))))
+        (is (commons/close-to 0 (p/distance l1p1 (:p1 (nth (:lines cut-result-1) 3)))))
+        (is (commons/close-to 0 (p/distance i2 (:p2 (nth (:lines cut-result-1) 3)))))
+        (is (commons/close-to 0 (p/distance i2 (:p1 (nth (:lines cut-result-1) 4)))))
+        (is (commons/close-to 0 (p/distance p3 (:p2 (nth (:lines cut-result-1) 4)))))
+        (is (commons/close-to 0 (p/distance p3 (:p1 (nth (:lines cut-result-1) 5)))))
+        (is (commons/close-to 0 (p/distance p4 (:p2 (nth (:lines cut-result-1) 5)))))
+        (is (commons/close-to 0 (p/distance p4 (:p1 (nth (:lines cut-result-1) 6)))))
+        (is (commons/close-to 0 (p/distance p1 (:p2 (nth (:lines cut-result-1) 6)))))))
     ))
 
 
-;(dorun (println "=========================================================================="))
 
-;(defn debug-draw
-  ;"Create an image of size width x height with transparency and paint it completely black."
-  ;[^String filename ^Integer width ^Integer height circle points polygon lines]
-  ;(let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
-        ;graphics ^Graphics2D (.createGraphics img)
-        ;tmp (.setPaint graphics Color/white)
-        ;tmp (.fill graphics (Rectangle. 0 0 width height))
-        ;tmp (.setPaint graphics Color/black)
-        ;tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) lines))
-        ;tmp (.setPaint graphics Color/red)
-        ;tmp (.drawOval graphics (- (:x (:p circle)) (:r circle)) (- (:y (:p circle)) (:r circle)) (* 2 (:r circle)) (* 2 (:r circle)))
-        ;tmp (.drawLine graphics (- (:x (:p circle)) 5) (- (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (+ (:y (:p circle)) 5))
-        ;tmp (.drawLine graphics (- (:x (:p circle)) 5) (+ (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (- (:y (:p circle)) 5))
-        ;tmp (.setPaint graphics Color/blue)
-        ;tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+(defn debug-draw
+  "Create an image of size width x height with transparency and paint it completely black."
+  [^String filename ^Integer width ^Integer height circle points polygon lines current]
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setPaint graphics Color/white)
+        tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.setPaint graphics Color/black)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) lines))
+        tmp (.setPaint graphics Color/red)
+        tmp (.drawOval graphics (- (:x (:p circle)) (:r circle)) (- (:y (:p circle)) (:r circle)) (* 2 (:r circle)) (* 2 (:r circle)))
+        tmp (.drawLine graphics (- (:x (:p circle)) 5) (- (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (+ (:y (:p circle)) 5))
+        tmp (.drawLine graphics (- (:x (:p circle)) 5) (+ (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (- (:y (:p circle)) 5))
+        tmp (.setPaint graphics Color/blue)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+        tmp (.setPaint graphics Color/green)
+        tmp (dorun (map #(do
+                           (.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
+                           (.drawLine graphics (- (:x %) 5) (+ (:y %) 5) (+ (:x %) 5) (- (:y %) 5))) points))
+        tmp (.setPaint graphics Color/yellow)
+        tmp (when-not (nil? current) (.drawLine graphics (:x (:p1 current)) (:y (:p1 current)) (:x (:p2 current)) (:y (:p2 current))))
+        is (if (nil? current) (list) (reduce concat (map :intersections (poly/update-intersections polygon current (poly/find-intersections polygon current)))))
+        tmp (.setPaint graphics Color/orange)
+        tmp (dorun (map #(do
+                           (.drawLine graphics (- (:x %) 4) (- (:y %) 4) (+ (:x %) 4) (+ (:y %) 4))
+                           (.drawLine graphics (- (:x %) 4) (+ (:y %) 4) (+ (:x %) 4) (- (:y %) 4))) is))
         ;tmp (.setPaint graphics Color/green)
-        ;tmp (dorun (map #(do
-                           ;(.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
-                           ;(.drawLine graphics (- (:x %) 5) (+ (:y %) 5) (+ (:x %) 5) (- (:y %) 5))) points))
-        ;tmp (.dispose graphics)]
-    ;(image/write-image filename img)))
+        ;tmp (.drawLine graphics (:x (:p circle)) (:y (:p circle)) 401 1302)
+        ;tmp (.drawLine graphics (:x (:p circle)) (:y (:p circle)) 374 1303)
+        ;tmp (.drawLine graphics (:x (:p circle)) (:y (:p circle)) 392 1288)
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
 
-;(def center (p/point 500 500))
-;(def circle (c/circle center 100))
-;(def points (c/circle-points circle 16))
-;(def polygon (poly/from-points points center))
-;(def line-1 (l/line (p/point 610 640) (p/point 105 140)))
-;(def line-2 (l/line (p/point 100 300) (p/point 600 300)))
-;(def line-3 (l/line (p/point 747 451) (p/point  61 505)))
-;(def lines (list line-1 line-2 line-3))
-;(debug-draw "/tmp/cut-0.png" 800 800 circle points polygon lines)
-;(def cut-1 (poly/cut polygon line-1))
-;(debug-draw "/tmp/cut-1.png" 800 800 circle points cut-1 lines)
-;(def cut-2 (poly/cut cut-1 line-2))
-;(debug-draw "/tmp/cut-2.png" 800 800 circle points cut-2 lines)
-;(def cut-3 (poly/cut cut-2 line-3))
-;(debug-draw "/tmp/cut-3.png" 800 800 circle points cut-3 lines)
-
-;(dorun (println "=========================================================================="))
+(defn debug-cut
+  [circle lines width height]
+  (let [points (c/circle-points circle 16)
+        polygon (poly/from-points points (:p circle))]
+    (loop [ls lines
+           i 0
+           cut polygon
+           l nil]
+      (let [tmp (debug-draw (str "/tmp/cut-" i ".png") width height circle points cut lines l)]
+        (if (= 0 (count ls))
+          i
+          (recur (rest ls) (inc i) (poly/cut cut (first ls)) (first ls)))))))
 
 
+(defn debug-reverse-cuts
+  []
+  (let [center (p/point 500 500)
+        circle (c/circle center 100)
+        line-1 (l/line (p/point 610 640) (p/point 105 140))
+        line-2 (l/line (p/point 100 300) (p/point 600 300))
+        line-3 (l/line (p/point 747 451) (p/point  61 505))
+        lines (list line-1 line-2 line-3)]
+    (debug-cut circle lines 800 800)))
+
+(defn debug-baramzigli
+  []
+  (let [circle (c/circle (p/point 161 1472) 300)
+        lines (discovery/parse "line 1059,1402 1302,1372
+                                line 552,1297 749,1404
+                                line 374,1303 552,1297
+                                line 239,1376 374,1303
+                                line 881,1350 881,1408
+                                line 879,1223 881,1294
+                                line 1242,882 1239,570
+                                line 1161,879 1242,882
+                                line 1158,1036 1161,879
+                                line 926,1036 1158,1036
+                                line 932,1224 926,1036
+                                line 1062,1220 802,1224
+                                line 1061,1405 1062,1220
+                                line 747,1401 1061,1405
+                                line 741,1034 747,1401
+                                line 241,1033 741,1034
+                                line 239,1375 241,1033
+                                line 186,1375 239,1375
+                                line 717,934 716,1036
+                                line 842,938 845,792
+                                line 686,941 842,938
+                                line 463,800 463,943
+                                line 67,548 76,882
+                                line 1018,566 1240,573
+                                line 1034,492 1018,566
+                                line 955,344 1034,492
+                                line 871,243 955,344
+                                line 655,168 871,243
+                                line 439,231 655,168
+                                line 325,395 439,231
+                                line 288,560 325,395
+                                line 56,555 288,560
+                                line 0,1373 101,1373
+                                line 40,940 40,1373
+                                line 40,940 623,940
+                                line 168,940 168,868
+                                line 168,868 75,868")]
+    (try
+      (debug-cut circle lines 2000 2000)
+      (catch Exception e (.printStackTrace e)))))
+
+
+;(debug-baramzigli)
