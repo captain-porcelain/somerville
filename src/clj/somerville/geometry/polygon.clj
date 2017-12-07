@@ -99,11 +99,11 @@
 
 (defn new-lines-two-intersections
   [intersected wall center]
-  (list
-    (select-visible-point (:line (first intersected)) wall center)
-    (first (:intersections (first intersected)))
-    (first (:intersections (second intersected)))
-    (select-visible-point (:line (second intersected)) wall center)))
+  (let [p1 (select-visible-point (:line (first intersected)) wall center)
+        i1 (first (:intersections (first intersected)))
+        i2 (first (:intersections (second intersected)))
+        p2 (select-visible-point (:line (second intersected)) wall center)]
+    (list p1 i1 i2 p2)))
 
 (defn new-lines-one-intersection-shadow-other
   [intersected wall center]
@@ -117,8 +117,9 @@
 (defn new-lines-one-intersection-shadow-same
   [intersected wall center]
   (let [p1 (:p1 (:line (first intersected)))
-        i1 (second (:intersections (first intersected)))
-        i2 (first (:intersections (first intersected)))
+        is (sort-by #(p/distance p1 %) (:intersections (first intersected)))
+        i1 (first is)
+        i2 (second is)
         wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))
         p2 (:p2 (:line (first intersected)))]
     (list p1 i1 wall-point i2 p2)))
@@ -153,10 +154,12 @@
   "Create a set of lines that represent the affected part of polygon."
   [polygon line intersections updated-intersections]
   (let [intersected (filter #(< 0 (count (:intersections %))) intersections)
+        tmp (dorun (map println intersected))
         updated-intersected (filter #(< 0 (count (:intersections %))) updated-intersections)
         intersections (reduce concat (map :intersections updated-intersected))
         center (:center polygon)
-        reversed (reverse? (first intersections) (second intersections))]
+        reversed (reverse? (first intersections) (second intersections))
+        tmp (dorun (println (str "Case: " (count intersected) " - " (count updated-intersected))))]
     (to-lines
       (cond
         (= 2 (count intersected))                                         (new-lines-two-intersections intersected line center)
@@ -186,7 +189,9 @@
   (let [intersections (find-intersections polygon line)
         updated-intersections (update-intersections polygon line intersections)
         visible-lines (unaffected-lines polygon line updated-intersections)
-        new-lines (cut-new-lines polygon line intersections updated-intersections)]
+        new-lines (cut-new-lines polygon line intersections updated-intersections)
+        tmp (dorun (println (str "Count new-lines: " (count new-lines))))
+        tmp (dorun (map println new-lines))]
     (Polygon2. (concat (:start visible-lines) new-lines (:end visible-lines)) (:center polygon))))
 
 (defn cut
