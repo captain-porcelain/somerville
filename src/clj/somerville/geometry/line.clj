@@ -13,6 +13,7 @@
 (defn line
   "Get a line from two points."
   [p1 p2]
+  ;(when (or (nil? p1) (nil? p2)) (throw (Exception. "Can't create line with null as point.")))
   (Line2. p1 p2))
 
 (defn line-from-slope
@@ -181,7 +182,16 @@
   "Intersect two line segments."
   [l1 l2]
   (let [i (intersect l1 l2)]
-    (when (and (not (nil? i)) (point-on-segment? l1 i) (point-on-segment? l2 i)) i)))
+    (if (not (nil? i))
+      (when (and (point-on-segment? l1 i) (point-on-segment? l2 i)) i)
+      ;nil
+      (cond
+        (= (:p1 l1) (:p1 l2)) (:p1 l1)
+        (= (:p1 l1) (:p2 l2)) (:p1 l1)
+        (= (:p2 l1) (:p1 l2)) (:p2 l1)
+        (= (:p2 l1) (:p2 l2)) (:p2 l1)
+        :else nil)
+      )))
 
 (defn cuts
   "Get list of intersections of one line with a list of lines."

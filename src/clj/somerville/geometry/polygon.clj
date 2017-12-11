@@ -26,6 +26,9 @@
   ([points]
    (from-points points nil)))
 
+;;====================================================================================================================================================
+;; General Helpers
+
 (defn intersect
   "Intersect a polygon with a line."
   [polygon line]
@@ -41,13 +44,16 @@
   [polygon point]
   (= 0 (count (intersect-segments polygon (l/line (:center polygon) point)))))
 
-;;====================================================================================================================================================
-;; Polygon based visibility checking
-
 (defn on-polygon?
   "Check if a point is on some line of a polygon."
   [polygon point]
   (< 0 (count (filter #(l/point-on-segment? % point) (:lines polygon)))))
+
+;;====================================================================================================================================================
+;; Polygon based visibility checking
+
+;;---------------------------------------------------------------------------------------------------------
+;; Finding intersections between wall and polygon
 
 (defn shadow-point
   "Find the point on the polygon that is shadowed by a wall by casting a ray from the center through the endpoint of the wall that is inside the polygon."
@@ -60,7 +66,8 @@
 (defn intersection-count
   "Count the total of intersections in the given intersections-map."
   [intersections]
-  (reduce + (map #(count (:intersections %)) intersections)))
+  ;(reduce + (map #(count (:intersections %)) intersections)))
+  (count (into #{} (reduce concat (map :intersections intersections)))))
 
 (defn point-visible?
   "Check if a point is not blocked by the given wall."
@@ -88,6 +95,63 @@
              intersections))
     intersections))
 
+(defn find-intersections
+  "Find intersections between polygon lines and given line. Associate each line and the intersections in a map."
+  [polygon line]
+  (map #(hash-map :line % :intersections (filter (fn [i] (not (nil? i))) (list (l/intersect-segments % line)))) (:lines polygon)))
+
+(defn not-intersected-point
+  "Given an line that is intersected in one of it's points get the other point."
+  [intersected]
+  (if (= (first (:intersections intersected)) (:p1 (:line intersected))) (:p2 (:line intersected)) (:p1 (:line intersected))))
+
+(defn angle
+  [center shadow-point point]
+  (let [a (p/angle center shadow-point point)]
+    (if (< Math/PI a) (- (* 2 Math/PI) a) a)))
+
+(defn sort-intersections
+  "Given two intersected lines select the one with the lower angle to the shadow point."
+  [intersected shadow-point center]
+  (sort-by #(Math/abs (angle center shadow-point (not-intersected-point %))) intersected))
+
+(defn find-intersection-with-shadow
+  [polygon line]
+  (let [in-point (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line))))
+        shadow-point (assoc (shadow-point polygon in-point) :wall-point in-point)
+        ;;TODO selecting first may cause issues
+        shadow-line (first (filter #(l/point-on-segment? % shadow-point) (:lines polygon)))
+        candidates (filter #(< 0 (count (:intersections %))) (find-intersections polygon line))
+        intersected (first (if (= 1 (count candidates)) candidates (sort-intersections candidates shadow-point (:center polygon))))]
+    (map #(cond
+            (= % (:line intersected) shadow-line) (assoc intersected :intersections (conj (:intersections intersected) shadow-point))
+            (= % (:line intersected)) intersected
+            (= % shadow-line) {:line % :intersections (list shadow-point)}
+            :else {:line % :intersection (list)})
+         (:lines polygon))))
+
+(defn find-shadows
+  [polygon line]
+  (let [shadow-point-1 (assoc (shadow-point polygon (:p1 line)) :wall-point (:p1 line))
+        shadow-point-2 (assoc (shadow-point polygon (:p2 line)) :wall-point (:p2 line))]
+    (map #(let [result {:line % :intersections (list)}
+                result (if (l/point-on-segment? % shadow-point-1) (assoc result :intersections (conj (:intersections result) shadow-point-1)) result)
+                result (if (l/point-on-segment? % shadow-point-2) (assoc result :intersections (conj (:intersections result) shadow-point-2)) result)]
+            result)
+         (:lines polygon))))
+
+(defn shadow-intersections
+  [polygon line]
+  (let [in-points (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line)))]
+    (case (count in-points)
+      2 (find-shadows polygon line)
+      1 (find-intersection-with-shadow polygon line)
+      0 (find-intersections polygon line)
+      :else (map #(hash-map :line % :intersections (list)) (:lines polygon)))))
+
+;;---------------------------------------------------------------------------------------------------------
+;; Cutting the polygon
+
 (defn reverse?
   "Check if intersections should cause reversal of new lines."
   [i1 i2]
@@ -100,9 +164,12 @@
 (defn select-visible-point
   "Select the point of a polygon line that is not blocked from view by a wall."
   [line wall center]
-  (let [l1p1 (:p1 line)
-        l1p2 (:p2 line)]
-    (if (point-visible? l1p1 wall center) l1p1 l1p2)))
+  ;(let [l1p1 (:p1 line)
+        ;l1p2 (:p2 line)]
+    ;(if (point-visible? l1p1 wall center) l1p1 l1p2)))
+  (let [ps (list (:p1 line) (:p2 line))
+        candidates (filter #(point-visible? % wall center) ps)]
+    (first candidates)))
 
 (defn new-lines-two-intersections
   [intersected wall center]
@@ -115,6 +182,8 @@
 (defn new-lines-one-intersection-shadow-other
   [intersected wall center]
   (let [p1 (select-visible-point (:line (first intersected)) wall center)
+        tmp (dorun (println (c/out (:line (first intersected)))))
+        tmp (dorun (println "p1: " p1))
         i1 (first (:intersections (first intersected)))
         i2 (first (:intersections (second intersected)))
         wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))
@@ -162,7 +231,6 @@
   [polygon line intersections updated-intersections]
   (let [intersected (filter #(< 0 (count (:intersections %))) intersections)
         tmp (dorun (println "Creating new lines"))
-        tmp (dorun (map println intersected))
         updated-intersected (filter #(< 0 (count (:intersections %))) updated-intersections)
         intersections (reduce concat (map :intersections updated-intersected))
         center (:center polygon)
@@ -178,11 +246,6 @@
         :else (list))
       reversed)))
 
-(defn find-intersections
-  "Find intersections between polygon lines and given line. Associate each line and the intersections in a map."
-  [polygon line]
-  (map #(hash-map :line % :intersections (filter (fn [i] (not (nil? i))) (list (l/intersect-segments % line)))) (:lines polygon)))
-
 (defn unaffected-lines
   [polygon line intersections]
   (let [remaining (drop-while #(or (not (visible? (:line %) line (:center polygon))) (< 0 (count (:intersections %)))) intersections)
@@ -195,6 +258,7 @@
   "Handle an actual cut of a line with a polygon."
   [polygon line]
   (let [intersections (find-intersections polygon line)
+        tmp (dorun (map println intersections))
         updated-intersections (update-intersections polygon line intersections)
         visible-lines (unaffected-lines polygon line updated-intersections)
         new-lines (cut-new-lines polygon line intersections updated-intersections)
