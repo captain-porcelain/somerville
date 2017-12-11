@@ -90,6 +90,13 @@
   (is (= (c/close-to (:x i8) 1.5) true))
   (is (= (c/close-to (:y i8) 2.0) true)))
 
+(deftest intersections-of-segments
+  (let [p1 (p/point -0.5 0.25)
+        p2 (p/point  0.5 0.25)
+        p3 (p/point  1   0.25)
+        i  (l/intersect-segments (l/line p1 p2) (l/line p2 p3))]
+  (is (= i p2))))
+
 (def il3 (l/line (p/point 0 0) (p/point 0 1)))
 (def il4 (l/line (p/point 2 0) (p/point 2 1)))
 (def i2 (l/intersect il3 il4))
