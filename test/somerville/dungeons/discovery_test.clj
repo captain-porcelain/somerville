@@ -1,12 +1,17 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
 (ns somerville.dungeons.discovery-test
   (:require
+    [taoensso.timbre :as log]
+    [taoensso.timbre.appenders.core :as appenders]
     [somerville.image :as image]
     [somerville.dungeons.discovery :as discovery]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c])
   (:use clojure.test))
+
+(log/merge-config!
+  {:appenders {:spit (appenders/spit-appender {:fname "/tmp/somerville-discovery-test.log"})}})
 
 (def wall-description
   "line 10,10 30,10

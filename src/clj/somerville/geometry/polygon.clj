@@ -3,7 +3,8 @@
     [somerville.commons :as commons]
     [somerville.geometry.commons :as c]
     [somerville.geometry.point :as p]
-    [somerville.geometry.line :as l]))
+    [somerville.geometry.line :as l]
+    [taoensso.timbre :as log]))
 
 ;; Define a polygon as a list of lines and an optional center.
 ;; This polygon is specifically used for calculating visibility.
@@ -39,15 +40,17 @@
   [polygon line]
   (filter #(not (nil? %)) (map #(l/intersect-segments % line) (:lines polygon))))
 
-(defn point-inside-polygon?
-  "Check if point is inside the polygon."
-  [polygon point]
-  (= 0 (count (intersect-segments polygon (l/line (:center polygon) point)))))
-
 (defn on-polygon?
   "Check if a point is on some line of a polygon."
   [polygon point]
   (< 0 (count (filter #(l/point-on-segment? % point) (:lines polygon)))))
+
+(defn point-inside-polygon?
+  "Check if point is inside the polygon."
+  [polygon point]
+  (and
+    ;(not (on-polygon? polygon point))
+    (= 0 (count (intersect-segments polygon (l/line (:center polygon) point))))))
 
 ;;====================================================================================================================================================
 ;; Polygon based visibility checking
@@ -127,12 +130,12 @@
         shadow-line (first (filter #(l/point-on-segment? % shadow-point) (:lines polygon)))
         candidates (filter #(< 0 (count (:intersections %))) (find-intersections polygon line))
         plausible (sort-intersections candidates (first (:intersections (first candidates))) (:center polygon))
-        ;tmp (dorun (println (str "shadow-point " (c/out shadow-point))))
-        ;tmp (dorun (println "plausible"))
-        ;tmp (dorun (map println plausible))
-        ;tmp (dorun (println ">>>>>>>>>>>>>>"))
-        ;tmp (dorun (map println (map #(Math/abs (angle (:center polygon) (first (:intersections (first candidates))) (not-intersected-point %))) plausible)))
-        ;tmp (dorun (println ">>>>>>>>>>>>>>"))
+        tmp (log/info (str "shadow-point " (c/out shadow-point)))
+        ;tmp (log/info "plausible")
+        ;tmp (map log/info plausible)
+        ;tmp (log/info ">>>>>>>>>>>>>>")
+        ;tmp (map log/info (map #(Math/abs (angle (:center polygon) (first (:intersections (first candidates))) (not-intersected-point %))) plausible))
+        ;tmp (log/info ">>>>>>>>>>>>>>")
         intersected (first (if (= 1 (count candidates)) candidates plausible))]
     (map #(cond
             (= % (:line intersected) shadow-line) (assoc intersected :intersections (conj (:intersections intersected) shadow-point))
@@ -190,8 +193,8 @@
 (defn new-lines-one-intersection-shadow-other
   [intersected wall center]
   (let [p1 (select-visible-point (:line (first intersected)) wall center)
-        tmp (dorun (println (c/out (:line (first intersected)))))
-        tmp (dorun (println "p1: " p1))
+        tmp (log/info (c/out (:line (first intersected))))
+        tmp (log/info "p1: " p1)
         i1 (first (:intersections (first intersected)))
         i2 (first (:intersections (second intersected)))
         wall-point (if (nil? (:wall-point i1)) (:wall-point i2) (:wall-point i1))
@@ -238,12 +241,14 @@
   "Create a set of lines that represent the affected part of polygon."
   [polygon line intersections]
   (let [in-points (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line)))
+        tmp (log/info (str "Checking point " (c/out (:p1 line)) ": " (point-inside-polygon? polygon (:p1 line))))
+        tmp (log/info (str "Checking point " (c/out (:p2 line)) ": " (point-inside-polygon? polygon (:p2 line))))
         intersected (filter #(< 0 (count (:intersections %))) intersections)
-        tmp (dorun (println "Creating new lines"))
+        tmp (log/info "Creating new lines")
         intersections (reduce concat (map :intersections intersected))
         center (:center polygon)
         reversed (reverse? (first intersections) (second intersections))
-        tmp (dorun (println (str "Case: " (count in-points) " - " (count intersected))))]
+        tmp (log/info (str "Case: " (count in-points) " - " (count intersected)))]
     (to-lines
       (cond
         (= 0 (count in-points))                                 (new-lines-two-intersections intersected line center)
@@ -258,12 +263,12 @@
   "Create a set of lines that represent the affected part of polygon."
   [polygon line intersections updated-intersections]
   (let [intersected (filter #(< 0 (count (:intersections %))) intersections)
-        tmp (dorun (println "Creating new lines"))
+        tmp (log/info "Creating new lines")
         updated-intersected (filter #(< 0 (count (:intersections %))) updated-intersections)
         intersections (reduce concat (map :intersections updated-intersected))
         center (:center polygon)
         reversed (reverse? (first intersections) (second intersections))
-        tmp (dorun (println (str "Case: " (count intersected) " - " (count updated-intersected))))]
+        tmp (log/info (str "Case: " (count intersected) " - " (count updated-intersected)))]
     (to-lines
       (cond
         (= 2 (count intersected))                                         (new-lines-two-intersections intersected line center)
@@ -288,8 +293,8 @@
   (let [intersections (shadow-intersections polygon line)
         visible-lines (unaffected-lines polygon line intersections)
         new-lines (cut-new-lines-2 polygon line intersections)
-        tmp (dorun (println (str "Count new-lines: " (count new-lines))))
-        tmp (dorun (map #(println (c/out %)) new-lines))]
+        tmp (log/info (str "Count new-lines: " (count new-lines)))
+        tmp (map #(log/info (c/out %)) new-lines)]
     (Polygon2. (concat (:start visible-lines) new-lines (:end visible-lines)) (:center polygon))))
 
 (defn do-cut
@@ -299,8 +304,8 @@
         updated-intersections (update-intersections polygon line intersections)
         visible-lines (unaffected-lines polygon line updated-intersections)
         new-lines (cut-new-lines polygon line intersections updated-intersections)
-        tmp (dorun (println (str "Count new-lines: " (count new-lines))))
-        tmp (dorun (map #(println (c/out %)) new-lines))]
+        tmp (log/info (str "Count new-lines: " (count new-lines)))
+        tmp (map #(log/info (c/out %)) new-lines)]
     (Polygon2. (concat (:start visible-lines) new-lines (:end visible-lines)) (:center polygon))))
 
 (defn cut
@@ -313,14 +318,28 @@
   [polygon line]
   (let [intersections (count (intersect-segments polygon line))
         not-relevant (and (= 0 intersections) (not (point-inside-polygon? polygon (:p1 line))) (not (point-inside-polygon? polygon (:p2 line))))
-        tmp (dorun (println "====================================================="))
-        tmp (dorun (println "Cutting"))
-        tmp (dorun (println (c/out line)))
-        tmp (dorun (println (str "Relevant: " (not not-relevant))))
-        tmp (when-not not-relevant (dorun (println (str "Intersections: " intersections))))
-        tmp (when-not not-relevant (dorun (println (c/out polygon))))
+        tmp (log/info "=====================================================")
+        tmp (log/info "Cutting")
+        tmp (log/info (c/out line))
+        tmp (log/info (str "Relevant: " (not not-relevant)))
+        tmp (when-not not-relevant (log/info (str "Intersections: " intersections)))
+        tmp (when-not not-relevant (log/info (c/out polygon)))
         ]
     (if not-relevant
       polygon
       (do-cut-2 polygon line))))
+
+;; Idea for third approach
+;; - refactor polygon to list of points
+;; - cutting polygon
+;;   - check for in-points
+;;   - cast shadows
+;;   - get list of wall lines (intersections with polygon, in-points, shadow-points)
+;;   - iterate through points clock wise
+;;     - take point from polygon if not blocked
+;;     - take points from wall lines that blocked view
+;;
+;; General issues remaining
+;; what happens when wall has 3 or more intersections?
+;; should be possible by keeping intersections, in-points, shadow-points for wall together and picking correctly
 

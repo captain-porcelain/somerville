@@ -3,6 +3,8 @@
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon]
     [java.awt.image BufferedImage])
   (:require
+    [taoensso.timbre :as log]
+    [taoensso.timbre.appenders.core :as appenders]
     [somerville.image :as image]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
@@ -11,6 +13,11 @@
     [somerville.geometry.polygon :as poly]
     [somerville.dungeons.discovery :as discovery])
   (:use clojure.test))
+
+
+(log/set-config!
+  {:level :debug
+   :appenders {:spit (appenders/spit-appender {:fname "/tmp/somerville-polygon-test.log"})}})
 
 (deftest polygon-creation
   (let [p1 (p/point -1  1)
@@ -30,6 +37,8 @@
     (is (= p1 (:p2 (nth (:lines polygon) 3))))))
 
 (deftest intersections-between-line-and-polygon
+  (log/info "================================================================================")
+  (log/info "intersections-between-line-and-polygon")
   (let [p1 (p/point -1  1)
         p2 (p/point  1  1)
         p3 (p/point  1 -1)
@@ -145,7 +154,9 @@
         ;(is (= 0 (count (:intersections (nth updated-intersections 3)))))))))
 
 
-(deftest updating-intersections-between-line-and-polygon
+(deftest shadow-intersections-between-line-and-polygon
+  (log/info "================================================================================")
+  (log/info "shadow-intersections-between-line-and-polygon")
   (let [p1 (p/point -1.0  1.0)
         p2 (p/point  1.0  1.0)
         p3 (p/point  1.0 -1.0)
@@ -154,6 +165,8 @@
         points (list p1 p2 p3 p4)
         polygon (poly/from-points points center)]
     (testing "Horizonzal line with two intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Horizonzal line with two intersections")
       (let [line (l/line (p/point -2 -0.1) (p/point 2 -0.1))
             i1 (p/point  1.0 -0.1)
             i2 (p/point -1.0 -0.1)
@@ -166,6 +179,8 @@
         (is (= 1 (count (:intersections (nth intersections 3)))))
         (is (= i2 (first (:intersections (nth intersections 3)))))))
     (testing "Vertical line with two intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Vertical line with two intersections")
       (let [line (l/line (p/point 0.1 2.0) (p/point 0.1 -2.0))
             i1 (p/point 0.1  1.0)
             i2 (p/point 0.1 -1.0)
@@ -178,6 +193,8 @@
         (is (commons/close-to 0 (p/distance i2 (first (:intersections (nth intersections 2))))))
         (is (= 0 (count (:intersections (nth intersections 3)))))))
     (testing "Horizonzal line with one intersection"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Horizonzal line with one intersection")
       (let [line (l/line (p/point 0 -0.1) (p/point 2 -0.1))
             i1 (p/point 1.0 -0.1)
             i2 (p/point 0.0 -1.0)
@@ -190,6 +207,8 @@
         (is (commons/close-to 0 (p/distance i2 (first (:intersections (nth intersections 2))))))
         (is (= 0 (count (:intersections (nth intersections 3)))))))
     (testing "Vertical line with one intersection"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Vertical line with one intersection")
       (let [line (l/line (p/point -0.1 2) (p/point -0.1 -2))
             i1 (p/point -0.1  1.0)
             i2 (p/point -0.1 -1.0)
@@ -202,6 +221,8 @@
         (is (commons/close-to 0 (p/distance i2 (first (:intersections (nth intersections 2))))))
         (is (= 0 (count (:intersections (nth intersections 3)))))))
     (testing "Line with one intersection with two polygon lines"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Line with one intersection with two polygon lines")
       (let [line (l/line (p/point 0.75 0.25) (p/point 1.0 1.0))
             i1 (p/point 1.0 0.333)
             i2 (p/point 1.0 1.0)
@@ -214,6 +235,8 @@
         (is (= 0 (count (:intersections (nth intersections 2)))))
         (is (= 0 (count (:intersections (nth intersections 3)))))))
     (testing "Horizonzal line with no intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Horizonzal line with no intersections")
       (let [line (l/line (p/point -0.5 -0.75) (p/point 0.5 -0.75))
             i1 (p/point  0.666 -1.0)
             i2 (p/point -0.666 -1.0)
@@ -227,6 +250,8 @@
         (is (= 0 (count (:intersections (nth intersections 3)))))))))
 
 (deftest cutting-polygon-with-line
+  (log/info "================================================================================")
+  (log/info "cutting-polygon-with-line")
   (let [p1 (p/point -1.0  1.0)
         p2 (p/point  1.0  1.0)
         p3 (p/point  1.0 -1.0)
@@ -235,6 +260,8 @@
         points (list p1 p2 p3 p4)
         polygon (poly/from-points points center)]
     (testing "Horizontal line with two intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Horizontal line with two intersections")
       (let [line (l/line (p/point -2 -0.1) (p/point 2 -0.1))
             i1 (p/point  1.0 -0.1)
             i2 (p/point -1.0 -0.1)
@@ -253,6 +280,8 @@
         (is (= i2 (:p1 (nth (:lines cut-result) 3))))
         (is (= p1 (:p2 (nth (:lines cut-result) 3))))))
     (testing "Vertical line with two intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Vertical line with two intersections")
       (let [line (l/line (p/point 0.1 2.0) (p/point 0.1 -2.0))
             i1 (p/point 0.1  1.0)
             i2 (p/point 0.1 -1.0)
@@ -267,6 +296,8 @@
         (is (commons/close-to 0 (p/distance i2 (:p1 (nth (:lines cut-result) 3)))))
         (is (commons/close-to 0 (p/distance p4 (:p2 (nth (:lines cut-result) 3)))))))
     (testing "Horizontal line with one intersection"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Horizontal line with one intersection")
       (let [lp1 (p/point -0.25 -0.5)
             lp2 (p/point  1.5  -0.5)
             line (l/line lp1 lp2)
@@ -287,6 +318,8 @@
         (is (commons/close-to 0 (p/distance p4  (:p1 (nth (:lines cut-result) 5)))))
         (is (commons/close-to 0 (p/distance p1  (:p2 (nth (:lines cut-result) 5)))))))
     (testing "Line with one intersection affecting only one polygon line"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Line with one intersection affecting only one polygon line")
       (let [lp1 (p/point 0.75 -0.25)
             lp2 (p/point 1.5   0.5)
             line (l/line lp1 lp2)
@@ -309,6 +342,8 @@
         (is (commons/close-to 0 (p/distance p4  (:p1 (nth (:lines cut-result) 6)))))
         (is (commons/close-to 0 (p/distance p1  (:p2 (nth (:lines cut-result) 6)))))))
     (testing "Horizontal line with no intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Horizontal line with no intersections")
       (let [lp1 (p/point -0.5 -0.75)
             lp2 (p/point 0.5 -0.75)
             line (l/line lp1 lp2)
@@ -333,6 +368,8 @@
         (is (commons/close-to 0 (p/distance p4  (:p1 (nth (:lines cut-result) 7)))))
         (is (commons/close-to 0 (p/distance p1  (:p2 (nth (:lines cut-result) 7)))))))
     (testing "Line covering one corner with no intersections"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Line covering one corner with no intersections")
       (let [lp1 (p/point 0.5  0)
             lp2 (p/point 0   -0.5)
             line (l/line lp1 lp2)
@@ -355,6 +392,8 @@
         (is (commons/close-to 0 (p/distance p4  (:p1 (nth (:lines cut-result) 6)))))
         (is (commons/close-to 0 (p/distance p1  (:p2 (nth (:lines cut-result) 6)))))))
     (testing "Line covering one corner of start and end of polygon"
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Line covering one corner of start and end of polygon")
       (let [lp1 (p/point -1.5 -0.5)
             lp2 (p/point  0.5  1.5)
             line (l/line lp1 lp2)
@@ -374,6 +413,9 @@
         (is (commons/close-to 0 (p/distance p2 (:p2 (nth (:lines cut-result) 4)))))))
     (testing "Casting shadow results in many intersections with polygon so special checking if point is on polygon line is needed.
              Also creates duplicate intersection."
+      (log/info "--------------------------------------------------------------------------------")
+      (log/info "Casting shadow results in many intersections with polygon so special checking if point is on polygon line is needed.
+             Also creates duplicate intersection.")
       (let [l1p1 (p/point 0.5 0.25)
             l1p2 (p/point 1.5 0.25)
             line-1 (l/line l1p1 l1p2)
@@ -432,7 +474,7 @@
         tmp (.drawLine graphics (- (:x (:p circle)) 5) (- (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (+ (:y (:p circle)) 5))
         tmp (.drawLine graphics (- (:x (:p circle)) 5) (+ (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (- (:y (:p circle)) 5))
         tmp (.setPaint graphics Color/blue)
-        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+        tmp (dorun (map #(.drawLine graphics (get (:p1 %) :x 0) (get (:p1 %) :y 0) (get (:p2 %) :x 0) (get (:p2 %) :y 0)) (:lines polygon)))
         tmp (.setPaint graphics Color/green)
         tmp (dorun (map #(do
                            (.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
@@ -444,8 +486,9 @@
         tmp (dorun (map #(do
                            (.drawLine graphics (- (:x %) 4) (- (:y %) 4) (+ (:x %) 4) (+ (:y %) 4))
                            (.drawLine graphics (- (:x %) 4) (+ (:y %) 4) (+ (:x %) 4) (- (:y %) 4))) is))
-        ;tmp (.setPaint graphics Color/green)
-        ;tmp (.drawLine graphics (:x (:p circle)) (:y (:p circle)) 401 1302)
+        tmp (.setPaint graphics Color/green)
+        tmp (.drawLine graphics 186 1385 239 1385)
+        tmp (.drawLine graphics 300 1305 239 1385)
         ;tmp (.drawLine graphics (:x (:p circle)) (:y (:p circle)) 374 1303)
         ;tmp (.drawLine graphics (:x (:p circle)) (:y (:p circle)) 392 1288)
         tmp (.dispose graphics)]
@@ -459,24 +502,24 @@
            i 0
            cut polygon
            l nil]
-      (let [tmp (debug-draw (str "/tmp/cut-" i ".png") width height circle points cut lines l)]
+      (let [tmp (log/info "--------------------------------------------------------------------------------")
+            tmp (log/info "Debug Cut")
+            tmp (log/info (str "iteration " i))
+            tmp (try
+                  (debug-draw (str "/tmp/cut-" i ".png") width height circle points cut lines l)
+                  (catch Exception e (log/error e)))]
         (if (= 0 (count ls))
           i
-          (recur (rest ls) (inc i) (poly/cut cut (first ls)) (first ls)))))))
-
-
-(defn debug-reverse-cuts
-  []
-  (let [center (p/point 500 500)
-        circle (c/circle center 100)
-        line-1 (l/line (p/point 610 640) (p/point 105 140))
-        line-2 (l/line (p/point 100 300) (p/point 600 300))
-        line-3 (l/line (p/point 747 451) (p/point  61 505))
-        lines (list line-1 line-2 line-3)]
-    (debug-cut circle lines 800 800)))
+          (let [new-cut (try (poly/cut cut (first ls))
+                             (catch Exception e (do (println (str "Error cutting polygon on iteration " i))
+                                                    (log/error e))))
+                rest-ls (if (nil? new-cut) (list) (rest ls))]
+            (recur rest-ls (inc i) new-cut (first ls))))))))
 
 (defn debug-baramzigli
   []
+  (log/info "================================================================================")
+  (log/info "debug baramzigli")
   (let [circle (c/circle (p/point 161 1472) 300)
         lines (discovery/parse "line 1059,1402 1302,1372
                                 line 552,1297 749,1404
@@ -520,4 +563,4 @@
       (catch Exception e (.printStackTrace e)))))
 
 
-;(debug-baramzigli)
+(debug-baramzigli)

@@ -65,12 +65,23 @@
 
 (defn point-on-segment?
   "Check if given point is on the segment of line given by the lines defining points."
-  [l p]
-  (let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
-        ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
+  [line point]
+  (if (= (:x (:p1 line)) (:x (:p2 line)))
     (and
-      (<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p))
-      (<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))
+      (c/close-to (:x (:p1 line)) (:x point))
+      (<= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
+      (>= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point)))
+    (and
+      (<= (- (min (:x (:p1 line)) (:x (:p2 line))) 0) (:x point))
+      (>= (+ (max (:x (:p1 line)) (:x (:p2 line))) 0) (:x point))
+      (<= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
+      (>= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
+      (c/close-to (:y point) (solve-line-at line (:x point))))))
+  ;(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
+        ;ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
+    ;(and
+      ;(<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p))
+      ;(<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))
 
 (defn vertical?
   "Check if a line is vertical."
