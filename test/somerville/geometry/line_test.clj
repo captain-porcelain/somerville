@@ -135,6 +135,15 @@
 (deftest segment-test
   (let [l1 (l/line (p/point -2 0) (p/point 2 0))
         p1 (p/point -2 0)
-        p2 (p/point -2 1)]
+        p2 (p/point -2 1)
+        l2 (l/line (p/point 2 0) (p/point 2 2))
+        p3 (p/point 2 1)
+        p4 (p/point 2 3)
+        l3 (l/line (p/point 2 0) (p/point 4 0))
+        p5 (p/point -1 0)]
     (is (= (l/point-on-segment? l1 p1) true))
-    (is (= (l/point-on-segment? l1 p2) false))))
+    (is (= (l/point-on-segment? l1 p2) false))
+    (is (= (l/point-on-segment? l2 p3) true))
+    (is (= (l/point-on-segment? l2 p4) false))
+    (is (= (l/point-on-segment? l3 p5) false))
+    ))
