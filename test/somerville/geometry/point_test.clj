@@ -31,11 +31,11 @@
   (is (= (p/quadrant (p/point  1 -1)) 4)))
 
 (def PI00 0.0)
-(def PI05 (/ java.lang.Math/PI 2))
-(def PI10 java.lang.Math/PI)
-(def PI15 (* 3 (/ java.lang.Math/PI 2)))
-(def PI20 (* 2 java.lang.Math/PI))
-(def PI175 (* 7 (/ java.lang.Math/PI 4)))
+(def PI05 (/ Math/PI 2))
+(def PI10 Math/PI)
+(def PI15 (* 3 (/ Math/PI 2)))
+(def PI20 (* 2 Math/PI))
+(def PI175 (* 7 (/ Math/PI 4)))
 
 (deftest angles
   (is (= (c/close-to (p/angle-to-x (p/point  1  0)) PI00)  true))

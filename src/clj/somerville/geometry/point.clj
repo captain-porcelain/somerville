@@ -74,8 +74,8 @@
         d23 (distance p2 p3)
         t1 (* 2 d12 d13)
         t (if (= 0 t1) 0 (/ (- (+ (* d12 d12) (* d13 d13)) (* d23 d23)) t1))
-        a (java.lang.Math/acos t)
-        a (if (< (:y p) 0) (- (* 2 java.lang.Math/PI) a) a)]
+        a (Math/acos t)
+        a (if (< (:y p) 0) (- (* 2 Math/PI) a) a)]
     a))
 
 (defn angle
@@ -83,9 +83,15 @@
   [p1 p2 p3]
   (- (angle-to-x (subtract p3 p1)) (angle-to-x (subtract p2 p1))))
 
+(defn angle-pos
+  "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3. No negative results."
+  [p1 p2 p3]
+  (let [a (angle p1 p2 p3)]
+    (if (< a 0) (- (* 2 Math/PI) a) a)))
+
 (defn point-at
   "Given a point find another one in dist at angle."
   [p angle dist]
   (point
-    (+ (:x p) (* dist (java.lang.Math/cos angle)))
-    (+ (:y p) (* dist (java.lang.Math/sin angle)))))
+    (+ (:x p) (* dist (Math/cos angle)))
+    (+ (:y p) (* dist (Math/sin angle)))))

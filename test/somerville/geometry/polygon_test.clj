@@ -78,6 +78,34 @@
         (is (commons/close-to  0.1 (:x (nth intersections 1))))
         (is (commons/close-to -1   (:y (nth intersections 1))))))))
 
+(deftest cutting-lines
+  (let [p1 (p/point -1  1)
+        p2 (p/point  1  1)
+        p3 (p/point  1 -1)
+        p4 (p/point -1 -1)
+        points (list p1 p2 p3 p4)
+        polygon (poly/from-points points (p/point 0 0))]
+    (testing "Line inside polygon"
+      (let [lp1 (p/point -0.5 0)
+            lp2 (p/point  0.5 0)
+            line (l/line lp1 lp2)
+            cut (poly/shorten-line polygon line)]
+        (is (= lp1 (:p1 cut)))
+        (is (= lp2 (:p2 cut)))))
+    (testing "Line cuttin polygon once"
+      (let [lp1 (p/point -0.5 0)
+            lp2 (p/point  1.5 0)
+            line (l/line lp1 lp2)
+            cut (poly/shorten-line polygon line)]
+        (is (= lp1 (:p1 cut)))
+        (is (= (p/point 1.0 0.0) (:p2 cut)))))
+    (testing "Line cuttin polygon twice"
+      (let [lp1 (p/point -1.5 0)
+            lp2 (p/point  1.5 0)
+            line (l/line lp1 lp2)
+            cut (poly/shorten-line polygon line)]
+        (is (= (p/point  1.0 0.0) (:p1 cut)))
+        (is (= (p/point -1.0 0.0) (:p2 cut)))))))
 
 ;(deftest updating-intersections-between-line-and-polygon
   ;(let [p1 (p/point -1.0  1.0)
@@ -563,4 +591,4 @@
       (catch Exception e (.printStackTrace e)))))
 
 
-(debug-baramzigli)
+;(debug-baramzigli)

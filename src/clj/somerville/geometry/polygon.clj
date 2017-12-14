@@ -52,6 +52,15 @@
     ;(not (on-polygon? polygon point))
     (= 0 (count (intersect-segments polygon (l/line (:center polygon) point))))))
 
+(defn shorten-line
+  "Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil."
+  [polygon line]
+  (let [intersections (intersect-segments polygon line)]
+    (case (count intersections)
+      0 (if (and (point-inside-polygon? polygon (:p1 line)) (point-inside-polygon? polygon (:p2 line))) line nil)
+      1 (l/line (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line)))) (first intersections))
+      2 (l/line (nth intersections 0) (nth intersections 1)))))
+
 ;;====================================================================================================================================================
 ;; Polygon based visibility checking
 
