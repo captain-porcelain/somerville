@@ -5,6 +5,7 @@
     [taoensso.timbre.appenders.core :as appenders]
     [somerville.image :as image]
     [somerville.dungeons.discovery :as discovery]
+    [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c])
@@ -25,6 +26,112 @@
     (is (= 2 (count parsed)))
     (is (= (l/line (p/point 10 10) (p/point 30 10)) (nth parsed 0)))
     (is (= (l/line (p/point 30 10) (p/point 30 30)) (nth parsed 1)))))
+
+(deftest relevant-walls
+  (let [l1 (l/line (p/point -0.5 0) (p/point 0.5 0))
+        l2 (l/line (p/point -0.5 0) (p/point 1.5 0))
+        l3 (l/line (p/point -1.5 0) (p/point 1.5 0))
+        l4 (l/line (p/point -1.5 2) (p/point 1.5 2))
+        cp1 (p/point  0 -1)
+        cp2 (p/point -1  0)
+        cp3 (p/point  0  1)
+        cp4 (p/point  1  0)
+        walls (list l1 l2 l3 l4)
+        relevant-walls (discovery/relevant-walls (p/point 0 0) walls 1 4)]
+    (is (= 7 (count relevant-walls)))
+    (is (commons/close-to 0 (p/distance cp1 (:p1 (nth relevant-walls 0)))))
+    (is (commons/close-to 0 (p/distance cp2 (:p2 (nth relevant-walls 0)))))
+    (is (commons/close-to 0 (p/distance cp2 (:p1 (nth relevant-walls 1)))))
+    (is (commons/close-to 0 (p/distance cp3 (:p2 (nth relevant-walls 1)))))
+    (is (commons/close-to 0 (p/distance cp3 (:p1 (nth relevant-walls 2)))))
+    (is (commons/close-to 0 (p/distance cp4 (:p2 (nth relevant-walls 2)))))
+    (is (commons/close-to 0 (p/distance cp4 (:p1 (nth relevant-walls 3)))))
+    (is (commons/close-to 0 (p/distance cp1 (:p2 (nth relevant-walls 3)))))
+    (is (= l1 (nth relevant-walls 4)))
+    (is (commons/close-to 0 (p/distance (p/point -0.5 0) (:p1 (nth relevant-walls 5)))))
+    (is (commons/close-to 0 (p/distance (p/point  1   0) (:p2 (nth relevant-walls 5)))))
+    (is (commons/close-to 0 (p/distance (p/point -1   0) (:p1 (nth relevant-walls 6)))))
+    (is (commons/close-to 0 (p/distance (p/point  1   0) (:p2 (nth relevant-walls 6)))))))
+
+(deftest point-sorting
+  (testing "q1 simple"
+    (let [cp (p/point  0  0)
+          rp (p/point -1  0)
+          p1 (p/point  1  1)
+          p2 (p/point  2  1)
+          l1 (l/line p1 p2)
+          s1 (discovery/sort-line-points l1 cp rp)]
+      (is (= p1 (:p1 s1)))
+      (is (= p2 (:p2 s1)))))
+  (testing "q1 reverse"
+    (let [cp (p/point  0  0)
+          rp (p/point -1  0)
+          p1 (p/point  2  1)
+          p2 (p/point  1  1)
+          l1 (l/line p1 p2)
+          s1 (discovery/sort-line-points l1 cp rp)]
+      (is (= p2 (:p1 s1)))
+      (is (= p1 (:p2 s1)))))
+  (testing "q2"
+    (let [cp (p/point  0  0)
+          rp (p/point -1  0)
+          p1 (p/point -2  1)
+          p2 (p/point -1  1)
+          l1 (l/line p1 p2)
+          s1 (discovery/sort-line-points l1 cp rp)]
+      (is (= p1 (:p1 s1)))
+      (is (= p2 (:p2 s1)))))
+  (testing "multiple quadrants"
+    (let [cp (p/point  0  0)
+          rp (p/point -1  0)
+          p1 (p/point -2 -2)
+          p2 (p/point  1  1)
+          l1 (l/line p1 p2)
+          s1 (discovery/sort-line-points l1 cp rp)]
+      (is (= p2 (:p1 s1)))
+      (is (= p1 (:p2 s1))))))
+
+(deftest wall-finding
+  (let [desc "line 15,18 18,18
+              line 15,15 15,18
+              line 15,15 18,15
+              line 18,15 18,18
+              line 21,19 23,19
+              line 21,19 21,17
+              line 21,17 23,19
+              line 23,17 23,19
+              line 26,17 26,33"
+        walls (discovery/parse desc)
+        visualrange 10
+        polygon-steps 8
+        point (p/point 20 20)
+        ref-point (p/point -1 20)
+        relevant-walls (discovery/relevant-walls point walls visualrange polygon-steps)
+        sorted-walls (map #(discovery/sort-line-points % point ref-point) relevant-walls)
+        angles (discovery/angle-points-walls sorted-walls point ref-point)
+        active-walls-1 (discovery/active-walls (list) (nth angles 0))
+        active-walls-2 (discovery/active-walls active-walls-1 (nth angles 1))
+        active-walls-3 (discovery/active-walls active-walls-2 (nth angles 2))
+        active-walls-4 (discovery/active-walls active-walls-3 (nth angles 3))
+        ]
+    (dorun (map println (map (fn [a] (map #(commons/out (:point %)) a)) angles)))
+    (dorun (println "========================================"))
+    (dorun (println (nth angles 0)))
+    (dorun (println "----------------------------------------"))
+    (dorun (println active-walls-1))
+    (dorun (println "========================================"))
+    (dorun (println (nth angles 1)))
+    (dorun (println "----------------------------------------"))
+    (dorun (println active-walls-2))
+    (dorun (println "========================================"))
+    (dorun (println (nth angles 2)))
+    (dorun (println "----------------------------------------"))
+    (dorun (println active-walls-3))
+    (dorun (println "========================================"))
+    (dorun (println (nth angles 3)))
+    (dorun (println "----------------------------------------"))
+    (dorun (println active-walls-4))
+    ))
 
 (defn run-manual-test
   [walls points width height visualrange]

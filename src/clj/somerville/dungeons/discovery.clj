@@ -141,7 +141,100 @@
     discovered-image))
 
 
+;;==================================================================================================================
+;; Discovery based on ray casting to wall points
+;; See https://www.redblobgames.com/articles/visibility/
 
+(defrecord Triangle [p1 p2 p3])
+
+(defn sort-line-points
+  "Change line points so they are sorted by the angle defined by line point point and ref-point."
+  [line point ref-point]
+  (let [points (list (:p1 line) (:p2 line))
+        sorted (sort-by #(p/angle-pos point % ref-point) points)]
+    (l/line (first sorted) (second sorted))))
+
+(defn shorten-walls
+  "Reduce the walls to those that are inside the polygon."
+  [polygon walls]
+  (filter #(not (nil? %)) (map #(poly/shorten-line polygon %) walls)))
+
+(defn relevant-walls
+  "Get all walls relevant to the discovered point including limiting
+  the distance through polygon approximation of the view circle."
+  [point walls visualrange polygon-steps]
+  (let [circle-points (c/circle-points (c/circle point visualrange) polygon-steps)
+        polygon (poly/from-points circle-points point)
+        relevant-walls (shorten-walls polygon walls)]
+    (concat (:lines polygon) relevant-walls)))
+
+(defn angle-points-walls
+  "Create paritioned list of angles of the wall points.
+  Each partition contains the points on that angle sorted by the distance to the discovery point."
+  [walls point ref-point]
+  (map
+    (fn [angle-points]
+      (sort-by #(p/distance point (:point %)) angle-points))
+    (partition-by :angle
+      (sort-by :angle
+        (reduce concat
+          (map
+            #(list
+               {:angle (p/angle-pos point (:p1 %) ref-point) :point (:p1 %) :wall %}
+               {:angle (p/angle-pos point (:p2 %) ref-point) :point (:p2 %) :wall %})
+            walls))))))
+
+(defn update-triangles
+  [current-triangles point-walls]
+  )
+
+(defn active-walls
+  [current-walls point-walls]
+  (let [ps (map :point point-walls)]
+    (concat
+      (filter #(not (commons/in? (:p2 %) ps)) current-walls)
+      (distinct (filter #(commons/in? (:p1 %) ps) (map :wall point-walls))))))
+
+(defn visible-triangles
+  "Find the visible triangles."
+  [point angles]
+  (loop [remaining angles
+         walls (list)
+         triangles (list)]
+    (if (= 0 (count remaining))
+      triangles
+      (recur
+        (rest angles)
+        (active-walls walls (first angles))
+        (update-triangles triangles (first angles))))))
+
+(defn discover-rays
+  "Discover the visible area based on ray casting with wall tracing."
+  [point walls visualrange graphics]
+  (let [polygon-steps 16
+        ref-point (p/point -1 0)
+        sorted-walls (map #(sort-line-points % point ref-point) (relevant-walls point walls visualrange polygon-steps))
+        angles (angle-points-walls sorted-walls point ref-point)
+        ]
+    ))
+
+(defn discover-ray-casting
+  "Discover the visible areas based on ray casting with wall tracing."
+  [points wall-lines ^BufferedImage discovered-image visualrange]
+  (let [polygon-steps 16
+        ps (map #(p/point (nth % 0) (nth % 1)) points)
+        tmp (dorun (println (str "Discovered points: " (count points))))
+        graphics ^Graphics2D (.createGraphics discovered-image)
+        tmp (.setPaint graphics (Color. 255 255 255 0))
+        tmp (.setComposite graphics AlphaComposite/Clear)
+        tmp (dorun (map #(discover-rays % wall-lines visualrange graphics) ps))
+        tmp (.dispose graphics)]
+    discovered-image))
+
+
+;;==================================================================================================================
+;; Discovery Interfaces
+;;
 
 (defn discover
   "Create a black image that is set to transparent in areas that are visible from discovered points.
