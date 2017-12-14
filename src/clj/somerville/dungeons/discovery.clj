@@ -147,6 +147,15 @@
 
 (defrecord Triangle [p1 p2 p3])
 
+(defrecord Event [angle point wall]
+  gcommons/Printable
+  (gcommons/out [this i] (str (gcommons/indent i) "Event at angle " angle " for\n" (gcommons/out point (inc i)) "\n" (gcommons/out wall (inc i))))
+  (gcommons/out [this] (gcommons/out this 0)))
+
+(defn event
+  [angle point wall]
+  (Event. angle point wall))
+
 (defn sort-line-points
   "Change line points so they are sorted by the angle defined by line point point and ref-point."
   [line point ref-point]
@@ -180,8 +189,8 @@
         (reduce concat
           (map
             #(list
-               {:angle (p/angle-pos point (:p1 %) ref-point) :point (:p1 %) :wall %}
-               {:angle (p/angle-pos point (:p2 %) ref-point) :point (:p2 %) :wall %})
+               (event (p/angle-pos point (:p1 %) ref-point) (:p1 %) %)
+               (event (p/angle-pos point (:p2 %) ref-point) (:p2 %) %))
             walls))))))
 
 (defn update-triangles

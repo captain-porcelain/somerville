@@ -81,5 +81,5 @@
 (defn circle-points
   "Create list of equidistant points on a circle."
   [circle steps]
-  (map #(p/point (- (:x (:p circle)) (* (:r circle) (Math/sin %))) (- (:y (:p circle)) (* (:r circle) (Math/cos %)))) (angles steps)))
+  (map #(p/point (- (:x (:p circle)) (* (:r circle) (Math/cos %))) (- (:y (:p circle)) (* (:r circle) (Math/sin %)))) (angles steps)))
 
