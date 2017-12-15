@@ -118,21 +118,21 @@
     (image/write-image filename img)))
 
 (deftest wall-finding
-  (let [desc "line 15,18 18,18
-              line 15,15 15,18
-              line 15,15 18,15
-              line 18,15 18,18
-              line 21,19 23,19
-              line 21,19 21,17
-              line 21,17 23,19
-              line 23,17 23,19
-              line 26,17 26,33"
+  (let [desc "line 150,180 180,180
+              line 150,150 150,180
+              line 150,150 180,150
+              line 180,150 180,180
+              line 210,190 230,190
+              line 210,190 210,170
+              line 210,170 230,170
+              line 230,170 230,190
+              line 260,170 260,330"
         walls (discovery/parse desc)
-        visualrange 10
+        visualrange 100
         polygon-steps 8
-        point (p/point 20 20)
+        point (p/point 200 200)
         circle (c/circle point visualrange)
-        ref-point (p/point -1 20)
+        ref-point (p/point -1 200)
         relevant-walls (discovery/relevant-walls point walls visualrange polygon-steps)
         sorted-walls (map #(discovery/sort-line-points % point ref-point) relevant-walls)
         events (discovery/gather-events sorted-walls point ref-point)
@@ -153,7 +153,7 @@
         ]
     ;(image/write-image "/tmp/discovery.png" (discovery/discover (list [(:x point) (:y point)]) desc 50 50 10))
     ;(dorun (map (fn [a] (dorun (map #(println (commons/out %)) a))) events))
-    (debug-draw "/tmp/step-1.png" 50 50 circle (list) sorted-walls nil)
+    (debug-draw "/tmp/step-1.png" 500 500 circle (list) sorted-walls nil)
     (dorun (println "========================================\nevents"))
     (dorun (map #(println (commons/out %)) (nth events 0)))
     (dorun (println "----------------------------------------\nwalls"))
