@@ -66,7 +66,7 @@
 (defn point-on-segment?
   "Check if given point is on the segment of line given by the lines defining points."
   [line point]
-  (if (= (:x (:p1 line)) (:x (:p2 line)))
+  (if (c/close-to (:x (:p1 line)) (:x (:p2 line)))
     (and
       (c/close-to (:x (:p1 line)) (:x point))
       (<= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))

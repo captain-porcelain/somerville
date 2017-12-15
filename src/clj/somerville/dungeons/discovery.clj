@@ -145,7 +145,14 @@
 ;; Discovery based on ray casting to wall points
 ;; See https://www.redblobgames.com/articles/visibility/
 
-(defrecord Triangle [p1 p2 p3])
+(defrecord Triangle [p1 p2 p3]
+  gcommons/Printable
+  (gcommons/out [this i] (str (gcommons/indent i) "Triangle of points\n" (gcommons/out p1 (inc i)) "\n" (gcommons/out p2 (inc i)) "\n" (gcommons/out p3 (inc i))))
+  (gcommons/out [this] (gcommons/out this 0)))
+
+(defn triangle
+  [p1 p2 p3]
+  (Triangle. p1 p2 p3))
 
 (defrecord Event [angle point wall]
   gcommons/Printable
@@ -180,7 +187,7 @@
         relevant-walls (shorten-walls polygon walls)]
     (concat (:lines polygon) relevant-walls)))
 
-(defn angle-points-walls
+(defn gather-events
   "Create paritioned list of angles of the wall points.
   Each partition contains the points on that angle sorted by the distance to the discovery point."
   [walls point ref-point]
@@ -196,29 +203,67 @@
                (event (p/angle-pos point (:p2 %) ref-point) (:p2 %) %))
             walls))))))
 
+(defn relevant-event
+  ""
+  [point events]
+  (first (sort-by #(p/distance point (:point %)) events)))
+
+(defn relevant-wall
+  [point relevant-point walls]
+  (let [line (l/line point relevant-point)]
+    (first (sort-by #(p/distance point (l/intersect line %)) walls))))
+
+(defn consider-event?
+  [point event walls]
+  (let [line (l/line point (:point event))]
+    (= 0 (count (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))))))
+
 (defn update-triangles
-  [current-triangles point-walls]
-  )
+  ""
+  [point last-point current-triangles current-walls current-events]
+  (let [event (relevant-event point current-events)
+        wall (relevant-wall point (:point event) current-walls)]
+    (if (or (nil? last-point) (= 0 (count current-walls)))
+      [(:point event) current-triangles]
+      (if (consider-event? point event (filter #(not (= wall %)) current-walls))
+        (let [triangle (triangle point last-point (:point event))]
+          ;;TODO the point has to be selected based on the last active wall
+          ;; if a point starts a new wall take the closest
+          ;; otherwise take the point on the current line
+          ;; also casting to the wall is necessary.
+          [(:point event) (conj current-triangles triangle)])
+        [last-point current-triangles]))))
 
 (defn active-walls
-  [current-walls point-walls]
-  (let [ps (map :point point-walls)]
+  [current-walls events]
+  (let [ps (map :point events)]
     (concat
       (filter #(not (commons/in? (:p2 %) ps)) current-walls)
-      (distinct (filter #(commons/in? (:p1 %) ps) (map :wall point-walls))))))
+      (distinct (filter #(commons/in? (:p1 %) ps) (map :wall events))))))
 
 (defn visible-triangles
   "Find the visible triangles."
-  [point angles]
-  (loop [remaining angles
+  [point events]
+  (loop [remaining events
+         last-point nil
          walls (list)
          triangles (list)]
     (if (= 0 (count remaining))
       triangles
-      (recur
-        (rest angles)
-        (active-walls walls (first angles))
-        (update-triangles triangles (first angles))))))
+      (let [tmp (dorun (println (count remaining)))
+            [new-point new-triangles] (update-triangles point last-point triangles walls (first remaining))]
+        (recur
+          (rest remaining)
+          new-point
+          (active-walls walls (first remaining))
+          new-triangles)))))
+
+(defn draw-triangle
+  [triangle graphics]
+  (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
+        ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
+        p (Polygon. xs ys (count xs))]
+    (.drawPolygon graphics p)))
 
 (defn discover-rays
   "Discover the visible area based on ray casting with wall tracing."
@@ -226,8 +271,9 @@
   (let [polygon-steps 16
         ref-point (p/point -1 0)
         sorted-walls (map #(sort-line-points % point ref-point) (relevant-walls point walls visualrange polygon-steps))
-        angles (angle-points-walls sorted-walls point ref-point)
-        ]
+        events (gather-events sorted-walls point ref-point)
+        triangles (visible-triangles point events)
+        tmp (dorun (map #(draw-triangle % graphics) triangles))]
     ))
 
 (defn discover-ray-casting
@@ -248,7 +294,7 @@
 ;; Discovery Interfaces
 ;;
 
-(defn discover
+(defn discover-circ
   "Create a black image that is set to transparent in areas that are visible from discovered points.
   Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
   around the points or just check all pixels of the image."
@@ -267,5 +313,16 @@
   (let [discovered-image (create-undiscovered-graphics width height)
         wall-lines (parse wall-description)
         tmp (do (discover-polygons points wall-lines discovered-image visualrange))]
+    discovered-image))
+
+
+(defn discover
+  "Create a black image that is set to transparent in areas that are visible from discovered points.
+  Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
+  around the points or just check all pixels of the image."
+  [points wall-description width height visualrange]
+  (let [discovered-image (create-undiscovered-graphics width height)
+        wall-lines (parse wall-description)
+        tmp (do (discover-ray-casting points wall-lines discovered-image visualrange))]
     discovered-image))
 
