@@ -160,8 +160,11 @@
   "Change line points so they are sorted by the angle defined by line point point and ref-point."
   [line point ref-point]
   (let [points (list (:p1 line) (:p2 line))
+        angles (sort (map #(p/angle-pos point % ref-point) points))
         sorted (sort-by #(p/angle-pos point % ref-point) points)]
-    (l/line (first sorted) (second sorted))))
+    (if (and (gcommons/close-to 0 (first angles)) (< Math/PI (second angles)))
+      (l/line (second sorted) (first sorted))
+      (l/line (first sorted) (second sorted)))))
 
 (defn shorten-walls
   "Reduce the walls to those that are inside the polygon."

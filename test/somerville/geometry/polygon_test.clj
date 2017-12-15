@@ -65,9 +65,9 @@
       (let [line (l/line (p/point -2 0) (p/point 2 0))
             intersections (poly/intersect-segments polygon line)]
         (is (=  2 (count intersections)))
-        (is (=  1 (:x (nth intersections 0))))
+        (is (= -1 (:x (nth intersections 0))))
         (is (=  0 (:y (nth intersections 0))))
-        (is (= -1 (:x (nth intersections 1))))
+        (is (=  1 (:x (nth intersections 1))))
         (is (=  0 (:y (nth intersections 1))))))
     (testing "Vertical line as segments"
       (let [line (l/line (p/point 0.1 2) (p/point 0.1 -2))
@@ -104,8 +104,8 @@
             lp2 (p/point  1.5 0)
             line (l/line lp1 lp2)
             cut (poly/shorten-line polygon line)]
-        (is (= (p/point  1.0 0.0) (:p1 cut)))
-        (is (= (p/point -1.0 0.0) (:p2 cut)))))))
+        (is (= (p/point -1.0 0.0) (:p1 cut)))
+        (is (= (p/point  1.0 0.0) (:p2 cut)))))))
 
 ;(deftest updating-intersections-between-line-and-polygon
   ;(let [p1 (p/point -1.0  1.0)
