@@ -38,7 +38,7 @@
 (defn intersect-segments
   "Intersect a polygon with a line."
   [polygon line]
-  (filter #(not (nil? %)) (map #(l/intersect-segments % line) (:lines polygon))))
+  (distinct (sort (filter #(not (nil? %)) (map #(l/intersect-segments % line) (:lines polygon))))))
 
 (defn on-polygon?
   "Check if a point is on some line of a polygon."
@@ -56,7 +56,6 @@
   "Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil."
   [polygon line]
   (let [intersections (intersect-segments polygon line)]
-    (dorun (map #(println (c/out %)) intersections))
     (case (count intersections)
       0 (if (and (point-inside-polygon? polygon (:p1 line)) (point-inside-polygon? polygon (:p2 line))) line nil)
       1 (l/line (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line)))) (first intersections))

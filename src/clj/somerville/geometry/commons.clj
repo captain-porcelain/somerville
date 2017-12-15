@@ -14,3 +14,11 @@
   "Compare floats."
   [x y]
   (and (< x (+ y epsilon)) (> x (- y epsilon))))
+
+(defn compareTo
+  ".compareTo alternative to handle clojure BigInteger."
+  [n1 n2]
+  (cond
+    (< n1 n2) -1
+    (> n1 n2)  1
+    :else      0))

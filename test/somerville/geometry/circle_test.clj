@@ -1,5 +1,6 @@
 (ns somerville.geometry.circle-test
   (:require
+    [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.circle :as c]
     [somerville.geometry.line :as l])
@@ -49,8 +50,18 @@
 (deftest boxing
   (let [circle (c/circle (p/point 0 0) 1)
         box (c/outer-box circle)]
-    (= (p/point -1 -1) (:p1 box))
-    (= (p/point -1  1) (:p2 box))
-    (= (p/point  1 -1) (:p3 box))
-    (= (p/point  1  1) (:p4 box))))
+    (is (= (p/point -1 -1) (:p1 box)))
+    (is (= (p/point -1  1) (:p2 box)))
+    (is (= (p/point  1 -1) (:p3 box)))
+    (is (= (p/point  1  1) (:p4 box)))))
+
+
+(deftest points
+  (let [circle (c/circle (p/point 0 0) 1)
+        points (c/circle-points circle 4)]
+    (is (commons/close-to 0 (p/distance (p/point -1  0) (nth points 0))))
+    (is (commons/close-to 0 (p/distance (p/point  0 -1) (nth points 1))))
+    (is (commons/close-to 0 (p/distance (p/point  1  0) (nth points 2))))
+    (is (commons/close-to 0 (p/distance (p/point  0  1) (nth points 3))))
+    ))
 
