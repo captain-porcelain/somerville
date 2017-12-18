@@ -10,8 +10,8 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
+    [somerville.geometry.triangle :as t]
     [somerville.geometry.polygon :as poly]
-    [somerville.geometry.rasterize :as rasterize]
     [taoensso.timbre :as log]))
 
 ;;==================================================================================================================
@@ -41,10 +41,8 @@
   [^String wall-description]
   (filter #(not (nil? %)) (map translate-description (clojure.string/split wall-description #"\n"))))
 
-
 ;;==================================================================================================================
-;; Geometric discovery
-;;
+;; Drawing helpers
 
 (defn create-undiscovered-graphics
   "Create an image of size width x height with transparency and paint it completely black."
@@ -56,18 +54,50 @@
         tmp (.dispose graphics)]
     img))
 
+(defn draw-triangle
+  "Transform a triangle into a Java graphics polygon and render it."
+  [triangle graphics]
+  (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
+        ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
+        p (Polygon. xs ys (count xs))]
+    (.fillPolygon graphics p)))
+
 ;;==================================================================================================================
+;; Debugging helpers
+
+(defn debug-draw
+  "Create an image of size width x height with transparency and paint it completely black."
+  [^String filename ^Integer width ^Integer height circle points lines active-walls last-point triangles]
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setPaint graphics Color/white)
+        tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.setPaint graphics Color/black)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) lines))
+        tmp (.setPaint graphics Color/red)
+        tmp (.drawOval graphics (- (:x (:p circle)) (:r circle)) (- (:y (:p circle)) (:r circle)) (* 2 (:r circle)) (* 2 (:r circle)))
+        tmp (.drawLine graphics (- (:x (:p circle)) 5) (- (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (+ (:y (:p circle)) 5))
+        tmp (.drawLine graphics (- (:x (:p circle)) 5) (+ (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (- (:y (:p circle)) 5))
+        tmp (.setPaint graphics Color/green)
+        tmp (dorun (map #(do
+                           (.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
+                           (.drawLine graphics (- (:x %) 5) (+ (:y %) 5) (+ (:x %) 5) (- (:y %) 5))) points))
+        tmp (.setPaint graphics Color/blue)
+        tmp (when-not (nil? last-point)
+              (.drawLine graphics (:x last-point) (- (:y last-point) 5) (:x last-point) (+ (:y last-point) 5))
+              (.drawLine graphics (- (:x last-point) 5) (:y last-point) (+ (:x last-point) 5) (:y last-point)))
+        tmp (.setPaint graphics Color/yellow)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) active-walls))
+        tmp (.setPaint graphics Color/gray)
+        tmp (dorun (map #(draw-triangle % graphics) triangles))
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
+
+;;==================================================================================================================
+;; Geometric discovery
 ;; Discovery based on ray casting to wall points
 ;; See https://www.redblobgames.com/articles/visibility/
-
-(defrecord Triangle [p1 p2 p3]
-  gcommons/Printable
-  (gcommons/out [this i] (str (gcommons/indent i) "Triangle of points\n" (gcommons/out p1 (inc i)) "\n" (gcommons/out p2 (inc i)) "\n" (gcommons/out p3 (inc i))))
-  (gcommons/out [this] (gcommons/out this 0)))
-
-(defn triangle
-  [p1 p2 p3]
-  (Triangle. p1 p2 p3))
+;;
 
 (defrecord Event [angle point wall]
   gcommons/Printable
@@ -162,7 +192,7 @@
     (or (nil? last-point) (= 0 (count current-walls)))
       [(:point event) current-triangles new-walls]
     (consider-event? point event (filter #(not (= wall %)) current-walls))
-      (let [triangle (triangle point last-point (:point event))
+      (let [triangle (t/triangle point last-point (:point event))
             p (next-point point (:point event) new-walls)]
         [p (conj current-triangles triangle) new-walls])
     :else
@@ -170,49 +200,45 @@
 
 (defn visible-triangles
   "Find the visible triangles."
-  [point events]
+  [point events debug-fn]
   (loop [remaining events
          last-point nil
          walls (list)
-         triangles (list)]
+         triangles (list)
+         step 0]
     (if (= 0 (count remaining))
       triangles
-      (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))]
+      (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
+            tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first remaining)) new-walls new-point new-triangles))]
         (recur
           (rest remaining)
           new-point
           new-walls
-          new-triangles)))))
-
-(defn draw-triangle
-  "Transform a triangle into a Java graphics polygon and render it."
-  [triangle graphics]
-  (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
-        ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
-        p (Polygon. xs ys (count xs))]
-    (.fillPolygon graphics p)))
+          new-triangles
+          (inc step))))))
 
 (defn discover-rays
   "Discover the visible area based on ray casting with wall tracing."
-  [point walls visualrange graphics]
+  [point walls visualrange graphics debug-fn]
   (let [polygon-steps 16
         ref-point (p/point -1 (:y point))
         sorted-walls (map #(sort-line-points % point ref-point) (relevant-walls point walls visualrange polygon-steps))
         events (gather-events sorted-walls point ref-point)
         events (concat events (list (first events)))
-        triangles (visible-triangles point events)
+        debug-fn2 (if (not (nil? debug-fn)) (fn [filename points active-walls last-point triangles] (debug-fn filename point points sorted-walls active-walls last-point triangles)) nil)
+        triangles (visible-triangles point events debug-fn2)
         tmp (dorun (map #(draw-triangle % graphics) triangles))]))
 
 (defn discover-ray-casting
   "Discover the visible areas based on ray casting with wall tracing."
-  [points wall-lines ^BufferedImage discovered-image visualrange]
+  [points wall-lines ^BufferedImage discovered-image visualrange debug]
   (let [polygon-steps 16
         ps (map #(p/point (nth % 0) (nth % 1)) points)
-        tmp (dorun (println (str "Discovered points: " (count points))))
         graphics ^Graphics2D (.createGraphics discovered-image)
         tmp (.setPaint graphics (Color. 255 255 255 0))
         tmp (.setComposite graphics AlphaComposite/Clear)
-        tmp (dorun (map #(discover-rays % wall-lines visualrange graphics) ps))
+        debug-fn (if debug (fn [filename point points sorted-walls active-walls last-point triangles] (debug-draw filename (.getWidth discovered-image) (.getHeight discovered-image) (c/circle point visualrange) points sorted-walls active-walls last-point triangles)) nil)
+        tmp (dorun (map #(discover-rays % wall-lines visualrange graphics debug-fn) ps))
         tmp (.dispose graphics)]
     discovered-image))
 
@@ -225,9 +251,10 @@
   "Create a black image that is set to transparent in areas that are visible from discovered points.
   Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
   around the points or just check all pixels of the image."
-  [points wall-description width height visualrange]
-  (let [discovered-image (create-undiscovered-graphics width height)
-        wall-lines (parse wall-description)
-        tmp (do (discover-ray-casting points wall-lines discovered-image visualrange))]
-    discovered-image))
-
+  ([points wall-description width height visualrange debug]
+   (let [discovered-image (create-undiscovered-graphics width height)
+         wall-lines (parse wall-description)
+         tmp (do (discover-ray-casting points wall-lines discovered-image visualrange debug))]
+     discovered-image))
+  ([points wall-description width height visualrange]
+   (discover points wall-description width height visualrange false)))
