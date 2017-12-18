@@ -46,15 +46,6 @@
 ;; Geometric discovery
 ;;
 
-(defn relevant-lines
-  "Filter given lines to those that intersect the circle or are contained by it."
-  [circle lines]
-  (filter #(or
-             (c/point-in? circle (:p1 %))
-             (c/point-in? circle (:p2 %))
-             (< 0 (count (c/intersect-line-segment circle %))))
-          lines))
-
 (defn create-undiscovered-graphics
   "Create an image of size width x height with transparency and paint it completely black."
   [^Integer width ^Integer height]
@@ -64,82 +55,6 @@
         tmp (.fill graphics (Rectangle. 0 0 width height))
         tmp (.dispose graphics)]
     img))
-
-
-;;==================================================================================================================
-;; Discovery based on circle rasterization and line cuts from center to circle points
-;;
-
-(defn discover-circle
-  "Given a point of origin, check all pixels on the circle given by this origin for
-  intersections of the line from origin to the pixel with any wall lines.
-  Find the outermost visible pixel and consider the line from the center to the pixel as visible."
-  [wall-lines ^Graphics2D graphics visualrange origin circle-base-points]
-  (let [center (p/point (nth origin 0) (nth origin 1))
-        circle (c/circle center visualrange)
-        relevant-walls (relevant-lines circle wall-lines)
-        tmp (dorun (println (str "Circle intersects lines: " (count relevant-walls))))
-        circle-points (rasterize/translate-line circle-base-points origin)]
-    (dorun
-      (for [[x y] circle-points]
-        (let [point (p/point x y)
-              center-line (l/line center point)
-              intersections (filter #(not (nil? %)) (map #(l/intersect-segments center-line %) relevant-walls))
-              nearest (first (sort-by #(p/distance % center) intersections))
-              visible-to (if (nil? nearest) point nearest)
-              tmp (.drawLine graphics (:x visible-to) (:y visible-to) (nth origin 0) (nth origin 1))]
-          graphics)))))
-
-(defn discover-circles
-  "Given a point of origin, check all pixels on the circle given by this origin for
-  intersections of the line from origin to the pixel with any wall lines.
-  Find the outermost visible pixel and consider the line from the center to the pixel as visible."
-  [points wall-lines ^BufferedImage discovered-image visualrange]
-  (let [circle-base-points (rasterize/circle visualrange)
-        tmp (dorun (println (str "Discovered points: " (count points))))
-        tmp (dorun (println (str "Circle base points: " (count circle-base-points))))
-        graphics ^Graphics2D (.createGraphics discovered-image)
-        tmp (.setPaint graphics (Color. 255 255 255 0))
-        tmp (.setComposite graphics AlphaComposite/Clear)
-        tmp (dorun (map #(discover-circle wall-lines graphics visualrange % circle-base-points) points))
-        tmp (.dispose graphics)]
-    discovered-image))
-
-
-;;==================================================================================================================
-;; Discovery based on representing circle as polygon and cutting it with walls.
-;;
-
-(defn cut-polygon
-  [polygon wall-lines]
-  (loop [cut polygon
-         lines wall-lines]
-    (if (= 0 (count lines))
-      cut
-      (recur (poly/cut cut (first lines)) (rest lines)))))
-
-(defn discover-polygon
-  [polygon wall-lines graphics]
-  (let [cut (cut-polygon polygon wall-lines)
-        xs (into-array Integer/TYPE (map #(:x (:p1 %)) (:lines cut)))
-        ys (into-array Integer/TYPE (map #(:y (:p1 %)) (:lines cut)))
-        p (Polygon. xs ys (count xs))]
-    (.drawPolygon graphics p)))
-
-(defn discover-polygons
-  [points wall-lines ^BufferedImage discovered-image visualrange]
-  (let [polygon-steps 16
-        ps (map #(p/point (nth % 0) (nth % 1)) points)
-        polygons (map #(poly/from-points (c/circle-points (c/circle % visualrange) polygon-steps) %) ps)
-        tmp (dorun (println (str "Discovered points: " (count points))))
-        tmp (dorun (println (str "Circle lines: " polygon-steps)))
-        graphics ^Graphics2D (.createGraphics discovered-image)
-        tmp (.setPaint graphics (Color. 255 255 255 0))
-        tmp (.setComposite graphics AlphaComposite/Clear)
-        tmp (dorun (map #(discover-polygon % wall-lines graphics) polygons))
-        tmp (.dispose graphics)]
-    discovered-image))
-
 
 ;;==================================================================================================================
 ;; Discovery based on ray casting to wall points
@@ -221,6 +136,7 @@
     (= 0 (count (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))))))
 
 (defn next-point
+  "Find the next triangle point either at the event or at the wall behind the event."
   [point event-point new-walls]
   (if (= 0 (count (filter #(= event-point (:p1 %)) new-walls)))
     (first (sort-by #(p/distance point %) (l/cuts (l/line point event-point) new-walls)))
@@ -235,7 +151,8 @@
       (distinct (filter #(commons/in? (:p1 %) ps) (map :wall events))))))
 
 (defn update-triangles
-  ""
+  "This is the function where most of the logic sits. It represents the processing of the events at one angle.
+  It finds next point of a triangle, and updates relevant walls and adds triangles."
   [point last-point current-triangles current-walls current-events]
   (let [event (relevant-event point current-events)
         wall (relevant-wall point (:point event) current-walls)
@@ -260,11 +177,7 @@
          triangles (list)]
     (if (= 0 (count remaining))
       triangles
-      (let [;tmp (dorun (println (str "Angle:            " (:angle (first (first remaining))))))
-            ;tmp (dorun (println (str "Remaining events: " (count remaining))))
-            [new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
-            ;tmp (dorun (println (str "Found triangles:  " (count new-triangles))))
-            ]
+      (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))]
         (recur
           (rest remaining)
           new-point
@@ -272,6 +185,7 @@
           new-triangles)))))
 
 (defn draw-triangle
+  "Transform a triangle into a Java graphics polygon and render it."
   [triangle graphics]
   (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
         ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
@@ -306,28 +220,6 @@
 ;;==================================================================================================================
 ;; Discovery Interfaces
 ;;
-
-(defn discover-circ
-  "Create a black image that is set to transparent in areas that are visible from discovered points.
-  Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
-  around the points or just check all pixels of the image."
-  [points wall-description width height visualrange]
-  (let [discovered-image (create-undiscovered-graphics width height)
-        wall-lines (parse wall-description)
-        tmp (do (discover-circles points wall-lines discovered-image visualrange))]
-        ;tmp (do (discover-polygons points wall-lines discovered-image visualrange))]
-    discovered-image))
-
-(defn discover-poly
-  "Create a black image that is set to transparent in areas that are visible from discovered points.
-  Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
-  around the points or just check all pixels of the image."
-  [points wall-description width height visualrange]
-  (let [discovered-image (create-undiscovered-graphics width height)
-        wall-lines (parse wall-description)
-        tmp (do (discover-polygons points wall-lines discovered-image visualrange))]
-    discovered-image))
-
 
 (defn discover
   "Create a black image that is set to transparent in areas that are visible from discovered points.
