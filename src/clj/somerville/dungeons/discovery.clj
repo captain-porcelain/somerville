@@ -201,21 +201,28 @@
 (defn visible-triangles
   "Find the visible triangles."
   [point events debug-fn]
-  (loop [remaining events
-         last-point nil
-         walls (list)
-         triangles (list)
-         step 0]
-    (if (= 0 (count remaining))
-      triangles
-      (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
-            tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first remaining)) new-walls new-point new-triangles))]
-        (recur
-          (rest remaining)
-          new-point
-          new-walls
-          new-triangles
-          (inc step))))))
+  (let [event-line (l/line point (:point (relevant-event point (first events))))
+        all-walls (map :wall (reduce concat events))
+        i (first (sort-by #(p/distance point %) (l/cuts-segments event-line all-walls)))
+        intersected-walls (filter #(l/point-on-segment? % i) all-walls)
+        starting-walls (if (nil? i) (list) intersected-walls)
+        tmp (dorun (println (str (gcommons/out i) " - " (count intersected-walls))))
+        tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first events)) starting-walls i (list)))]
+    (loop [remaining events
+           last-point i
+           walls starting-walls
+           triangles (list)
+           step 0]
+      (if (= 0 (count remaining))
+        triangles
+        (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
+              tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first remaining)) new-walls new-point new-triangles))]
+          (recur
+            (rest remaining)
+            new-point
+            new-walls
+            new-triangles
+            (inc step)))))))
 
 (defn discover-rays
   "Discover the visible area based on ray casting with wall tracing."
