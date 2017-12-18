@@ -164,7 +164,7 @@
   (Event. angle point wall))
 
 (defn sort-line-points
-  "Change line points so they are sorted by the angle defined by line point point and ref-point."
+  "Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point."
   [line point ref-point]
   (let [points (list (:p1 line) (:p2 line))
         angles (sort (map #(p/angle-pos point % ref-point) points))
@@ -204,42 +204,52 @@
             walls))))))
 
 (defn relevant-event
-  ""
+  "Given the center point of the discovery and the events at a given angle return the relevant event."
   [point events]
   (first (sort-by #(p/distance point (:point %)) events)))
 
 (defn relevant-wall
+  "Get the closest wall to point of discovery."
   [point relevant-point walls]
   (let [line (l/line point relevant-point)]
     (first (sort-by #(p/distance point (l/intersect line %)) walls))))
 
 (defn consider-event?
+  "Check if an event is visible."
   [point event walls]
   (let [line (l/line point (:point event))]
     (= 0 (count (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))))))
 
-(defn update-triangles
-  ""
-  [point last-point current-triangles current-walls current-events]
-  (let [event (relevant-event point current-events)
-        wall (relevant-wall point (:point event) current-walls)]
-    (if (or (nil? last-point) (= 0 (count current-walls)))
-      [(:point event) current-triangles]
-      (if (consider-event? point event (filter #(not (= wall %)) current-walls))
-        (let [triangle (triangle point last-point (:point event))]
-          ;;TODO the point has to be selected based on the last active wall
-          ;; if a point starts a new wall take the closest
-          ;; otherwise take the point on the current line
-          ;; also casting to the wall is necessary.
-          [(:point event) (conj current-triangles triangle)])
-        [last-point current-triangles]))))
+(defn next-point
+  [point event-point new-walls]
+  (if (= 0 (count (filter #(= event-point (:p1 %)) new-walls)))
+    (first (sort-by #(p/distance point %) (l/cuts (l/line point event-point) new-walls)))
+    event-point))
 
 (defn active-walls
+  "Get the list of active walls based on the events at an angle."
   [current-walls events]
   (let [ps (map :point events)]
     (concat
       (filter #(not (commons/in? (:p2 %) ps)) current-walls)
       (distinct (filter #(commons/in? (:p1 %) ps) (map :wall events))))))
+
+(defn update-triangles
+  ""
+  [point last-point current-triangles current-walls current-events]
+  (let [event (relevant-event point current-events)
+        wall (relevant-wall point (:point event) current-walls)
+        new-walls (active-walls current-walls current-events)
+        other-walls (filter #(not (= wall %)) new-walls)]
+    (cond
+    (or (nil? last-point) (= 0 (count current-walls)))
+      [(:point event) current-triangles new-walls]
+    (consider-event? point event (filter #(not (= wall %)) current-walls))
+      (let [triangle (triangle point last-point (:point event))
+            p (next-point point (:point event) new-walls)]
+        [p (conj current-triangles triangle) new-walls])
+    :else
+      [last-point current-triangles new-walls])))
 
 (defn visible-triangles
   "Find the visible triangles."
@@ -250,12 +260,15 @@
          triangles (list)]
     (if (= 0 (count remaining))
       triangles
-      (let [tmp (dorun (println (count remaining)))
-            [new-point new-triangles] (update-triangles point last-point triangles walls (first remaining))]
+      (let [;tmp (dorun (println (str "Angle:            " (:angle (first (first remaining))))))
+            ;tmp (dorun (println (str "Remaining events: " (count remaining))))
+            [new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
+            ;tmp (dorun (println (str "Found triangles:  " (count new-triangles))))
+            ]
         (recur
           (rest remaining)
           new-point
-          (active-walls walls (first remaining))
+          new-walls
           new-triangles)))))
 
 (defn draw-triangle
@@ -263,18 +276,18 @@
   (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
         ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
         p (Polygon. xs ys (count xs))]
-    (.drawPolygon graphics p)))
+    (.fillPolygon graphics p)))
 
 (defn discover-rays
   "Discover the visible area based on ray casting with wall tracing."
   [point walls visualrange graphics]
   (let [polygon-steps 16
-        ref-point (p/point -1 0)
+        ref-point (p/point -1 (:y point))
         sorted-walls (map #(sort-line-points % point ref-point) (relevant-walls point walls visualrange polygon-steps))
         events (gather-events sorted-walls point ref-point)
+        events (concat events (list (first events)))
         triangles (visible-triangles point events)
-        tmp (dorun (map #(draw-triangle % graphics) triangles))]
-    ))
+        tmp (dorun (map #(draw-triangle % graphics) triangles))]))
 
 (defn discover-ray-casting
   "Discover the visible areas based on ray casting with wall tracing."

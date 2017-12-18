@@ -97,7 +97,7 @@
 
 (defn debug-draw
   "Create an image of size width x height with transparency and paint it completely black."
-  [^String filename ^Integer width ^Integer height circle points lines current]
+  [^String filename ^Integer width ^Integer height circle points lines active-walls last-point triangles]
   (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setPaint graphics Color/white)
@@ -112,103 +112,168 @@
         tmp (dorun (map #(do
                            (.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
                            (.drawLine graphics (- (:x %) 5) (+ (:y %) 5) (+ (:x %) 5) (- (:y %) 5))) points))
+        tmp (.setPaint graphics Color/blue)
+        tmp (when-not (nil? last-point)
+              (.drawLine graphics (:x last-point) (- (:y last-point) 5) (:x last-point) (+ (:y last-point) 5))
+              (.drawLine graphics (- (:x last-point) 5) (:y last-point) (+ (:x last-point) 5) (:y last-point)))
         tmp (.setPaint graphics Color/yellow)
-        tmp (when-not (nil? current) (.drawLine graphics (:x (:p1 current)) (:y (:p1 current)) (:x (:p2 current)) (:y (:p2 current))))
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) active-walls))
+        tmp (.setPaint graphics Color/gray)
+        tmp (dorun (map #(discovery/draw-triangle % graphics) triangles))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
 
-(deftest wall-finding
-  (let [desc "line 150,180 180,180
-              line 150,150 150,180
-              line 150,150 180,150
-              line 180,150 180,180
-              line 210,190 230,190
-              line 210,190 210,170
-              line 210,170 230,170
-              line 230,170 230,190
-              line 260,170 260,330"
-        walls (discovery/parse desc)
-        visualrange 100
-        polygon-steps 8
-        point (p/point 200 200)
-        circle (c/circle point visualrange)
-        ref-point (p/point -1 200)
-        relevant-walls (discovery/relevant-walls point walls visualrange polygon-steps)
-        sorted-walls (map #(discovery/sort-line-points % point ref-point) relevant-walls)
-        events (discovery/gather-events sorted-walls point ref-point)
-        active-walls-1 (discovery/active-walls (list) (nth events 0))
-        [last-point-1 triangles-1] (discovery/update-triangles point nil (list) (list) (nth events 0))
-        active-walls-2 (discovery/active-walls active-walls-1 (nth events 1))
-        [last-point-2 triangles-2] (discovery/update-triangles point last-point-1 triangles-1 active-walls-1 (nth events 1))
-        active-walls-3 (discovery/active-walls active-walls-2 (nth events 2))
-        [last-point-3 triangles-3] (discovery/update-triangles point last-point-2 triangles-2 active-walls-2 (nth events 2))
-        active-walls-4 (discovery/active-walls active-walls-3 (nth events 3))
-        [last-point-4 triangles-4] (discovery/update-triangles point last-point-3 triangles-3 active-walls-3 (nth events 3))
-        active-walls-5 (discovery/active-walls active-walls-4 (nth events 4))
-        [last-point-5 triangles-5] (discovery/update-triangles point last-point-4 triangles-4 active-walls-4 (nth events 4))
-        active-walls-6 (discovery/active-walls active-walls-5 (nth events 5))
-        [last-point-6 triangles-6] (discovery/update-triangles point last-point-5 triangles-5 active-walls-5 (nth events 5))
-        active-walls-7 (discovery/active-walls active-walls-6 (nth events 6))
-        [last-point-7 triangles-7] (discovery/update-triangles point last-point-6 triangles-6 active-walls-6 (nth events 6))
-        ]
-    ;(image/write-image "/tmp/discovery.png" (discovery/discover (list [(:x point) (:y point)]) desc 50 50 10))
-    ;(dorun (map (fn [a] (dorun (map #(println (commons/out %)) a))) events))
-    (debug-draw "/tmp/step-1.png" 500 500 circle (list) sorted-walls nil)
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 0)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-1))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-1)))
-    (dorun (map #(println (commons/out %)) triangles-1))
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 1)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-2))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-2)))
-    (dorun (map #(println (commons/out %)) triangles-2))
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 2)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-3))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-3)))
-    (dorun (map #(println (commons/out %)) triangles-3))
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 3)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-4))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-4)))
-    (dorun (map #(println (commons/out %)) triangles-4))
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 4)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-5))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-5)))
-    (dorun (map #(println (commons/out %)) triangles-5))
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 5)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-6))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-6)))
-    (dorun (map #(println (commons/out %)) triangles-6))
-    (dorun (println "========================================\nevents"))
-    (dorun (map #(println (commons/out %)) (nth events 6)))
-    (dorun (println "----------------------------------------\nwalls"))
-    (dorun (map #(println (commons/out %)) active-walls-7))
-    (dorun (println "----------------------------------------\ntriangles"))
-    (dorun (println (commons/out last-point-7)))
-    (dorun (map #(println (commons/out %)) triangles-7))
-    ))
+;(def desc "line 150,180 180,180
+           ;line 150,150 150,180
+           ;line 150,150 180,150
+           ;line 180,150 180,180
+           ;line 210,190 230,190
+           ;line 210,190 210,170
+           ;line 210,170 230,170
+           ;line 230,170 230,190
+           ;line 260,170 260,330")
+
+;(time (image/write-image "/tmp/discovery.png" (discovery/discover (list [200 200] [10 10]) desc 500 500 100)))
+
+;(image/write-image "/tmp/discovery.png" (discovery/discover (list [200 200]) "line 260,170 260,330" 500 500 100))
+
+;(deftest wall-finding
+  ;(let [desc "line 150,180 180,180
+              ;line 150,150 150,180
+              ;line 150,150 180,150
+              ;line 180,150 180,180
+              ;line 210,190 230,190
+              ;line 210,190 210,170
+              ;line 210,170 230,170
+              ;line 230,170 230,190
+              ;line 260,170 260,330"
+        ;desc "line 260,170 260,330"
+        ;walls (discovery/parse desc)
+        ;visualrange 100
+        ;polygon-steps 8
+        ;point (p/point 200 200)
+        ;circle (c/circle point visualrange)
+        ;ref-point (p/point -1 200)
+        ;relevant-walls (discovery/relevant-walls point walls visualrange polygon-steps)
+        ;sorted-walls (map #(discovery/sort-line-points % point ref-point) relevant-walls)
+        ;events (discovery/gather-events sorted-walls point ref-point)
+        ;events (concat events (list (first events)))
+        ;active-walls-1 (discovery/active-walls (list) (nth events 0))
+        ;[last-point-1 triangles-1] (discovery/update-triangles point nil (list) (list) (nth events 0))
+        ;active-walls-2 (discovery/active-walls active-walls-1 (nth events 1))
+        ;[last-point-2 triangles-2] (discovery/update-triangles point last-point-1 triangles-1 active-walls-1 (nth events 1))
+        ;active-walls-3 (discovery/active-walls active-walls-2 (nth events 2))
+        ;[last-point-3 triangles-3] (discovery/update-triangles point last-point-2 triangles-2 active-walls-2 (nth events 2))
+        ;active-walls-4 (discovery/active-walls active-walls-3 (nth events 3))
+        ;[last-point-4 triangles-4] (discovery/update-triangles point last-point-3 triangles-3 active-walls-3 (nth events 3))
+        ;active-walls-5 (discovery/active-walls active-walls-4 (nth events 4))
+        ;[last-point-5 triangles-5] (discovery/update-triangles point last-point-4 triangles-4 active-walls-4 (nth events 4))
+        ;active-walls-6 (discovery/active-walls active-walls-5 (nth events 5))
+        ;[last-point-6 triangles-6] (discovery/update-triangles point last-point-5 triangles-5 active-walls-5 (nth events 5))
+        ;active-walls-7 (discovery/active-walls active-walls-6 (nth events 6))
+        ;[last-point-7 triangles-7] (discovery/update-triangles point last-point-6 triangles-6 active-walls-6 (nth events 6))
+        ;active-walls-8 (discovery/active-walls active-walls-7 (nth events 7))
+        ;[last-point-8 triangles-8] (discovery/update-triangles point last-point-7 triangles-7 active-walls-7 (nth events 7))
+        ;active-walls-9 (discovery/active-walls active-walls-8 (nth events 8))
+        ;[last-point-9 triangles-9] (discovery/update-triangles point last-point-8 triangles-8 active-walls-8 (nth events 8))
+        ;active-walls-10 (discovery/active-walls active-walls-9 (nth events 9))
+        ;[last-point-10 triangles-10] (discovery/update-triangles point last-point-9 triangles-9 active-walls-9 (nth events 9))
+        ;active-walls-11 (discovery/active-walls active-walls-10 (nth events 10))
+        ;[last-point-11 triangles-11] (discovery/update-triangles point last-point-10 triangles-10 active-walls-10 (nth events 10))
+        ;]
+    ;;(image/write-image "/tmp/discovery.png" (discovery/discover (list [(:x point) (:y point)]) desc 500 500 100))
+    ;;(dorun (map (fn [a] (dorun (map #(println (commons/out %)) a))) events))
+    ;(debug-draw "/tmp/step-00.png" 500 500 circle (list) sorted-walls (list) nil (list))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-01.png" 500 500 circle (map :point (nth events 0)) sorted-walls active-walls-1 last-point-1 triangles-1)
+    ;(dorun (map #(println (commons/out %)) (nth events 0)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-1))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-1)))
+    ;(dorun (map #(println (commons/out %)) triangles-1))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-02.png" 500 500 circle (map :point (nth events 1)) sorted-walls active-walls-2 last-point-2 triangles-2)
+    ;(dorun (map #(println (commons/out %)) (nth events 1)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-2))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-2)))
+    ;(dorun (map #(println (commons/out %)) triangles-2))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-03.png" 500 500 circle (map :point (nth events 2)) sorted-walls active-walls-3 last-point-3 triangles-3)
+    ;(dorun (map #(println (commons/out %)) (nth events 2)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-3))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-3)))
+    ;(dorun (map #(println (commons/out %)) triangles-3))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-04.png" 500 500 circle (map :point (nth events 3)) sorted-walls active-walls-4 last-point-4 triangles-4)
+    ;(dorun (map #(println (commons/out %)) (nth events 3)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-4))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-4)))
+    ;(dorun (map #(println (commons/out %)) triangles-4))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-05.png" 500 500 circle (map :point (nth events 4)) sorted-walls active-walls-5 last-point-5 triangles-5)
+    ;(dorun (map #(println (commons/out %)) (nth events 4)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-5))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-5)))
+    ;(dorun (map #(println (commons/out %)) triangles-5))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-06.png" 500 500 circle (map :point (nth events 5)) sorted-walls active-walls-6 last-point-6 triangles-6)
+    ;(dorun (map #(println (commons/out %)) (nth events 5)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-6))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-6)))
+    ;(dorun (map #(println (commons/out %)) triangles-6))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-07.png" 500 500 circle (map :point (nth events 6)) sorted-walls active-walls-7 last-point-7 triangles-7)
+    ;(dorun (map #(println (commons/out %)) (nth events 6)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-7))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-7)))
+    ;(dorun (map #(println (commons/out %)) triangles-7))
+    ;(dorun (println "========================================\nevents"))
+    ;(debug-draw "/tmp/step-08.png" 500 500 circle (map :point (nth events 7)) sorted-walls active-walls-8 last-point-8 triangles-8)
+    ;(dorun (map #(println (commons/out %)) (nth events 7)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-8))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-8)))
+    ;(dorun (map #(println (commons/out %)) triangles-8))
+    ;(debug-draw "/tmp/step-09.png" 500 500 circle (map :point (nth events 8)) sorted-walls active-walls-9 last-point-9 triangles-9)
+    ;(dorun (map #(println (commons/out %)) (nth events 8)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-9))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-9)))
+    ;(dorun (map #(println (commons/out %)) triangles-9))
+    ;(debug-draw "/tmp/step-10.png" 500 500 circle (map :point (nth events 9)) sorted-walls active-walls-10 last-point-10 triangles-10)
+    ;(dorun (map #(println (commons/out %)) (nth events 9)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-10))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-10)))
+    ;(dorun (map #(println (commons/out %)) triangles-10))
+    ;(debug-draw "/tmp/step-11.png" 500 500 circle (map :point (nth events 10)) sorted-walls active-walls-11 last-point-11 triangles-11)
+    ;(dorun (map #(println (commons/out %)) (nth events 10)))
+    ;(dorun (println "----------------------------------------\nwalls"))
+    ;(dorun (map #(println (commons/out %)) active-walls-11))
+    ;(dorun (println "----------------------------------------\ntriangles"))
+    ;(dorun (println (commons/out last-point-11)))
+    ;(dorun (map #(println (commons/out %)) triangles-11))))
 
 (defn run-manual-test
   [walls points width height visualrange]
   (try
-    (let [i (discovery/discover-poly points walls width height visualrange)]
+    (let [i (discovery/discover points walls width height visualrange)]
       (image/write-image "/tmp/discovery.png" i))
     (catch Exception e (.printStackTrace e))))
 
@@ -243,7 +308,8 @@
               line 325,375 400,375")
 
 ;; Map Baramzigli
-(def points-2 '([161 1472])); [151 1235] [226 996] [515 981] [663 959] [616 883] [806 740] [1065 885] [848 1035] [768 1302] [957 1339]))
+;(def points-2 '([161 1472])); [151 1235] [226 996] [515 981] [663 959] [616 883] [806 740] [1065 885] [848 1035] [768 1302] [957 1339]))
+(def points-2 '([161 1472] [151 1235] [226 996] [515 981] [663 959] [616 883] [806 740] [1065 885] [848 1035] [768 1302] [957 1339]))
 (def walls-2 "line 1059,1402 1302,1372
               line 552,1297 749,1404
               line 374,1303 552,1297
@@ -282,4 +348,4 @@
               line 168,940 168,868
               line 168,868 75,868")
 
-;(time (run-manual-test walls-2 points-2 1300 1517 300))
+(time (run-manual-test walls-2 points-2 1300 1517 300))
