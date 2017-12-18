@@ -209,3 +209,8 @@
   [line lines]
   (filter #(not (nil? %)) (map #(intersect line %) lines)))
 
+(defn cuts-segments
+  "Get list of intersections of one line with a list of lines."
+  [line lines]
+  (filter #(not (nil? %)) (map #(intersect-segments line %) lines)))
+
