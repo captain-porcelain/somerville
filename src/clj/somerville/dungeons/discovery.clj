@@ -162,8 +162,11 @@
 (defn consider-event?
   "Check if an event is visible."
   [point event walls]
-  (let [line (l/line point (:point event))]
-    (= 0 (count (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))))))
+  (let [line (l/line point (:point event))
+        intersections (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))
+        first-intersection (and (< 0 (count intersections)) (gcommons/close-to 0 (p/distance (:point event) (first intersections))))
+        tmp (dorun (println (str "Considering event: " (count intersections))))]
+    first-intersection))
 
 (defn next-point
   "Find the next triangle point either at the event or at the wall behind the event."
@@ -186,12 +189,12 @@
   [point last-point current-triangles current-walls current-events]
   (let [event (relevant-event point current-events)
         wall (relevant-wall point (:point event) current-walls)
-        new-walls (active-walls current-walls current-events)
-        other-walls (filter #(not (= wall %)) new-walls)]
+        new-walls (active-walls current-walls current-events)]
     (cond
     (or (nil? last-point) (= 0 (count current-walls)))
       [(:point event) current-triangles new-walls]
-    (consider-event? point event (filter #(not (= wall %)) current-walls))
+    ;(consider-event? point event (filter #(not (= wall %)) current-walls))
+    (consider-event? point event current-walls)
       (let [triangle (t/triangle point last-point (:point event))
             p (next-point point (:point event) new-walls)]
         [p (conj current-triangles triangle) new-walls])
@@ -211,8 +214,7 @@
     (loop [remaining events
            last-point i
            walls starting-walls
-           triangles (list)
-           step 0]
+           triangles (list)]
       (if (= 0 (count remaining))
         triangles
         (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
@@ -221,8 +223,7 @@
             (rest remaining)
             new-point
             new-walls
-            new-triangles
-            (inc step)))))))
+            new-triangles))))))
 
 (defn discover-rays
   "Discover the visible area based on ray casting with wall tracing."
