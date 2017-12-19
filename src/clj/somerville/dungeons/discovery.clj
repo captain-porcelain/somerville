@@ -165,19 +165,20 @@
   "Check if an event is visible."
   [point event walls]
   (let [line (l/line point (:point event))
+        dist (p/distance point (:point event))
         intersections (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))
-        first-intersection (and (< 0 (count intersections)) (gcommons/close-to 0 (p/distance (:point event) (first intersections))))
-        tmp (dorun (println (str "Considering event: " (count intersections))))]
-    first-intersection))
+        closer (filter #(and (not (gcommons/close-to dist (p/distance point %))) (< (p/distance point %) dist)) intersections)
+        ;tmp (dorun (println (str "Event point: " (gcommons/out (:point event)))))
+        ;tmp (dorun (println (str "Walls: " (count walls))))
+        ;tmp (dorun (map #(println (gcommons/out %)) intersections))
+        ;first-intersection (and (< 0 (count intersections)) (gcommons/close-to 0 (p/distance (:point event) (first intersections))))
+        tmp (dorun (println (str "Considering event: " (count closer))))]
+    (= 0 (count closer))))
 
-(defn next-point
+(defn cast-point
   "Find the next triangle point either at the event or at the wall behind the event."
-  [point event new-walls current-events]
-  (let [adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
-        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))]
-    (if (or (every? #(<= (:angle event) %) angles) (every? #(>= (:angle event) %) angles))
-      (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point event)) new-walls)))
-      (:point event))))
+  [point event walls]
+  (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point event)) walls))))
 
 (defn active-walls
   "Get the list of active walls based on the events at an angle."
@@ -187,21 +188,31 @@
       (filter #(not (commons/in? (:p2 %) ps)) current-walls)
       (distinct (filter #(commons/in? (:p1 %) ps) (map :wall events))))))
 
+(defn edge?
+  "Check if the current event is an edge."
+  [event current-events]
+  (let [adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
+        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))
+        left (every? #(>= (:angle event) %) angles)
+        right (every? #(<= (:angle event) %) angles)]
+    [left right (or left right)]))
+
 (defn update-triangles
   "This is the function where most of the logic sits. It represents the processing of the events at one angle.
   It finds next point of a triangle, and updates relevant walls and adds triangles."
   [point last-point current-triangles current-walls current-events]
   (let [event (relevant-event point current-events)
         wall (relevant-wall point (:point event) current-walls)
-        new-walls (active-walls current-walls current-events)]
+        new-walls (active-walls current-walls current-events)
+        [left right edge] (edge? event current-events)]
     (cond
     (or (nil? last-point) (= 0 (count current-walls)))
       [(:point event) current-triangles new-walls]
-    ;(consider-event? point event (filter #(not (= wall %)) current-walls))
     (consider-event? point event current-walls)
-      (let [triangle (t/triangle point last-point (:point event))
-            p (next-point point event new-walls current-events)]
-        [p (conj current-triangles triangle) new-walls])
+      (let [p (cast-point point event current-walls)
+            tp (if (and edge right) p (:point event))
+            triangle (t/triangle point last-point tp)]
+        [(if edge p (:point event)) (conj current-triangles triangle) new-walls])
     :else
       [last-point current-triangles new-walls])))
 
