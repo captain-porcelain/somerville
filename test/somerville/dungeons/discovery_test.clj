@@ -335,8 +335,11 @@
                line 600,750 1000,750"]
     (time (run-manual-test walls points 1000 1000 300))))
 
-(manual-test-casting)
-
+;(manual-test-clear)
+;(manual-test-simple-line)
+;(manual-test-rooms)
+;(manual-test-casting)
+(manual-test-baramzigli)
 
 
 

@@ -110,6 +110,7 @@
 
 (defn sort-line-points
   "Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point."
+  ;;TODO check for lines that cross the line from point to point-ref
   [line point ref-point]
   (let [points (list (:p1 line) (:p2 line))
         angles (sort (map #(p/angle-pos point % ref-point) points))

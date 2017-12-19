@@ -48,9 +48,11 @@
 (defn distance
   "Calculate distance between two points."
   [p1 p2]
-  (let [dx (- (:x p1) (:x p2))
-        dy (- (:y p1) (:y p2))]
-    (Math/sqrt (+ (* dx dx) (* dy dy)))))
+  (if (or (nil? p1) (nil? p2))
+    Long/MAX_VALUE
+    (let [dx (- (:x p1) (:x p2))
+          dy (- (:y p1) (:y p2))]
+      (Math/sqrt (+ (* dx dx) (* dy dy))))))
 
 (defn quadrant
   "Get the quadrant a point is in."
