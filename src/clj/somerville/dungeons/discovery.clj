@@ -172,10 +172,12 @@
 
 (defn next-point
   "Find the next triangle point either at the event or at the wall behind the event."
-  [point event-point new-walls]
-  (if (= 0 (count (filter #(= event-point (:p1 %)) new-walls)))
-    (first (sort-by #(p/distance point %) (l/cuts (l/line point event-point) new-walls)))
-    event-point))
+  [point event new-walls current-events]
+  (let [adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
+        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))]
+    (if (or (every? #(<= (:angle event) %) angles) (every? #(>= (:angle event) %) angles))
+      (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point event)) new-walls)))
+      (:point event))))
 
 (defn active-walls
   "Get the list of active walls based on the events at an angle."
@@ -198,7 +200,7 @@
     ;(consider-event? point event (filter #(not (= wall %)) current-walls))
     (consider-event? point event current-walls)
       (let [triangle (t/triangle point last-point (:point event))
-            p (next-point point (:point event) new-walls)]
+            p (next-point point event new-walls current-events)]
         [p (conj current-triangles triangle) new-walls])
     :else
       [last-point current-triangles new-walls])))
