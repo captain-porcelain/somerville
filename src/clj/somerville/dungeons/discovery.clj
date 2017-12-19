@@ -178,7 +178,12 @@
 (defn cast-point
   "Find the next triangle point either at the event or at the wall behind the event."
   [point event walls]
-  (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point event)) walls))))
+  (let [other-walls (filter #(not (or (= (:point event) (:p1 %)) (= (:point event) (:p2 %)))) walls)
+        ws (if (= 0 (count other-walls)) walls other-walls)]
+    (first
+    (sort-by
+      #(p/distance point %)
+      (l/cuts (l/line point (:point event)) ws)))))
 
 (defn active-walls
   "Get the list of active walls based on the events at an angle."
@@ -193,9 +198,9 @@
   [event current-events]
   (let [adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
         angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))
-        left (every? #(>= (:angle event) %) angles)
-        right (every? #(<= (:angle event) %) angles)]
-    [left right (or left right)]))
+        smaller (every? #(or (< (:angle event) %) (gcommons/close-to (:angle event) %)) angles)
+        bigger  (every? #(or (> (:angle event) %) (gcommons/close-to (:angle event) %)) angles)]
+    [smaller bigger (or smaller bigger)]))
 
 (defn update-triangles
   "This is the function where most of the logic sits. It represents the processing of the events at one angle.
@@ -204,15 +209,16 @@
   (let [event (relevant-event point current-events)
         wall (relevant-wall point (:point event) current-walls)
         new-walls (active-walls current-walls current-events)
-        [left right edge] (edge? event current-events)]
+        [smaller bigger edge] (edge? event current-events)]
     (cond
     (or (nil? last-point) (= 0 (count current-walls)))
       [(:point event) current-triangles new-walls]
     (consider-event? point event current-walls)
       (let [p (cast-point point event current-walls)
-            tp (if (and edge right) p (:point event))
-            triangle (t/triangle point last-point tp)]
-        [(if edge p (:point event)) (conj current-triangles triangle) new-walls])
+            triangle-point (if bigger (:point event) p)
+            new-point (if bigger p (:point event))
+            triangle (t/triangle point last-point triangle-point)]
+        [new-point (conj current-triangles triangle) new-walls])
     :else
       [last-point current-triangles new-walls])))
 
