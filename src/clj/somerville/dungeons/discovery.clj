@@ -99,14 +99,14 @@
 ;; See https://www.redblobgames.com/articles/visibility/
 ;;
 
-(defrecord Event [angle point wall]
+(defrecord Event [angle point wall angle-2]
   gcommons/Printable
   (gcommons/out [this i] (str (gcommons/indent i) "Event at angle " angle " for\n" (gcommons/out point (inc i)) "\n" (gcommons/out wall (inc i))))
   (gcommons/out [this] (gcommons/out this 0)))
 
 (defn event
-  [angle point wall]
-  (Event. angle point wall))
+  [angle point wall angle-2]
+  (Event. angle point wall angle-2))
 
 (defn sort-line-points
   "Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point."
@@ -143,9 +143,11 @@
       (sort-by :angle
         (reduce concat
           (map
-            #(list
-               (event (p/angle-pos point (:p1 %) ref-point) (:p1 %) %)
-               (event (p/angle-pos point (:p2 %) ref-point) (:p2 %) %))
+            #(let [a1 (p/angle-pos point (:p1 %) ref-point)
+                   a2 (p/angle-pos point (:p2 %) ref-point)]
+               (list
+                 (event a1 (:p1 %) % a2)
+                 (event a2 (:p2 %) % a1)))
             walls))))))
 
 (defn relevant-event
