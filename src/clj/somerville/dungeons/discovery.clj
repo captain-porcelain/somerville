@@ -160,7 +160,9 @@
   "Get the closest wall to point of discovery."
   [point relevant-point walls]
   (let [line (l/line point relevant-point)]
-    (first (sort-by #(p/distance point (l/intersect line %)) walls))))
+    (first (sort-by #(p/distance point (if (l/parallel? line %)
+                                         (first (sort-by (fn [lp] (p/distance point lp)) (list (:p1 %) (:p2 %))))
+                                         (l/intersect line %))) walls))))
 
 (defn consider-event?
   "Check if an event is visible."
