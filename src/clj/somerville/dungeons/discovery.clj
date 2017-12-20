@@ -1,7 +1,7 @@
 ;; Functions to create overlay images that only show parts of an image that have been discovered.
 (ns somerville.dungeons.discovery
   (:import
-    [java.awt Color Graphics2D Rectangle AlphaComposite Polygon]
+    [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
@@ -59,8 +59,10 @@
   [triangle graphics]
   (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
         ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
-        p (Polygon. xs ys (count xs))]
-    (.fillPolygon graphics p)))
+        p (Polygon. xs ys (count xs))
+        tmp (.fillPolygon graphics p)
+        tmp (.drawPolygon graphics p)]
+    ))
 
 ;;==================================================================================================================
 ;; Debugging helpers
@@ -86,7 +88,7 @@
         tmp (when-not (nil? last-point)
               (.drawLine graphics (:x last-point) (- (:y last-point) 5) (:x last-point) (+ (:y last-point) 5))
               (.drawLine graphics (- (:x last-point) 5) (:y last-point) (+ (:x last-point) 5) (:y last-point)))
-        tmp (.setPaint graphics Color/yellow)
+        tmp (.setPaint graphics Color/orange)
         tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) active-walls))
         tmp (.setPaint graphics Color/gray)
         tmp (dorun (map #(draw-triangle % graphics) triangles))
@@ -110,14 +112,14 @@
 
 (defn sort-line-points
   "Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point."
-  ;;TODO check for lines that cross the line from point to point-ref
   [line point ref-point]
   (let [points (list (:p1 line) (:p2 line))
         angles (sort (map #(p/angle-pos point % ref-point) points))
         sorted (sort-by #(p/angle-pos point % ref-point) points)]
-    (if (and (gcommons/close-to 0 (first angles)) (< Math/PI (second angles)))
-      (l/line (second sorted) (first sorted))
-      (l/line (first sorted) (second sorted)))))
+    (cond
+      (and (gcommons/close-to 0 (first angles)) (< Math/PI (second angles))) (l/line (second sorted) (first sorted))
+      (and (< (first angles) (/ Math/PI 2)) (> (second angles) (/ (* Math/PI 3) 2))) (l/line (second sorted) (first sorted))
+      :else (l/line (first sorted) (second sorted)))))
 
 (defn shorten-walls
   "Reduce the walls to those that are inside the polygon."
@@ -130,7 +132,7 @@
   [point walls visualrange polygon-steps]
   (let [circle-points (c/circle-points (c/circle point visualrange) polygon-steps)
         polygon (poly/from-points circle-points point)
-        relevant-walls (shorten-walls polygon walls)]
+        relevant-walls (shorten-walls polygon (filter #(not (= (:x point) (:x (:p1 %)) (:x (:p2 %)))) walls))]
     (concat (:lines polygon) relevant-walls)))
 
 (defn gather-events
@@ -170,12 +172,7 @@
   (let [line (l/line point (:point event))
         dist (p/distance point (:point event))
         intersections (filter #(not (nil? %)) (map #(l/intersect-segments line %) walls))
-        closer (filter #(and (not (gcommons/close-to dist (p/distance point %))) (< (p/distance point %) dist)) intersections)
-        ;tmp (dorun (println (str "Event point: " (gcommons/out (:point event)))))
-        ;tmp (dorun (println (str "Walls: " (count walls))))
-        ;tmp (dorun (map #(println (gcommons/out %)) intersections))
-        ;first-intersection (and (< 0 (count intersections)) (gcommons/close-to 0 (p/distance (:point event) (first intersections))))
-        tmp (dorun (println (str "Considering event: " (count closer))))]
+        closer (filter #(and (not (gcommons/close-to dist (p/distance point %))) (< (p/distance point %) dist)) intersections)]
     (= 0 (count closer))))
 
 (defn cast-point
@@ -183,10 +180,7 @@
   [point event walls]
   (let [other-walls (filter #(not (or (= (:point event) (:p1 %)) (= (:point event) (:p2 %)))) walls)
         ws (if (= 0 (count other-walls)) walls other-walls)]
-    (first
-    (sort-by
-      #(p/distance point %)
-      (l/cuts (l/line point (:point event)) ws)))))
+    (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point event)) ws)))))
 
 (defn active-walls
   "Get the list of active walls based on the events at an angle."
@@ -208,7 +202,7 @@
 (defn update-triangles
   "This is the function where most of the logic sits. It represents the processing of the events at one angle.
   It finds next point of a triangle, and updates relevant walls and adds triangles."
-  [point last-point current-triangles current-walls current-events]
+  [point last-point current-triangles current-walls current-events remaining]
   (let [event (relevant-event point current-events)
         wall (relevant-wall point (:point event) current-walls)
         new-walls (active-walls current-walls current-events)
@@ -216,7 +210,7 @@
     (cond
     (or (nil? last-point) (= 0 (count current-walls)))
       [(:point event) current-triangles new-walls]
-    (consider-event? point event current-walls)
+    (or (consider-event? point event current-walls) (= 0 remaining))
       (let [p (cast-point point event current-walls)
             triangle-point (if bigger (:point event) p)
             new-point (if bigger p (:point event))
@@ -233,7 +227,6 @@
         i (first (sort-by #(p/distance point %) (l/cuts-segments event-line all-walls)))
         intersected-walls (filter #(l/point-on-segment? % i) all-walls)
         starting-walls (if (nil? i) (list) intersected-walls)
-        tmp (dorun (println (str (gcommons/out i) " - " (count intersected-walls))))
         tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first events)) starting-walls i (list)))]
     (loop [remaining events
            last-point i
@@ -241,8 +234,18 @@
            triangles (list)]
       (if (= 0 (count remaining))
         triangles
-        (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining))
-              tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first remaining)) new-walls new-point new-triangles))]
+        (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining) (count (rest remaining)))
+              ;tmp (when-not (nil? debug-fn) (dorun (println "========================================\nevents")))
+              ;tmp (when-not (nil? debug-fn) (dorun (map #(println (gcommons/out %)) (first remaining))))
+              ;tmp (when-not (nil? debug-fn) (dorun (println "----------------------------------------")))
+              ;tmp (when-not (nil? debug-fn) (dorun (println (str "relevant : " (gcommons/out (relevant-event point (first remaining)))))))
+              ;tmp (when-not (nil? debug-fn) (dorun (println "----------------------------------------\nwalls")))
+              ;tmp (when-not (nil? debug-fn) (dorun (map #(println (gcommons/out %)) new-walls)))
+              ;tmp (when-not (nil? debug-fn) (dorun (println "----------------------------------------\ntriangles")))
+              ;tmp (when-not (nil? debug-fn) (dorun (println (str "new point: " (gcommons/out new-point)))))
+              ;tmp (when-not (nil? debug-fn) (dorun (map #(println (gcommons/out %)) new-triangles)))
+              ;tmp (when-not (nil? debug-fn) (debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first remaining)) new-walls new-point new-triangles))
+              ]
           (recur
             (rest remaining)
             new-point
@@ -269,6 +272,8 @@
         graphics ^Graphics2D (.createGraphics discovered-image)
         tmp (.setPaint graphics (Color. 255 255 255 0))
         tmp (.setComposite graphics AlphaComposite/Clear)
+        tmp (.setStroke graphics (BasicStroke. 2))
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
         debug-fn (if debug (fn [filename point points sorted-walls active-walls last-point triangles] (debug-draw filename (.getWidth discovered-image) (.getHeight discovered-image) (c/circle point visualrange) points sorted-walls active-walls last-point triangles)) nil)
         tmp (dorun (map #(discover-rays % wall-lines visualrange graphics debug-fn) ps))
         tmp (.dispose graphics)]
