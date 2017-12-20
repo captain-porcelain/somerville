@@ -337,9 +337,9 @@
 
 ;(manual-test-clear)
 ;(manual-test-simple-line)
-;(manual-test-rooms)
+(manual-test-rooms)
 ;(manual-test-casting)
-(manual-test-baramzigli)
+;(manual-test-baramzigli)
 
 
 
