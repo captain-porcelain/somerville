@@ -235,10 +235,10 @@
 ;(debug-baramzigli)
 
 (defn run-manual-test
-  [walls points width height visualrange]
+  [testname walls points width height visualrange]
   (try
     (let [i (discovery/discover points walls width height visualrange true)]
-      (image/write-image "/tmp/discovery.png" i))
+      (image/write-image (str "/tmp/discovery-" testname ".png") i))
     (catch Exception e (.printStackTrace e))))
 
 (defn manual-test-rooms
@@ -271,7 +271,7 @@
                line 325,125 400,125
                line 325,250 400,250
                line 325,375 400,375"]
-    (time (run-manual-test walls points 500 400 100))))
+    (time (run-manual-test "rooms" walls points 500 400 100))))
 
 (defn manual-test-baramzigli
   []
@@ -314,30 +314,37 @@
                line 40,940 623,940
                line 168,940 168,868
                line 168,868 75,868"]
-    (time (run-manual-test walls points 1300 1517 300))))
+    (time (run-manual-test "baramzigli" walls points 1300 1517 300))))
 
 (defn manual-test-clear
   []
   (let [points '([500 500])
         walls ""]
-    (time (run-manual-test walls points 1000 1000 300))))
+    (time (run-manual-test "clear" walls points 1000 1000 300))))
 
 (defn manual-test-simple-line
   []
   (let [points '([500 500])
         walls "line 250,750 750,750"]
-    (time (run-manual-test walls points 1000 1000 300))))
+    (time (run-manual-test "simple-line" walls points 1000 1000 300))))
+
+(defn manual-test-vertical-parallel-line
+  []
+  (let [points '([500 500])
+        walls "line 500,0 500,400"]
+    (time (run-manual-test "vertical-parallel-line" walls points 1000 1000 300))))
 
 (defn manual-test-casting
   []
   (let [points '([500 500])
         walls "line 0,750 400,750
                line 600,750 1000,750"]
-    (time (run-manual-test walls points 1000 1000 300))))
+    (time (run-manual-test "casting" walls points 1000 1000 300))))
 
 ;(manual-test-clear)
 ;(manual-test-simple-line)
-(manual-test-rooms)
+;(manual-test-vertical-parallel-line)
+;(manual-test-rooms)
 ;(manual-test-casting)
 ;(manual-test-baramzigli)
 
