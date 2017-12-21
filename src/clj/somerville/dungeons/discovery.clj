@@ -1,4 +1,6 @@
-;; Functions to create overlay images that only show parts of an image that have been discovered.
+;; Geometric discovery to create overlay images that only show parts of an image that have been discovered.
+;; The discovery is based on ray casting to wall points.
+;; See https://www.redblobgames.com/articles/visibility/
 (ns somerville.dungeons.discovery
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
@@ -54,6 +56,16 @@
         tmp (.dispose graphics)]
     img))
 
+(defn setup-graphics
+  "Prepare the Java Graphics object for rendering."
+  [image]
+  (let [graphics ^Graphics2D (.createGraphics image)
+        tmp (.setPaint graphics (Color. 255 255 255 0))
+        tmp (.setComposite graphics AlphaComposite/Clear)
+        tmp (.setStroke graphics (BasicStroke. 2))
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)]
+  graphics))
+
 (defn draw-triangle
   "Transform a triangle into a Java graphics polygon and render it."
   [triangle graphics]
@@ -76,6 +88,7 @@
   [^String filename ^Integer width ^Integer height circle points lines active-walls last-point triangles]
   (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         graphics ^Graphics2D (.createGraphics img)
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
         tmp (.setPaint graphics Color/white)
         tmp (.fill graphics (Rectangle. 0 0 width height))
         tmp (.setPaint graphics Color/black)
@@ -100,10 +113,10 @@
     (image/write-image filename img)))
 
 (defn make-debug-fn-1
-  [discovered-image visualrange]
+  [width height visualrange]
   (fn
     [filename point points sorted-walls active-walls last-point triangles]
-    (debug-draw filename (.getWidth discovered-image) (.getHeight discovered-image) (c/circle point visualrange) points sorted-walls active-walls last-point triangles)))
+    (debug-draw filename width height (c/circle point visualrange) points sorted-walls active-walls last-point triangles)))
 
 (defn make-debug-fn-2
   [point sorted-walls]
@@ -111,45 +124,39 @@
     [filename points active-walls last-point triangles]
     (@debug-fn-1 filename point points sorted-walls active-walls last-point triangles)))
 
+(defn debug-visible-triangles
+  [remaining point new-walls new-point new-triangles relevant-event]
+  (str
+    "========================================\nEVENTS\n"
+    (clojure.string/join "\n" (map #(gcommons/out %) (first remaining)))
+    "\n----------------------------------------\nRELEVANT: " (gcommons/out relevant-event)
+    "\n----------------------------------------\nWALLS\n"
+    (clojure.string/join "\n" (map #(gcommons/out %) new-walls))
+    "\n----------------------------------------\nTRIANGLES\n"
+    (clojure.string/join "\n" (map #(gcommons/out %) new-triangles))
+    "\n----------------------------------------\nNEW POINT\n" (gcommons/out new-point)))
+
+(defn debug-out
+  [remaining point new-walls new-point new-triangles event]
+  (let [filename (str "/tmp/discovery-step-" (System/currentTimeMillis))
+        tmp (spit (str filename ".log") (debug-visible-triangles remaining point new-walls new-point new-triangles event))
+        tmp (@debug-fn (str filename ".png") (map :point (first remaining)) new-walls new-point new-triangles)]
+    ))
+
 ;;==================================================================================================================
-;; Geometric discovery
-;; Discovery based on ray casting to wall points
-;; See https://www.redblobgames.com/articles/visibility/
-;;
+;; Defining the events of the discovery process. Each event represents an end or starting point of a wall.
+;; The events are sorted by the angle so the processing can sweep through them.
+;; Events are grouped if multiple occur at the same angle.
 
 (defrecord Event [angle point wall angle-2]
   gcommons/Printable
-  (gcommons/out [this i] (str (gcommons/indent i) "Event at angle " angle " for\n" (gcommons/out point (inc i)) "\n" (gcommons/out wall (inc i))))
+  (gcommons/out [this i] (str (gcommons/indent i) "Event at angle " angle " for " (gcommons/out point (inc i)) "\n"
+                              "and angle-2 " angle-2 " for " (gcommons/out wall (inc i))))
   (gcommons/out [this] (gcommons/out this 0)))
 
 (defn event
   [angle point wall angle-2]
   (Event. angle point wall angle-2))
-
-(defn sort-line-points
-  "Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point."
-  [line point ref-point]
-  (let [points (list (:p1 line) (:p2 line))
-        angles (sort (map #(p/angle-pos point % ref-point) points))
-        sorted (sort-by #(p/angle-pos point % ref-point) points)]
-    (cond
-      (and (gcommons/close-to 0 (first angles)) (< Math/PI (second angles))) (l/line (second sorted) (first sorted))
-      (and (< (first angles) (/ Math/PI 2)) (> (second angles) (/ (* Math/PI 3) 2))) (l/line (second sorted) (first sorted))
-      :else (l/line (first sorted) (second sorted)))))
-
-(defn shorten-walls
-  "Reduce the walls to those that are inside the polygon."
-  [polygon walls]
-  (filter #(not (nil? %)) (map #(poly/shorten-line polygon %) walls)))
-
-(defn relevant-walls
-  "Get all walls relevant to the discovered point including limiting
-  the distance through polygon approximation of the view circle."
-  [point walls visualrange polygon-steps]
-  (let [circle-points (c/circle-points (c/circle point visualrange) polygon-steps)
-        polygon (poly/from-points circle-points point)
-        relevant-walls (shorten-walls polygon (filter #(not (= (:x point) (:x (:p1 %)) (:x (:p2 %)))) walls))]
-    (concat (:lines polygon) relevant-walls)))
 
 (defn gather-events
   "Create paritioned list of angles of the wall points.
@@ -168,6 +175,61 @@
                  (event a1 (:p1 %) % a2)
                  (event a2 (:p2 %) % a1)))
             walls))))))
+
+;;==================================================================================================================
+;; Preparation of sight blocking walls. Consider only those lines that are intersecting the circle given
+;; by the current point of discovery.
+
+(defn sort-line-points
+  "Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point."
+  [line point ref-point]
+  (let [points (list (:p1 line) (:p2 line))
+        angles (sort (map #(p/angle-pos point % ref-point) points))
+        sorted (sort-by #(p/angle-pos point % ref-point) points)]
+    (cond
+      (and (gcommons/close-to 0 (first angles)) (< Math/PI (second angles))) (l/line (second sorted) (first sorted))
+      (and (< (first angles) (/ Math/PI 2)) (> (second angles) (/ (* Math/PI 3) 2))) (l/line (second sorted) (first sorted))
+      :else (l/line (first sorted) (second sorted)))))
+
+(defn shorten-walls
+  "Reduce the walls to those that are inside the polygon."
+  [polygon walls]
+  (filter #(not (nil? %)) (map #(poly/shorten-line polygon %) walls)))
+
+(defn cut-wall
+  "Cut one wall into separate lines where intersected by other walls."
+  [wall walls]
+  (let [others (filter #(not (= wall %)) walls)
+        intersections (sort-by #(p/distance (:p1 wall) %) (l/cuts-segments wall others))
+        non-ends (filter #(and (not (= (:p1 wall) %)) (not (= (:p2 wall) %))) intersections)
+        points (concat (list (:p1 wall)) non-ends (list (:p2 wall)))]
+    (map #(l/line %1 %2) points (rest points))))
+
+(defn cut-walls
+  "Cut all walls on intersections."
+  [walls]
+  (reduce concat (map #(cut-wall % walls) walls)))
+
+(defn relevant-walls
+  "Get all walls relevant to the discovered point including limiting
+  the distance through polygon approximation of the view circle."
+  [point walls visualrange polygon-steps]
+  (let [circle-points (c/circle-points (c/circle point visualrange) polygon-steps)
+        polygon (poly/from-points circle-points point)
+        relevant-walls (shorten-walls polygon (filter #(not (= (:x point) (:x (:p1 %)) (:x (:p2 %)))) walls))
+        cuts (cut-walls relevant-walls)]
+    (concat (:lines polygon) cuts)))
+
+;;==================================================================================================================
+;; Processing the events
+
+;;------------------------------------------------------------------------------------------------------------------
+;; Decision Helpers
+
+(defn short?
+  "Check if a wall is shorter than 10."
+  [wall]
+  (< (p/distance (:p1 wall) (:p2 wall)) 10))
 
 (defn relevant-event
   "Given the center point of the discovery and the events at a given angle return the relevant event."
@@ -210,8 +272,13 @@
   "Check if all walls adjacent to the relevant event are still coming up in the processing."
   [event current-events]
   (let [adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
-        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))]
-    (every? #(or (> (:angle event) %) (gcommons/close-to (:angle event) %)) angles)))
+        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))
+        smaller (every? #(or (< (:angle event) %) (gcommons/close-to (:angle event) %)) angles)
+        bigger  (every? #(or (> (:angle event) %) (gcommons/close-to (:angle event) %)) angles)]
+    [smaller bigger]))
+
+;;------------------------------------------------------------------------------------------------------------------
+;; Actual Discovery Process
 
 (defn update-triangles
   "This is the function where most of the logic sits. It represents the processing of the events at one angle.
@@ -220,30 +287,18 @@
   (let [event (relevant-event point current-events)
         wall (relevant-wall point (:point event) current-walls)
         new-walls (active-walls current-walls current-events)
-        bigger (all-lines-upcoming? event current-events)]
+        [smaller bigger] (all-lines-upcoming? event current-events)]
     (cond
-    (or (nil? last-point) (= 0 (count current-walls)))
-      [(:point event) current-triangles new-walls]
-    (or (consider-event? point event current-walls) (= 0 remaining))
-      (let [p (cast-point point event current-walls)
-            triangle-point (if bigger (:point event) p)
-            new-point (if bigger p (:point event))
-            triangle (t/triangle point last-point triangle-point)]
-        [new-point (conj current-triangles triangle) new-walls])
-    :else
-      [last-point current-triangles new-walls])))
-
-(defn debug-visible-triangles
-  [remaining point new-walls new-point new-triangles]
-  (dorun (println "========================================\nevents"))
-  (dorun (map #(println (gcommons/out %)) (first remaining)))
-  (dorun (println "----------------------------------------"))
-  (dorun (println (str "relevant : " (gcommons/out (relevant-event point (first remaining))))))
-  (dorun (println "----------------------------------------\nwalls"))
-  (dorun (map #(println (gcommons/out %)) new-walls))
-  (dorun (println "----------------------------------------\ntriangles"))
-  (dorun (println (str "new point: " (gcommons/out new-point))))
-  (dorun (map #(println (gcommons/out %)) new-triangles)))
+      (or (nil? last-point) (= 0 (count current-walls)))
+        [(:point event) current-triangles new-walls]
+      (or (consider-event? point event current-walls) (= 0 remaining))
+        (let [p (cast-point point event current-walls)
+              triangle-point (if (or bigger (not (or bigger smaller))) (:point event) p)
+              new-point (if (or smaller (not (or bigger smaller))) (:point event) p)
+              triangle (t/triangle point last-point triangle-point)]
+          [new-point (conj current-triangles triangle) new-walls])
+      :else
+        [last-point current-triangles new-walls])))
 
 (defn visible-triangles
   "Find the visible triangles."
@@ -252,9 +307,7 @@
         all-walls (map :wall (reduce concat events))
         i (first (sort-by #(p/distance point %) (l/cuts-segments event-line all-walls)))
         intersected-walls (filter #(l/point-on-segment? % i) all-walls)
-        starting-walls (if (nil? i) (list) intersected-walls)
-        tmp (when-not (nil? @debug-fn) (@debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first events)) starting-walls i (list)))
-        ]
+        starting-walls (if (nil? i) (list) intersected-walls)]
     (loop [remaining events
            last-point i
            walls starting-walls
@@ -262,9 +315,7 @@
       (if (= 0 (count remaining))
         triangles
         (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls (first remaining) (count (rest remaining)))
-              tmp (when @debug (debug-visible-triangles remaining point new-walls new-point new-triangles))
-              tmp (when @debug (@debug-fn (str "/tmp/discovery-step-" (System/currentTimeMillis) ".png") (map :point (first remaining)) new-walls new-point new-triangles))
-              ]
+              tmp (when @debug (debug-out remaining point new-walls new-point new-triangles (relevant-event point (first remaining))))]
           (recur
             (rest remaining)
             new-point
@@ -276,31 +327,21 @@
   [point walls visualrange graphics]
   (let [polygon-steps 16
         ref-point (p/point -1 (:y point))
-        sorted-walls (map #(sort-line-points % point ref-point) (relevant-walls point walls visualrange polygon-steps))
+        sorted-walls (map #(sort-line-points % point ref-point) (filter #(not (short? %)) (relevant-walls point walls visualrange polygon-steps)))
         events (gather-events sorted-walls point ref-point)
         events (concat events (list (first events)))
-        tmo (when-not (nil? @debug-fn-1) (reset! debug-fn (make-debug-fn-2 point sorted-walls)))
+        tmp (when-not (nil? @debug-fn-1) (reset! debug-fn (make-debug-fn-2 point sorted-walls)))
         triangles (visible-triangles point events)
         tmp (dorun (map #(draw-triangle % graphics) triangles))]))
 
-(defn discover-ray-casting
+(defn discover-all-points
   "Discover the visible areas based on ray casting with wall tracing."
-  [points wall-lines ^BufferedImage discovered-image visualrange]
-  (let [polygon-steps 16
-        ps (map #(p/point (nth % 0) (nth % 1)) points)
-        graphics ^Graphics2D (.createGraphics discovered-image)
-        tmp (.setPaint graphics (Color. 255 255 255 0))
-        tmp (.setComposite graphics AlphaComposite/Clear)
-        tmp (.setStroke graphics (BasicStroke. 2))
-        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
-        tmp (when @debug (reset! debug-fn-1 (make-debug-fn-1 discovered-image visualrange)))
-        tmp (dorun (map #(discover-point % wall-lines visualrange graphics) ps))
-        tmp (.dispose graphics)]
-    discovered-image))
+  [points wall-lines ^BufferedImage graphics visualrange]
+  (dorun (map #(discover-point % wall-lines visualrange graphics) (map #(p/point (nth % 0) (nth % 1)) points))))
 
 
 ;;==================================================================================================================
-;; Discovery Interfaces
+;; Discovery Interface
 ;;
 
 (defn discover
@@ -309,6 +350,9 @@
   around the points or just check all pixels of the image."
   [points wall-description width height visualrange]
   (let [discovered-image (create-undiscovered-graphics width height)
+        graphics ^Graphics2D (setup-graphics discovered-image)
         wall-lines (parse wall-description)
-        tmp (do (discover-ray-casting points wall-lines discovered-image visualrange))]
+        tmp (when @debug (reset! debug-fn-1 (make-debug-fn-1 width height visualrange)))
+        tmp (do (discover-all-points points wall-lines graphics visualrange))
+        tmp (.dispose graphics)]
     discovered-image))
