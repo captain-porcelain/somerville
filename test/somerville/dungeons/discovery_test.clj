@@ -122,6 +122,8 @@
       (is (= p2 (:p1 s1)))
       (is (= p1 (:p2 s1))))))
 
+;;==================================================================================================================
+;; Manual testing with debuggin output in /tmp/
 
 (defn run-manual-test
   [testname walls points width height visualrange]
