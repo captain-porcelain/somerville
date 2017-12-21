@@ -125,13 +125,14 @@
     (@debug-fn-1 filename point points sorted-walls active-walls last-point triangles)))
 
 (defn debug-visible-triangles
-  [remaining point new-walls new-point new-triangles relevant-event]
+  [remaining point new-walls new-point new-triangles relevant-event smaller bigger]
   (str
     "========================================\nEVENTS\n"
     (clojure.string/join "\n" (map #(gcommons/out %) (first remaining)))
     "\n----------------------------------------\nRELEVANT: " (gcommons/out relevant-event)
     "\n----------------------------------------\nWALLS\n"
     (clojure.string/join "\n" (map #(gcommons/out %) new-walls))
+    "\n----------------------------------------\nSMALLER BIGGER: " smaller " - " bigger
     "\n----------------------------------------\nTRIANGLES\n"
     (clojure.string/join "\n" (map #(gcommons/out %) new-triangles))
     "\n----------------------------------------\nNEW POINT\n" (gcommons/out new-point)))
@@ -139,9 +140,11 @@
 (defn debug-out
   [remaining point new-walls new-point new-triangles event]
   (let [filename (str "/tmp/discovery-step-" (System/currentTimeMillis))
-        tmp (spit (str filename ".log") (debug-visible-triangles remaining point new-walls new-point new-triangles event))
-        tmp (@debug-fn (str filename ".png") (map :point (first remaining)) new-walls new-point new-triangles)]
-    ))
+        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) (first remaining)))
+        smaller (every? #(or (< (:angle event) %) (gcommons/close-to (:angle event) %)) angles)
+        bigger  (every? #(or (> (:angle event) %) (gcommons/close-to (:angle event) %)) angles)
+        tmp (spit (str filename ".log") (debug-visible-triangles remaining point new-walls new-point new-triangles event smaller bigger))
+        tmp (@debug-fn (str filename ".png") (map :point (first remaining)) new-walls new-point new-triangles)]))
 
 ;;==================================================================================================================
 ;; Defining the events of the discovery process. Each event represents an end or starting point of a wall.
@@ -271,8 +274,9 @@
 (defn all-lines-upcoming?
   "Check if all walls adjacent to the relevant event are still coming up in the processing."
   [event current-events]
-  (let [adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
-        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))
+  (let [;adjacent-walls (filter #(or (= (:point event) (:p1 (:wall %))) (= (:point event) (:p2 (:wall %)))) current-events)
+        ;angles (reduce concat (map #(list (:angle %) (:angle-2 %)) adjacent-walls))
+        angles (reduce concat (map #(list (:angle %) (:angle-2 %)) current-events))
         smaller (every? #(or (< (:angle event) %) (gcommons/close-to (:angle event) %)) angles)
         bigger  (every? #(or (> (:angle event) %) (gcommons/close-to (:angle event) %)) angles)]
     [smaller bigger]))
@@ -293,8 +297,8 @@
         [(:point event) current-triangles new-walls]
       (or (consider-event? point event current-walls) (= 0 remaining))
         (let [p (cast-point point event current-walls)
-              triangle-point (if (or bigger (not (or bigger smaller))) (:point event) p)
-              new-point (if (or smaller (not (or bigger smaller))) (:point event) p)
+              triangle-point (if (or bigger (not smaller)) (:point event) p)
+              new-point (if (or smaller (not bigger)) (:point event) p)
               triangle (t/triangle point last-point triangle-point)]
           [new-point (conj current-triangles triangle) new-walls])
       :else
