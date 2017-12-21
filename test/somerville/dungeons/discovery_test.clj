@@ -57,6 +57,33 @@
     (is (commons/close-to 0 (p/distance (p/point -1   0) (:p1 (nth relevant-walls 6)))))
     (is (commons/close-to 0 (p/distance (p/point  1   0) (:p2 (nth relevant-walls 6)))))))
 
+(deftest cut-walls
+  (let [l1 (l/line (p/point 2 1) (p/point 2 5))
+        l2 (l/line (p/point 1 2) (p/point 3 2))
+        l3 (l/line (p/point 1 3) (p/point 3 3))
+        l4 (l/line (p/point 1 4) (p/point 2 4))
+        lines (list l1 l2 l3 l4)
+        cuts (discovery/cut-walls lines)]
+    (is (= 9 (count cuts)))
+    (is (commons/close-to 0 (p/distance (p/point 2 1) (:p1 (nth cuts 0)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 2) (:p2 (nth cuts 0)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 2) (:p1 (nth cuts 1)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 3) (:p2 (nth cuts 1)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 3) (:p1 (nth cuts 2)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 4) (:p2 (nth cuts 2)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 4) (:p1 (nth cuts 3)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 5) (:p2 (nth cuts 3)))))
+    (is (commons/close-to 0 (p/distance (p/point 1 2) (:p1 (nth cuts 4)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 2) (:p2 (nth cuts 4)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 2) (:p1 (nth cuts 5)))))
+    (is (commons/close-to 0 (p/distance (p/point 3 2) (:p2 (nth cuts 5)))))
+    (is (commons/close-to 0 (p/distance (p/point 1 3) (:p1 (nth cuts 6)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 3) (:p2 (nth cuts 6)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 3) (:p1 (nth cuts 7)))))
+    (is (commons/close-to 0 (p/distance (p/point 3 3) (:p2 (nth cuts 7)))))
+    (is (commons/close-to 0 (p/distance (p/point 1 4) (:p1 (nth cuts 8)))))
+    (is (commons/close-to 0 (p/distance (p/point 2 4) (:p2 (nth cuts 8)))))))
+
 (deftest point-sorting
   (testing "q1 simple"
     (let [cp (p/point  0  0)
@@ -95,15 +122,6 @@
       (is (= p2 (:p1 s1)))
       (is (= p1 (:p2 s1))))))
 
-(def desc "line 150,180 180,180
-           line 150,150 150,180
-           line 150,150 180,150
-           line 180,150 180,180
-           line 210,190 230,190
-           line 210,190 210,170
-           line 210,170 230,170
-           line 230,170 230,190
-           line 260,170 260,330")
 
 (defn run-manual-test
   [testname walls points width height visualrange]
