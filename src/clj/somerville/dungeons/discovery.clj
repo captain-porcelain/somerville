@@ -134,6 +134,10 @@
         angles (reduce concat (map #(list (p/angle-pos point (:p1 %) ref-point) (p/angle-pos point (:p2 %) ref-point)) adjacent-walls))
         smaller (and (< 0 (count angles)) (every? #(or (< % (:angle relevant-event)) (gcommons/close-to (:angle relevant-event) %)) angles))
         bigger  (and (< 0 (count angles)) (every? #(or (> % (:angle relevant-event)) (gcommons/close-to (:angle relevant-event) %)) angles))
+        starting-walls (filter #(= (:point relevant-event) (:p1 %)) (concat current-walls last-walls new-walls))
+        ending-walls (filter #(= (:point relevant-event) (:p2 %)) (concat current-walls last-walls new-walls))
+        starting-count (count starting-walls)
+        ending-count (count ending-walls)
         other-walls (filter #(not (or (= (:point relevant-event) (:p1 %)) (= (:point relevant-event) (:p2 %)))) current-walls)
         ws (if (= 0 (count other-walls)) current-walls other-walls)
         cp (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point relevant-event)) ws)))
@@ -154,7 +158,8 @@
       (clojure.string/join "\n" (map #(gcommons/out %) adjacent-walls))
       "\n----------------------------------------\nANGLES\n"
       (clojure.string/join "\n" angles)
-      "\n----------------------------------------\nSMALLER BIGGER: " smaller " - " bigger
+      "\n----------------------------------------\nSMALLER, BIGGER: " smaller " - " bigger
+      "\n----------------------------------------\nSTARTING, ENDING: " starting-count " - " ending-count
       "\n----------------------------------------\nTRIANGLES\n"
       (clojure.string/join "\n" (map #(gcommons/out %) new-triangles))
       "\n----------------------------------------\nCAST POINT\n" (gcommons/out cp)
@@ -304,13 +309,26 @@
 
 (defn wall-angles?
   "Check if all walls adjacent to the relevant event are still coming up in the processing."
-  [point evemt walls]
+  [point event walls]
   (let [ref-point (p/point -1 (:y point))
         adjacent-walls (filter #(or (= (:point event) (:p1 %)) (= (:point event) (:p2 %))) walls)
         angles (reduce concat (map #(list (p/angle-pos point (:p1 %) ref-point) (p/angle-pos point (:p2 %) ref-point)) adjacent-walls))
         smaller (and (< 0 (count angles)) (every? #(or (< % (:angle event)) (gcommons/close-to (:angle event) %)) angles))
         bigger  (and (< 0 (count angles)) (every? #(or (> % (:angle event)) (gcommons/close-to (:angle event) %)) angles))]
     [smaller bigger]))
+
+(defn event-type
+  "Check which type of event this is."
+  [point event walls]
+  (let [starting-walls (filter #(= (:point event) (:p1 %)) walls)
+        ending-walls (filter #(= (:point event) (:p2 %)) walls)
+        starting-count (count starting-walls)
+        ending-count (count ending-walls)]
+    (cond
+      (and (< 0 starting-count) (< 0 ending-count)) :contact
+      (and (< 0 starting-count) (not (< 0 ending-count))) :starting
+      (and (not (< 0 starting-count)) (< 0 ending-count)) :ending
+      :else :bonkers)))
 
 ;;------------------------------------------------------------------------------------------------------------------
 ;; Actual Discovery Process
@@ -323,14 +341,17 @@
         wall (relevant-wall point (:point event) current-walls)
         new-walls (active-walls current-walls current-events)
         ;[smaller bigger] (all-lines-upcoming? event current-events)
-        [smaller bigger] (wall-angles? point event (concat current-walls last-walls))]
+        ;[smaller bigger] (wall-angles? point event (concat current-walls last-walls))
+        etype (event-type point event (concat current-walls last-walls new-walls))]
     (cond
       (or (nil? last-point) (= 0 (count current-walls)))
         [(:point event) current-triangles new-walls]
       (or (consider-event? point event current-walls) (= 0 remaining))
         (let [p (cast-point point event current-walls)
-              triangle-point (if (or smaller (not bigger)) (:point event) p)
-              new-point (if smaller p (:point event))
+              ;triangle-point (if (or smaller (not bigger)) (:point event) p)
+              ;new-point (if smaller p (:point event))
+              triangle-point (if (or (= :contact etype) (= :ending etype)) (:point event) p)
+              new-point (if (or (= :contact etype) (= :starting etype)) (:point event) p)
               triangle (t/triangle point last-point triangle-point)]
           [new-point (conj current-triangles triangle) new-walls])
       :else
