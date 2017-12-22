@@ -1,7 +1,7 @@
 ;; Geometric discovery to create overlay images that only show parts of an image that have been discovered.
 ;; The discovery is based on ray casting to wall points.
 ;; See https://www.redblobgames.com/articles/visibility/
-(ns somerville.dungeons.discovery
+(ns somerville.dungeons.discovery.discovery
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])
