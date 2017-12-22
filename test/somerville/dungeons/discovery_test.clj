@@ -237,9 +237,8 @@
 ;(manual-test-simple-line)
 ;(manual-test-vertical-parallel-line)
 ;(manual-test-rooms)
-;(manual-test-casting)
-(manual-test-baramzigli)
-
+(manual-test-casting)
+;(manual-test-baramzigli)
 
 
 
