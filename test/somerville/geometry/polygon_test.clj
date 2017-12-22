@@ -10,8 +10,7 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
-    [somerville.geometry.polygon :as poly]
-    [somerville.dungeons.discovery :as discovery])
+    [somerville.geometry.polygon :as poly])
   (:use clojure.test))
 
 
