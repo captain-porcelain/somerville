@@ -3,6 +3,7 @@
   (:require
     [somerville.image :as images]
     [somerville.dungeons.discovery.ray-cast-wall-trace :as rcwt]
+    [somerville.dungeons.discovery.parser :as parser]
     [somerville.dungeons.discovery.image :as image]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
@@ -63,7 +64,12 @@
   (let [points '([137 109])
         walls (slurp "test-resources/maglubiyet.walls")]
     (time (run-manual-test "maglubiyet" walls points 6200 5535 300))))
-    ;(time (run-manual-test "maglubiyet" walls points 1000 1000 300))))
+
+(defn manual-triangle-test-maglubiyet
+  []
+  (let [point (p/point 137 109)
+        walls (parser/parse (slurp "test-resources/maglubiyet.walls"))]
+    (time (dorun (println (str "Discovered triangles: " (count (rcwt/discover-point point walls 300))))))))
 
 ;(manual-test-clear)
 ;(manual-test-simple-line)
@@ -71,7 +77,9 @@
 ;(manual-test-casting)
 ;(manual-test-rooms)
 ;(manual-test-baramzigli)
-(manual-test-maglubiyet)
+;(manual-test-maglubiyet)
+
+(try (manual-triangle-test-maglubiyet) (catch Exception e (.printStackTrace e)))
 
 
 

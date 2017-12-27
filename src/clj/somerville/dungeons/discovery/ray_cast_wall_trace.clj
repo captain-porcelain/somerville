@@ -13,6 +13,7 @@
     [somerville.geometry.polygon :as poly]
     [taoensso.timbre :as log]))
 
+(set! *warn-on-reflection* true)
 
 ;;==================================================================================================================
 ;; Debugging helpers
@@ -25,7 +26,7 @@
 
 (defn draw-triangle
   "Transform a triangle into a Java graphics polygon and render it."
-  [triangle graphics]
+  [triangle ^Graphics2D graphics]
   (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
         ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
         p (Polygon. xs ys (count xs))
