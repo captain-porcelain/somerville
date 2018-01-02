@@ -360,10 +360,21 @@
 ;; Discovery Interface
 ;;
 
+(defn discover-triangles
+  "Create a list of triangles that represent visible areas based on the given point and walls."
+  [point wall-description width height visualrange]
+  (let [walls (parse wall-description)
+        tmp (when @debug (reset! debug-fn-1 (make-debug-fn-1 width height visualrange)))
+        polygon-steps 16
+        ref-point (p/point -1 (:y point))
+        sorted-walls (map #(sort-line-points % point ref-point) (filter #(not (short? %)) (relevant-walls point walls visualrange polygon-steps)))
+        events (gather-events sorted-walls point ref-point)
+        events (concat events (list (first events)))
+        tmp (when-not (nil? @debug-fn-1) (reset! debug-fn (make-debug-fn-2 point sorted-walls)))]
+    (visible-triangles point events)))
+
 (defn discover
-  "Create a black image that is set to transparent in areas that are visible from discovered points.
-  Based on the amount of pixels decide upon the strategy. Either using bounding boxes for the circles
-  around the points or just check all pixels of the image."
+  "Create a black image that is set to transparent in areas that are visible from discovered points."
   [points wall-description width height visualrange]
   (let [discovered-image (create-undiscovered-graphics width height)
         graphics ^Graphics2D (setup-graphics discovered-image)
