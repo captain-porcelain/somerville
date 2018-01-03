@@ -1,4 +1,4 @@
-(defproject somerville "1.0.6"
+(defproject somerville "1.0.7-SNAPSHOT"
   :description "Implementation of some mathematical functions."
   :dependencies
   [[org.clojure/clojure "1.9.0"]
