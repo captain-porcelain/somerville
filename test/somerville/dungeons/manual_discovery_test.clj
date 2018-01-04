@@ -1,12 +1,11 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
-(ns somerville.dungeons.discovery.manual-test
+(ns somerville.dungeons.manual-discovery-test
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])
   (:require
     [somerville.image :as image]
-    [somerville.dungeons.discovery.ray-cast-wall-trace :as rcwt]
-    [somerville.dungeons.discovery.parser :as parser]
+    [somerville.dungeons.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
@@ -95,7 +94,7 @@
 (defn run-manual-test
   [testname walls points width height visualrange]
   (try
-    (let [wall-lines (parser/parse walls)
+    (let [wall-lines (rcwt/parse walls)
           ps (map #(vector (p/point (nth %1 0) (nth %1 1)) %2) points (iterate inc 0))]
       (dorun (map #(run-manual-point-test testname (second %) wall-lines (first %) width height visualrange) ps)))
     (catch Exception e (.printStackTrace e))))
