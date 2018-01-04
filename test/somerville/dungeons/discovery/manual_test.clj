@@ -1,13 +1,12 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
-(ns somerville.dungeons.discovery.image-test
+(ns somerville.dungeons.discovery.manual-test
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])
   (:require
-    [somerville.image :as images]
+    [somerville.image :as image]
     [somerville.dungeons.discovery.ray-cast-wall-trace :as rcwt]
     [somerville.dungeons.discovery.parser :as parser]
-    [somerville.dungeons.discovery.image :as image]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
@@ -53,7 +52,7 @@
         tmp (.setPaint graphics Color/gray)
         tmp (dorun (map #(draw-triangle % graphics) triangles))
         tmp (.dispose graphics)]
-    (images/write-image filename img)))
+    (image/write-image filename img)))
 
 (defn debug-text
   [remaining point new-walls current-walls last-walls new-point new-triangles relevant-event]
