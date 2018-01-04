@@ -1,11 +1,25 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
-(ns somerville.dungeons.discovery.ray-cast-wall-trace-test
+(ns somerville.dungeons.discovery-test
   (:require
-    [somerville.dungeons.discovery.ray-cast-wall-trace :as rcwt]
+    [somerville.dungeons.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l])
   (:use clojure.test))
+
+(def wall-description
+  "line 10,10 30,10
+   blubber
+   line 10.1,30 10
+   line 10.1,30
+   line 30,10 30,30")
+
+(deftest parsing
+  (let [parsed (rcwt/parse wall-description)]
+    (is (= 2 (count parsed)))
+    (is (= (l/line (p/point 10 10) (p/point 30 10)) (nth parsed 0)))
+    (is (= (l/line (p/point 30 10) (p/point 30 30)) (nth parsed 1)))))
+
 
 (deftest relevant-walls
   (let [l1 (l/line (p/point -0.5 0) (p/point 0.5 0))

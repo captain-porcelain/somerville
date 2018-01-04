@@ -1,4 +1,4 @@
-(ns somerville.dungeons.discovery.ray-cast-wall-trace
+(ns somerville.dungeons.discovery
   (:require
     [somerville.commons :as commons]
     [somerville.geometry.commons :as gcommons]
@@ -8,6 +8,34 @@
     [somerville.geometry.triangle :as t]
     [somerville.geometry.polygon :as poly]
     [taoensso.timbre :as log]))
+
+;;==================================================================================================================
+;; Parsing wall descriptions
+
+(defn translate-line
+  "Translate a line description into an actual line."
+  [parameters]
+  ;; Check that we have two parameters
+  (when (= 2 (count parameters))
+    (let [parts (reduce concat (map #(clojure.string/split % #",") parameters))
+          iparts (filter #(not (nil? %)) (map #(commons/parse-int % nil) parts))]
+      (when (= 4 (count iparts))
+        (l/line (p/point (nth iparts 0) (nth iparts 1)) (p/point (nth iparts 2) (nth iparts 3)))))))
+
+(defn translate-description
+  "Translate one wall description."
+  [^String description]
+  (let [parts (clojure.string/split (.trim description) #"\s+")]
+    (when (< 1 (count parts))
+      (case (first parts)
+        "line" (translate-line (rest parts))
+        :else nil))))
+
+(defn parse
+  "Given a string representation of wall descriptions create the geometrical representations for them."
+  [^String wall-description]
+  (filter #(not (nil? %)) (map translate-description (clojure.string/split wall-description #"\n"))))
+
 
 ;;==================================================================================================================
 ;; Defining the events of the discovery process. Each event represents an end or starting point of a wall.
@@ -195,8 +223,9 @@
 
 (defn discover-point
   "Discover the visible area created by one discovered point."
-  ([point walls visualrange debugmapref]
+  ([point wall-description visualrange debugmapref]
    (let [polygon-steps 16
+         walls (parse wall-description)
          ref-point (p/point -1 (:y point))
          sorted-walls (map #(sort-line-points % point ref-point) (filter #(not (short? %)) (relevant-walls point walls visualrange polygon-steps)))
          events (gather-events sorted-walls point ref-point)
@@ -210,5 +239,5 @@
                                                                      :steps [])))
          triangles (visible-triangles point events debugmapref)]
      triangles))
-  ([point walls visualrange]
-   (discover-point point walls visualrange nil)))
+  ([point wall-description visualrange]
+   (discover-point point wall-description visualrange nil)))
