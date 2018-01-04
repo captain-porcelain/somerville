@@ -265,7 +265,7 @@
 
 (defn visible-triangles
   "Find the visible triangles."
-  [point events]
+  [point events debugmapref]
   (let [event-line (l/line point (:point (relevant-event point (first events))))
         all-walls (map :wall (reduce concat events))
         i (first (sort-by #(p/distance point %) (l/cuts-segments event-line all-walls)))
@@ -279,6 +279,8 @@
       (if (= 0 (count remaining))
         triangles
         (let [[new-point new-triangles new-walls] (update-triangles point last-point triangles walls last-walls (first remaining) (count (rest remaining)))
+              de {:remaining remaining :point point :new-walls new-walls :walls walls :last-walls last-walls :new-point new-point :new-triangles new-triangles :relevant (relevant-event point (first remaining))}
+              tmp (when-not (nil? debugmapref) (swap! debugmapref #(assoc % :steps (conj (:steps %) de))))
               tmp (when @debug (debug-out remaining point new-walls walls last-walls new-point new-triangles (relevant-event point (first remaining))))]
           (recur
             (rest remaining)
@@ -289,13 +291,21 @@
 
 (defn discover-point
   "Discover the visible area created by one discovered point."
-  [point walls visualrange]
-  (let [polygon-steps 16
-        ref-point (p/point -1 (:y point))
-        sorted-walls (map #(sort-line-points % point ref-point) (filter #(not (short? %)) (relevant-walls point walls visualrange polygon-steps)))
-        events (gather-events sorted-walls point ref-point)
-        events (concat events (list (first events)))
-        tmp (when-not (nil? @debug-fn-1) (reset! debug-fn (make-debug-fn-2 point sorted-walls)))
-        triangles (visible-triangles point events)]
-    triangles))
-
+  ([point walls visualrange debugmapref]
+   (let [polygon-steps 16
+         ref-point (p/point -1 (:y point))
+         sorted-walls (map #(sort-line-points % point ref-point) (filter #(not (short? %)) (relevant-walls point walls visualrange polygon-steps)))
+         events (gather-events sorted-walls point ref-point)
+         events (concat events (list (first events)))
+         tmp (when-not (nil? @debug-fn-1) (reset! debug-fn (make-debug-fn-2 point sorted-walls)))
+         tmp (when-not (nil? debugmapref) (swap! debugmapref #(assoc % :polygon-steps polygon-steps
+                                                                     :point point
+                                                                     :ref-point ref-point
+                                                                     :sorted-walls sorted-walls
+                                                                     :visualrange visualrange
+                                                                     :events events
+                                                                     :steps [])))
+         triangles (visible-triangles point events debugmapref)]
+     triangles))
+  ([point walls visualrange]
+   (discover-point point walls visualrange nil)))
