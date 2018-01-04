@@ -61,7 +61,6 @@
   (let [discovered-image (create-undiscovered-graphics width height)
         graphics ^Graphics2D (setup-graphics discovered-image)
         wall-lines (parser/parse wall-description)
-        tmp (when @rcwt/debug (reset! rcwt/debug-fn-1 (rcwt/make-debug-fn-1 width height visualrange)))
         tmp (do (discover-all-points points wall-lines graphics visualrange))
         tmp (.dispose graphics)]
     discovered-image))
