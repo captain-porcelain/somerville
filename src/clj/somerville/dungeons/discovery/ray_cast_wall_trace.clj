@@ -1,7 +1,6 @@
 (ns somerville.dungeons.discovery.ray-cast-wall-trace
   (:require
     [somerville.commons :as commons]
-    [somerville.image :as image]
     [somerville.geometry.commons :as gcommons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
@@ -9,8 +8,6 @@
     [somerville.geometry.triangle :as t]
     [somerville.geometry.polygon :as poly]
     [taoensso.timbre :as log]))
-
-(set! *warn-on-reflection* true)
 
 ;;==================================================================================================================
 ;; Defining the events of the discovery process. Each event represents an end or starting point of a wall.
