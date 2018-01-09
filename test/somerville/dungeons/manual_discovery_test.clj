@@ -78,7 +78,7 @@
 ;; Manual testing with debug output in /tmp/
 
 (defn run-manual-point-test
-  [testname i walls point width height visualrange]
+  [testname i walls wall-lines point width height visualrange]
   (let [debugmapref (atom {})
         triangles (rcwt/discover-point point walls visualrange debugmapref)]
     (dorun
@@ -87,7 +87,7 @@
               text (debug-text (:remaining s) (:point s) (:new-walls s) (:walls s) (:last-walls s) (:new-point s) (:new-triangles s) (:relevant s))
               tmp (spit (str filename ".log") text)
               circle (c/circle point visualrange)
-              tmp (debug-draw (str filename ".png") width height circle (map :point (first (:remaining s))) walls (:new-walls s) (:new-point s) (:new-triangles s))
+              tmp (debug-draw (str filename ".png") width height circle (map :point (first (:remaining s))) wall-lines (:new-walls s) (:new-point s) (:new-triangles s))
               ]
           )))))
 
@@ -96,7 +96,7 @@
   (try
     (let [wall-lines (rcwt/parse walls)
           ps (map #(vector (p/point (nth %1 0) (nth %1 1)) %2) points (iterate inc 0))]
-      (dorun (map #(run-manual-point-test testname (second %) wall-lines (first %) width height visualrange) ps)))
+      (dorun (map #(run-manual-point-test testname (second %) walls wall-lines (first %) width height visualrange) ps)))
     (catch Exception e (.printStackTrace e))))
 
 (defn manual-test-rooms
@@ -142,6 +142,12 @@
         walls (slurp "test-resources/maglubiyet.walls")]
     (time (run-manual-test "maglubiyet" walls points 6200 5535 300))))
 
+(defn manual-test-maglubiyet-2
+  []
+  (let [points '([1037 1123])
+        walls (slurp "test-resources/maglubiyet-2.walls")]
+    (time (run-manual-test "maglubiyet-2" walls points 1520 1734 400))))
+
 ;(manual-test-clear)
 ;(manual-test-simple-line)
 ;(manual-test-vertical-parallel-line)
@@ -149,4 +155,5 @@
 ;(manual-test-rooms)
 ;(manual-test-baramzigli)
 ;(manual-test-maglubiyet)
+(manual-test-maglubiyet-2)
 
