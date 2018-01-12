@@ -75,19 +75,24 @@
   [width height]
   (BufferedImage. width height BufferedImage/TYPE_INT_ARGB))
 
+(defn spit-walls
+  "SPit walls to file."
+  [g wall-length filename]
+  (spit filename (clojure.string/join "\n" (walls g wall-length))))
+
 (defn render-walls
   "Render grid walls to image."
   [g wall-length imagename]
   (let [walls (convert-to-walls g wall-length)
         hwl (int (Math/floor (/ wall-length 2)))
         h (int (Math/floor (Math/sqrt (- (* wall-length wall-length) (* hwl hwl)))))
-        iw (+ hwl (* 3 hwl (:width g)))
-        ih (+ h (* 2 h (:height g)))
+        iw (+ hwl (* 3 hwl (:width g)) 10)
+        ih (+ h (* 2 h (:height g)) 10)
         img ^BufferedImage (new-image iw ih)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setPaint graphics Color/white)
         tmp (.fill graphics (Rectangle. 0 0 iw ih))
         tmp (.setPaint graphics Color/black)
-        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) walls))
+        tmp (dorun (map #(.drawLine graphics (+ 4 (:x (:p1 %))) (+ 4 (:y (:p1 %))) (+ 4 (:x (:p2 %))) (+ 4 (:y (:p2 %)))) walls))
         tmp (.dispose graphics)]
     (image/write-image imagename img)))
