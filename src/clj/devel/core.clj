@@ -3,6 +3,7 @@
     [clojure.edn :as edn]
     [devel.config :as config]
     [devel.nrepl :as nrepl]
+    [devel.cljs :as cljs]
     [devel.tests :as tests]
     [reply.main :as reply]))
 
@@ -22,6 +23,14 @@
   []
   (tests/watch))
 
+(defn compile-cljs
+  []
+  (cljs/compile-once))
+
+(defn watch-cljs
+  []
+  (cljs/watch))
+
 (defn stop-watching-tests
   []
   (tests/stop-watching))
@@ -32,6 +41,7 @@
 
 (defn -main
   []
+  (load-config)
   (reply/launch-standalone {:color true})
   (System/exit 0))
 
