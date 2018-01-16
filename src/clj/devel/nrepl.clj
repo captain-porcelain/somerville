@@ -10,6 +10,8 @@
 (def supported-handler
   ['cider.nrepl/cider-nrepl-handler])
 
+(def server (atom nil))
+
 (defn- namespace-avail? [ns]
   (try
     (require ns)
@@ -49,7 +51,13 @@
 
 (defn start
   []
-  (let [{port :port}
-        (nrepl-server/start-server :handler ((nrepl-middlewares) (nrepl-handler)))]
-    (println "nrepl server started at port" port)
-(create-nrepl-port-file port)))
+  (let [s (nrepl-server/start-server :handler ((nrepl-middlewares) (nrepl-handler)))]
+    (reset! server s)
+    (.addShutdownHook (Runtime/getRuntime)
+                      (Thread. #(nrepl-server/stop-server @server)))
+    (println "nrepl server started at port" (:port s))
+    (create-nrepl-port-file (:port s))))
+
+(defn stop
+  []
+  (when-not (nil? @server) (nrepl-server/stop-server @server)))
