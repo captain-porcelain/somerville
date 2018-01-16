@@ -1,5 +1,6 @@
 (ns devel.tests
   (:require
+    [devel.config :as config]
     [clojure.string :as s]
     [clojure.java.shell :as shell]
     [clojure.java.io :as io]
@@ -9,17 +10,17 @@
 (hto/activate!)
 
 (def last-test-run (atom 0))
-(def running (atom false))
+(def watching (atom false))
 
 (defn to-ns
   "String replacements to get namespace from filename."
   [filepath]
-  (s/replace (s/replace (s/replace (s/replace filepath "test/" "") "/" ".") ".clj" "") "_" "-"))
+  (s/replace (s/replace (s/replace (s/replace filepath (str (:test-sources @config/config) "/") "") "/" ".") ".clj" "") "_" "-"))
 
 (defn find-test-files
   "Use the shell to list all files in test folder."
   []
-  (filter #(.contains % ".clj") (s/split (:out (shell/sh "find" "test")) #"\n")))
+  (filter #(.contains % ".clj") (s/split (:out (shell/sh "find" (:test-sources @config/config))) #"\n")))
 
 (defn filemap
   "Create a map for each filepath remembering when it was last modified."
@@ -55,18 +56,27 @@
   []
   (let [tests (filter #(< @last-test-run (:last-modified %)) (find-tests))
         namespaces (map :namespace tests)]
-    (dorun (println (str "Changed namespace:\n\t" (s/join "\n\t" namespaces))))
-    (dorun (map load-namespace namespaces))
-    (reset! last-test-run (System/currentTimeMillis))
-    (apply ctest/run-tests namespaces)))
+    (when (< 0 (count namespaces))
+      (dorun (println (str "Changed namespaces:\n\t" (s/join "\n\t" namespaces))))
+      (dorun (map load-namespace namespaces))
+      (reset! last-test-run (System/currentTimeMillis))
+      (apply ctest/run-tests namespaces))))
+
+(defn spit-test-results
+  "Write test results to file."
+  []
+  (with-open [writer (io/writer (:test-output @config/config))]
+    (with-bindings {*out* writer ctest/*test-out* writer}
+      (run-changed))))
 
 (defn watch
   "Run all tests initially then watch the files and rerun when changes occur."
   []
-  (reset! running true)
-  (future (while @running (run-changed) (Thread/sleep 1000))))
+  (when-not @watching
+    (reset! watching true)
+    (future (while @watching (run-changed) (Thread/sleep 1000)))))
 
 (defn stop-watching
   []
-  (reset! running false))
+  (reset! watching false))
 

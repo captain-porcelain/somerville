@@ -1,0 +1,2 @@
+{:test-sources "test"
+ :test-output "test-results.log"}
