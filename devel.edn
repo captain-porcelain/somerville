@@ -1,2 +1,7 @@
 {:test-sources "test"
- :test-output "test-results.log"}
+ :test-output "test-results.log"
+ :cljs-sources ("src/cljc" "src/cljs")
+ :cljs-options {:output-to "resources/js/somerville.js"
+                :optimizations :whitespace
+                ;:optimizations :advanced
+                :pretty-print true}}
