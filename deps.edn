@@ -10,13 +10,8 @@
  {:devel
   {:extra-paths ["test"]
    :extra-deps
-   {reply                       {:mvn/version "0.3.7"}
-    pjstadig/humane-test-output {:mvn/version "0.8.3"} cider/cider-nrepl           {:mvn/version "0.16.0"}
-    ;clojure.tools.namespace     {:mvn/version "0.2.11"}
-    ;com.cemerick/piggieback     {:mvn/version "0.2.2"
-                                 ;:exclusions  [com.google.javascript/closure-compiler]}
-    ;figwheel-sidecar            {:mvn/version "0.5.14"
-                                 ;:exclusions  [com.google.javascript/closure-compiler]}
-    org.clojure/tools.nrepl     {:mvn/version "0.2.12"}
-    ;refactor-nrepl              {:mvn/version "2.3.1"}
+   ;{succubus/succubus           {:git/url "ssh://gitea@git.pinktentacle.net:sanakan/succubus.git"
+                                 ;:sha "c59b08f1f3ed2d506145929d14151b81c63cea7d"}
+   {clojure/tools.deps.alpha    {:git/url "https://github.com/clojure/tools.deps.alpha"
+                                 :sha "10273c9bbfc656ff6132bea34e0e590f089a4189"}
     }}}}
