@@ -7,11 +7,9 @@
   com.taoensso/timbre           {:mvn/version "4.10.0"}}
  :paths ["src/clj" "src/cljc"]
  :aliases
- {:devel
+ {:hibiscus
   {:extra-paths ["test"]
    :extra-deps
-   ;{succubus/succubus           {:git/url "ssh://gitea@git.pinktentacle.net:sanakan/succubus.git"
-                                 ;:sha "c59b08f1f3ed2d506145929d14151b81c63cea7d"}
-   {clojure/tools.deps.alpha    {:git/url "https://github.com/clojure/tools.deps.alpha"
-                                 :sha "10273c9bbfc656ff6132bea34e0e590f089a4189"}
-    }}}}
+   {sanakan/hibiscus            {:git/url "gitea@git.pinktentacle.net:sanakan/hibiscus.git"
+                                 :sha "d58b2992357097cb1a7319cfb8dbb4f35a47b83c"
+                                 :deps/manifest :deps}}}}}
