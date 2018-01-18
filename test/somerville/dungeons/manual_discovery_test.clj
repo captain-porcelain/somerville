@@ -155,5 +155,5 @@
 ;(manual-test-rooms)
 ;(manual-test-baramzigli)
 ;(manual-test-maglubiyet)
-(manual-test-maglubiyet-2)
+;(manual-test-maglubiyet-2)
 
