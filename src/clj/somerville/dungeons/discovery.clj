@@ -181,7 +181,6 @@
   It finds next point of a triangle, and updates relevant walls and adds triangles."
   [point last-point current-triangles current-walls last-walls current-events remaining]
   (let [event (relevant-event point current-events)
-        wall (relevant-wall point (:point event) current-walls)
         new-walls (active-walls current-walls current-events)
         etype (event-type point event (concat current-walls last-walls new-walls))]
     (cond
