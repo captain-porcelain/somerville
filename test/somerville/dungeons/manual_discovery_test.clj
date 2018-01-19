@@ -32,6 +32,8 @@
         tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
         tmp (.setPaint graphics Color/white)
         tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.setPaint graphics Color/gray)
+        tmp (dorun (map #(draw-triangle % graphics) triangles))
         tmp (.setPaint graphics Color/black)
         tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) lines))
         tmp (.setPaint graphics Color/red)
@@ -48,8 +50,6 @@
               (.drawLine graphics (- (:x last-point) 5) (:y last-point) (+ (:x last-point) 5) (:y last-point)))
         tmp (.setPaint graphics Color/orange)
         tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) active-walls))
-        tmp (.setPaint graphics Color/gray)
-        tmp (dorun (map #(draw-triangle % graphics) triangles))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
 
@@ -127,6 +127,12 @@
   []
   (let [points '([500 500])
         walls "line 500,0 500,400"]
+    (time (run-manual-test "vertical-parallel-line" walls points 1000 1000 300))))
+
+(defn manual-test-horizontal-parallel-line
+  []
+  (let [points '([500 500])
+        walls "line 0,500 400,500"]
     (time (run-manual-test "vertical-parallel-line" walls points 1000 1000 300))))
 
 (defn manual-test-casting
