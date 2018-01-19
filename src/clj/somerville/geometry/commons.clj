@@ -12,8 +12,14 @@
 
 (defn close-to
   "Compare floats."
-  [x y]
-  (and (< x (+ y epsilon)) (> x (- y epsilon))))
+  ([x y]
+   (and (< x (+ y epsilon)) (> x (- y epsilon))))
+  ([x y z]
+   (and
+     (< x (+ y epsilon))
+     (> x (- y epsilon))
+     (< x (+ z epsilon))
+     (> x (- z epsilon)))))
 
 (defn compareTo
   ".compareTo alternative to handle clojure BigInteger."
