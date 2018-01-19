@@ -147,12 +147,30 @@
         closer (filter #(and (not (gcommons/close-to dist (p/distance point %))) (< (p/distance point %) dist)) intersections)]
     (= 0 (count closer))))
 
+(defn consider-cast?
+  "A cast point is valid only if it is on the line from the point towards the event point
+  and not when it points away from event point."
+  [point event-point candidate]
+  (let [alpha (p/angle-pos point event-point candidate)]
+    ;(dorun (println (str (gcommons/out point)(gcommons/out event-point)(gcommons/out candidate))))
+    ;(dorun (println (p/angle-pos point event-point candidate)))
+    (or
+      (gcommons/close-to (:y point) (:y event-point) (:y candidate))
+      (gcommons/close-to 0 (p/distance event-point candidate))
+      (gcommons/close-to (* 2 Math/PI) alpha)
+      (gcommons/close-to 0 alpha))))
+
 (defn cast-point
   "Find the next triangle point either at the event or at the wall behind the event."
   [point event walls]
-  (let [other-walls (filter #(not (or (= (:point event) (:p1 %)) (= (:point event) (:p2 %)))) walls)
+  ;(let [other-walls (filter #(not (or (= (:point event) (:p1 %)) (= (:point event) (:p2 %)))) walls)
+  (let [other-walls (filter #(not (= (:point event) (:p2 %)) ) walls)
         ws (if (= 0 (count other-walls)) walls other-walls)]
-    (first (sort-by #(p/distance point %) (l/cuts (l/line point (:point event)) ws)))))
+    (first
+      (sort-by #(p/distance point %)
+               (filter
+                 #(consider-cast? point (:point event) %)
+                 (l/cuts (l/line point (:point event)) ws))))))
 
 (defn active-walls
   "Get the list of active walls based on the events at an angle."
@@ -181,7 +199,7 @@
   It finds next point of a triangle, and updates relevant walls and adds triangles."
   [point last-point current-triangles current-walls last-walls current-events remaining]
   (let [event (relevant-event point current-events)
-        new-walls (active-walls current-walls current-events)
+        new-walls (distinct (active-walls current-walls current-events))
         etype (event-type point event (concat current-walls last-walls new-walls))]
     (cond
       (or (nil? last-point) (= 0 (count current-walls)))
@@ -199,7 +217,7 @@
   "Find the visible triangles."
   [point events debugmapref]
   (let [event-line (l/line point (:point (relevant-event point (first events))))
-        all-walls (map :wall (reduce concat events))
+        all-walls (distinct (map :wall (reduce concat events)))
         i (first (sort-by #(p/distance point %) (l/cuts-segments event-line all-walls)))
         intersected-walls (filter #(l/point-on-segment? % i) all-walls)
         starting-walls (if (nil? i) (list) intersected-walls)]
