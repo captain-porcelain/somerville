@@ -48,11 +48,11 @@
 (defn point-inside-polygon?
   "Check if point is inside the polygon."
   [polygon point]
-  (and
-    ;(not (on-polygon? polygon point))
+  (or
+    (on-polygon? polygon point)
     (= 0 (count (intersect-segments polygon (l/line (:center polygon) point))))))
 
-(defn shorten-line
+(defn shorten-line-int
   "Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil."
   [polygon line]
   (let [intersections (intersect-segments polygon line)]
@@ -62,3 +62,8 @@
       2 (l/line (nth intersections 0) (nth intersections 1))
       line)))
 
+(defn shorten-line
+  "Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil."
+  [polygon line]
+  (let [s (shorten-line-int polygon line)]
+    (when-not (= (:p1 s) (:p2 s)) s)))

@@ -137,3 +137,4 @@
         cell-edges (map connect-cell (map cell-corners intersected))
         cells (map cell points cell-edges)]
     (Voronoi. intersected cells bx1 by1 bx2 by2)))
+

@@ -3,6 +3,7 @@
             [somerville.geometry.commons :as c]
             [somerville.geometry.point :as p]
             [somerville.geometry.voronoi :as voronoi]
+            [somerville.geometry.rendering.svg :as svg]
             [quil.core :as quil])
   (:gen-class))
 
@@ -98,7 +99,9 @@
 		(reset! points (list))
 		(reset! sites (voronoi/voronoi @points 0 0 width height))))
     (if (= (quil/key-code) 68) ; d
-      (dorun (println (c/out @sites)))))
+      (dorun (println (c/out @sites))))
+    (if (= (quil/key-code) 80) ; p
+      (svg/voronoi @sites "/tmp/voronoi.svg")))
 
 (defn show []
   (quil/sketch
