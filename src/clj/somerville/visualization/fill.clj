@@ -71,7 +71,7 @@
   (quil/smooth)
   (quil/fill 226)
   (quil/frame-rate 1)
-  (reset! test-image (quil/load-image  "/home/sanakan/code/mathematics/resources/test-image.jpg"))
+  (reset! test-image (quil/load-image  "./resources/test-image.jpg"))
   (dopartition))
 
 (defn mouse-pressed [])
