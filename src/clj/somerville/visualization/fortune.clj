@@ -69,12 +69,9 @@
 
 (defn draw-cell
   [cell]
-  (dorun
-    (for [l (:lines cell)]
-      (let []
-        (quil/stroke-float 200 200 200)
-        (quil/fill-float 200 200 200)
-        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
+  (quil/stroke-float 200 200 200)
+  (quil/fill-float 200 200 200)
+  (dorun (map #(quil/line (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines cell))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -83,8 +80,8 @@
   (quil/stroke-float 0 255 0)
   (quil/fill-float 0 255 0)
   (dorun
-    (for [site (:cells @vsites)]
-      (draw-cell site)))
+	(for [site (:cells @vsites)]
+	  (draw-cell site)))
   (dorun
     (for [site (:points @sites)]
       (draw-site site)))
@@ -92,7 +89,7 @@
     (for [site (:events @sites)]
       (draw-event site)))
   (dorun
-    (for [node (fortune/tree-seq (:tree @sites))]
+    (for [node (fortune/sequence-from-tree (:tree @sites))]
       (when (not (nil? (:edge node))) (draw-edge (:edge node)))))
   (let [step (- (:step @sites) 1)
         sweep-y (if (and (>= step 0) (< step (count (:points @sites))))

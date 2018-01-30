@@ -1,3 +1,4 @@
+;; See http://blog.ivank.net/fortunes-algorithm-and-implementation.html
 (ns somerville.geometry.fortune
   (:require
     [clojure.zip :as z]
@@ -154,7 +155,7 @@
         (recur parent)
         parent))))
 
-(defn tree-seq
+(defn sequence-from-tree
   "Create a sequence of the tree."
   [tree]
   (map z/node (take-while (complement z/end?) (iterate z/next (make-zipper tree)))))
@@ -175,7 +176,7 @@
                        "\n\n"))
   (c/out [this] (c/out this 0)))
 
-(defn find-parabola
+(defn find-parabola-for-insert
   "Find the parabola that is to be split in two by a site event. This is done by walking down
   the tree, calculating the parabolas for each child node and intersecting the parabolas.
   Depending if the event is left or right of the intersection the child node is selected for
@@ -194,6 +195,11 @@
       (if (< (:x (:point event)) x)
         (recur (z/down zipper) event)
         (recur (z/right (z/down zipper)) event)))))
+
+(defn find-parabola-for-deletion
+  ""
+  [zipper event]
+  (first (drop-while #(not= event (:event %)) (repeatedly (z/next zipper)))))
 
 (defn circle-points-valid?
   "Check that the leafs to the left and the right of a newly created tree node exist and are different."
@@ -250,14 +256,16 @@
   [tree event]
   (if (nil? tree)
     [(treenode event) (list)]
-    (let [parabola (find-parabola (make-zipper tree) event)
+    (let [parabola (find-parabola-for-insert (make-zipper tree) event)
           updated (z/edit parabola (fn [n] (create-subtree n event parabola)))]
       [(z/root updated) (new-nodes updated)])))
 
+;; TODO this needs to be implemented
 (defn remove-parabola
   [tree point]
   [tree (list)])
 
+;; TODO loop this for all events
 (defn step
   "Process first event in events and update event queue and tree."
   [v]

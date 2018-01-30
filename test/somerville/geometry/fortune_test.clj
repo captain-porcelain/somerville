@@ -80,7 +80,7 @@
     (is (= (f/left-parent (z/down (f/make-zipper n1-1))) nil))
     (is (= (z/node (f/left-parent (z/right (z/down (f/make-zipper n1-1))))) n1-1))
 
-    (is (= (:point (:event (z/node (f/find-parabola (f/make-zipper n5-1) (f/event (p/point 2 1) :site))))) (p/point 5 1)))))
+    (is (= (:point (:event (z/node (f/find-parabola-for-insert (f/make-zipper n5-1) (f/event (p/point 2 1) :site))))) (p/point 5 1)))))
 
 ;; test building the tree and finding parabolas
 (deftest tree-building
@@ -96,7 +96,7 @@
 
     ;; first the tree looks like this:
     ;; (3,2)
-    (is (= (count (f/tree-seq tree1-1)) 1))
+    (is (= (count (f/sequence-from-tree tree1-1)) 1))
     (is (= (count new-nodes1-1) 0))
 
     ;; then it becomes
@@ -105,7 +105,7 @@
     ;;    (3,2)    (3,2)
     ;;   //   \\
     ;; (3,2)   (2,4)
-    (is (= (count (f/tree-seq tree1-2)) 5))
+    (is (= (count (f/sequence-from-tree tree1-2)) 5))
     (is (= (count new-nodes1-2) 2))
     (is (= (z/node (first  new-nodes1-2)) (z/node (z/down  (z/down (f/make-zipper tree1-2))))))
     (is (= (z/node (second new-nodes1-2)) (z/node (z/right (z/down (f/make-zipper tree1-2))))))
@@ -118,8 +118,8 @@
     ;; (3,2)   (2,4) (3,2)   (3,2)
     ;;              //  \\
     ;;            (3,2) (5,5)
-    (is (= (f/find-parabola (f/make-zipper tree1-2) e3) (z/right (z/down (f/make-zipper tree1-2)))))
-    (is (= (count (f/tree-seq tree1-3)) 9))))
+    (is (= (f/find-parabola-for-insert (f/make-zipper tree1-2) e3) (z/right (z/down (f/make-zipper tree1-2)))))
+    (is (= (count (f/sequence-from-tree tree1-3)) 9))))
 
 ;; ==============================================================================================================
 ;; Check creation of voronois
