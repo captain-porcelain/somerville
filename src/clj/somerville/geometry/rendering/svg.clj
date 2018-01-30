@@ -1,6 +1,5 @@
 (ns somerville.geometry.rendering.svg
   (:require
-    [somerville.geometry.voronoi :as v]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.polygon :as poly]

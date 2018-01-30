@@ -37,16 +37,13 @@
   (let [p1 (p/point -1 -1)
         p2 (p/point 0 0)
         p3 (p/point -2 -2)]
-    (is (= (count (ff/test-neighbours p1 negative-decider-fn -10 -10 10 10)) 3))
-    (is (= (count (ff/test-neighbours p2 negative-decider-fn -10 -10 10 10)) 1))
-    (is (= (count (ff/test-neighbours p3 negative-decider-fn -10 -10 10 10)) 8))
     (is (= (ff/in-bounds? p1 -10 -10 10 10) true))
     (is (= (ff/in-bounds? p1  -1  -1 10 10) true))
     (is (= (ff/in-bounds? p1   0   0 10 10) false))
-    (is (= (count (ff/fill p1 points negative-decider-fn -5 -5 5 5)) 25))
-    (is (= (count (ff/fill p1 points blocked-decider-fn -5 -5 5 5)) 77))
-    (is (= (count (ff/partition points negative-decider-fn -5 -5 5 5)) 97))
-    (is (= (count (ff/partition points blocked-decider-fn -5 -5 5 5)) 3))))
+    (is (= (count (ff/fill p1 negative-decider-fn -5 -5 5 5)) 25))
+    (is (= (count (ff/fill p1 blocked-decider-fn -5 -5 5 5)) 77))
+    (is (= (count (ff/partition-complete points negative-decider-fn -5 -5 5 5)) 97))
+    (is (= (count (ff/partition-complete points blocked-decider-fn -5 -5 5 5)) 3))))
 
 (defn test-fill
   [size]
@@ -75,7 +72,7 @@
                           b more-numbers]
                       (p/point a b))
         starttime (System/currentTimeMillis)
-        parts (count (ff/partition more-points blocked-decider-fn x1 x1 x2 x2))
+        parts (count (ff/partition-samples 10 blocked-decider-fn x1 x1 x2 x2))
         endtime (System/currentTimeMillis)]
     (dorun (println (str "partitioning " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
 

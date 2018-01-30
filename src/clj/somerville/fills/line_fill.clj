@@ -143,3 +143,4 @@
         wy (reduce + (map :wy weights))
         c (cluster-size cluster)]
     (p/point (int (/ wx c)) (int (/ wy c)))))
+
