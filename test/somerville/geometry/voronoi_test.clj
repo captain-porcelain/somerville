@@ -75,6 +75,9 @@
   (is (= (:p1 (nth connected 2)) p5))
   (is (= (:p2 (nth connected 2)) p3)))
 
+(defn rand-point
+  []
+  (p/point (rand-int 1000) (rand-int 1000)))
 
 ;(def points4 (list (p/point 5 5)))
 ;(def v3 (v/voronoi points4 0 0 10 10))
