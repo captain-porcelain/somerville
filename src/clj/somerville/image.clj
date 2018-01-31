@@ -33,6 +33,11 @@
   (let [i ^BufferedImage (load-image-resource filename)]
     {:width (.getWidth i) :height (.getHeight i)}))
 
+(defn make-image
+  "Create new BufferedImage of given size."
+  [width height]
+  (BufferedImage. width height BufferedImage/TYPE_INT_ARGB))
+
 (defn write-image
   "Write an image file containing a map to disc."
   [^String filename ^BufferedImage img]
