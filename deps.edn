@@ -12,5 +12,5 @@
   {:extra-paths ["test"]
    :extra-deps
    {sanakan/hibiscus            {:git/url "gitea@git.pinktentacle.net:sanakan/hibiscus.git"
-                                 :sha "d58b2992357097cb1a7319cfb8dbb4f35a47b83c"
+                                 :sha "6e30d633cc6ce76e9fa0b8e5b7d49d78f148be91"
                                  :deps/manifest :deps}}}}}

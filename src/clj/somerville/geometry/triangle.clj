@@ -15,3 +15,13 @@
   [p1 p2 p3]
   (Triangle. p1 p2 p3))
 
+(defn area
+  [t]
+  (/
+    (Math/abs
+      (-
+       (* (- (:x (:p1 t)) (:x :p3 t))
+          (- (:y (:p2 t)) (:y :p1 t)))
+       (* (- (:x (:p1 t)) (:x :p2 t))
+          (- (:y (:p3 t)) (:y :p1 t)))))
+    2))

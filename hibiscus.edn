@@ -1,5 +1,8 @@
 {:test-sources "test"
  :test-output "test-results.log"
+ :auto-require [[somerville.geometry.point :as p]
+                [somerville.geometry.line :as l]
+                [somerville.geometry.circle :as c]]
  :cljs-sources ("src/cljc" "src/cljs")
  :cljs-options {:output-to "resources/js/somerville.js"
                 :optimizations :whitespace
