@@ -34,47 +34,44 @@
   (is (= (blocked-decider-fn (p/point 2 0) (p/point 3 0)) false)))
 
 (deftest neighbours
-  (let [p1 (p/point -1 -1)
-        p2 (p/point 0 0)
-        p3 (p/point -2 -2)]
+  (let [p1 (p/point -1 -1)]
     (is (= (ff/in-bounds? p1 -10 -10 10 10) true))
     (is (= (ff/in-bounds? p1  -1  -1 10 10) true))
     (is (= (ff/in-bounds? p1   0   0 10 10) false))
-    (is (= (count (ff/fill p1 negative-decider-fn -5 -5 5 5)) 25))
-    (is (= (count (ff/fill p1 blocked-decider-fn -5 -5 5 5)) 77))
-    (is (= (count (ff/partition-complete points negative-decider-fn -5 -5 5 5)) 97))
-    (is (= (count (ff/partition-complete points blocked-decider-fn -5 -5 5 5)) 3))))
+    (is (= (count (ff/fill p1 #{} negative-decider-fn -5 -5 5 5)) 25))
+    (is (= (count (ff/fill p1 #{} blocked-decider-fn -5 -5 5 5)) 77))
+    ))
 
-(defn test-fill
-  [size]
-  (let [x1 (* -1 (/ size 2))
-        x2 (/ size 2)
-        more-numbers (take size (iterate inc x1))
-        more-points (for [a more-numbers
-                          b more-numbers]
-                      (p/point a b))
-        starttime (System/currentTimeMillis)
-        parts (count (ff/fill (p/point x1 x1) more-points blocked-decider-fn x1 x1 x2 x2))
-        endtime (System/currentTimeMillis)]
-    (dorun (println (str "filling " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
+;(defn test-fill
+  ;[size]
+  ;(let [x1 (* -1 (/ size 2))
+        ;x2 (/ size 2)
+        ;more-numbers (take size (iterate inc x1))
+        ;more-points (for [a more-numbers
+                          ;b more-numbers]
+                      ;(p/point a b))
+        ;starttime (System/currentTimeMillis)
+        ;parts (count (ff/fill (p/point x1 x1) more-points blocked-decider-fn x1 x1 x2 x2))
+        ;endtime (System/currentTimeMillis)]
+    ;(dorun (println (str "filling " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
 
 ;(test-fill 10)
 ;(test-fill 20)
 ;(test-fill 30)
 ;(test-fill 100)
 
-(defn test-partition
-  [size]
-  (let [x1 (* -1 (/ size 2))
-        x2 (/ size 2)
-        more-numbers (take size (iterate inc x1))
-        more-points (for [a more-numbers
-                          b more-numbers]
-                      (p/point a b))
-        starttime (System/currentTimeMillis)
-        parts (count (ff/partition-samples 10 blocked-decider-fn x1 x1 x2 x2))
-        endtime (System/currentTimeMillis)]
-    (dorun (println (str "partitioning " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
+;(defn test-partition
+  ;[size]
+  ;(let [x1 (* -1 (/ size 2))
+        ;x2 (/ size 2)
+        ;more-numbers (take size (iterate inc x1))
+        ;more-points (for [a more-numbers
+                          ;b more-numbers]
+                      ;(p/point a b))
+        ;starttime (System/currentTimeMillis)
+        ;parts (count (ff/partition-samples 10 blocked-decider-fn x1 x1 x2 x2))
+        ;endtime (System/currentTimeMillis)]
+    ;(dorun (println (str "partitioning " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
 
 ;(test-partition 10)
 ;(test-partition 20)
