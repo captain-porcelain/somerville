@@ -57,8 +57,8 @@
   (let [fp (furthest-point (:line segment) (:points segment))
         triangle (t/triangle (:p1 (:line segment)) (:p2 (:line segment)) fp)
         remaining (filter-inside-triangle (:points segment) triangle)
-        line1 (if (= :above (:side-key segment)) (l/line (:p1 (:line segment)) fp) (l/line fp (:p1 (:line segment))))
-        line2 (if (= :above (:side-key segment)) (l/line fp (:p2 (:line segment))) (l/line (:p2 (:line segment)) fp))
+        line1  (l/line (:p1 (:line segment)) fp)
+        line2  (l/line fp (:p2 (:line segment)))
         above1 ((:side-key segment) (partition-points remaining line1))
         above2 ((:side-key segment) (partition-points remaining line2))]
     [(hull-segment line1 above1 (:side-key segment)) (hull-segment line2 above2 (:side-key segment))]))
@@ -85,4 +85,10 @@
   "Calculate hull for set of points."
   [points]
   (let [cl (cut-line points)
-        partitions (partition-points points cl)]))
+        partitions (partition-points points cl)]
+    (poly/polygon
+      (map :line
+        (concat
+          (process-side (hull-segment cl (:above partitions) :above))
+          (process-side (hull-segment (l/line (:p2 cl) (:p1 cl)) (:below partitions) :below)))))))
+
