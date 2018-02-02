@@ -19,4 +19,4 @@
         p3 (p/point 2 1)
         tr (t/triangle p1 p2 p3)
         h (t/height tr)]
-    (is (= 1 h))))
+    (is (= 1.0 h))))
