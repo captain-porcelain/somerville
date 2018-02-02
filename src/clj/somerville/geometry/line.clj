@@ -2,7 +2,6 @@
   (:require
     [somerville.geometry.commons :as c]
     [somerville.geometry.point :as p]
-    [somerville.geometry.triangle :as t]
     [taoensso.timbre :as log]))
 
 
@@ -215,7 +214,3 @@
   [line lines]
   (filter #(not (nil? %)) (map #(intersect-segments line %) lines)))
 
-(defn distance
-  "Get distance of point from line."
-  [line point]
-  (/ (* 2 (t/area (t/triangle (:p1 line) (:p2 line) point))) (p/distance (:p1 line) (:p2 line))))

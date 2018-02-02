@@ -98,3 +98,8 @@
   (point
     (+ (:x p) (* dist (Math/cos angle)))
     (+ (:y p) (* dist (Math/sin angle)))))
+
+(defn close?
+  "Check if two points are close together."
+  [p1 p2]
+  (c/close-to (distance p1 p2) 0))

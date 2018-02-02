@@ -20,8 +20,13 @@
   (/
     (Math/abs
       (-
-       (* (- (:x (:p1 t)) (:x :p3 t))
-          (- (:y (:p2 t)) (:y :p1 t)))
-       (* (- (:x (:p1 t)) (:x :p2 t))
-          (- (:y (:p3 t)) (:y :p1 t)))))
+       (* (- (:x (:p1 t)) (:x (:p3 t)))
+          (- (:y (:p2 t)) (:y (:p1 t))))
+       (* (- (:x (:p1 t)) (:x (:p2 t)))
+          (- (:y (:p3 t)) (:y (:p1 t))))))
     2))
+
+(defn height
+  "Get the height of the triangle. Considers the line from p1 to p2 the base."
+  [t]
+  (/ (* 2 (area t)) (p/distance (:p1 t) (:p2 t))))

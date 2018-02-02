@@ -53,17 +53,17 @@
 (def b4 (l/bisector (p/point 1 0) (p/point 3 0)))
 (def b5 (l/bisector (p/point 0 0) (p/point 0 0)))
 (deftest bisectors
-  (is (= (:p1 b1) (p/point 0 0)))
-  (is (= (:p2 b1) (p/point 1 1)))
+  (is (p/close? (:p1 b1) (p/point 0 0)))
+  (is (p/close? (:p2 b1) (p/point 1 1)))
 
-  (is (= (:p1 b2) (p/point 0 1)))
-  (is (= (:p2 b2) (p/point 1 2)))
+  (is (p/close? (:p1 b2) (p/point 0 1)))
+  (is (p/close? (:p2 b2) (p/point 1 2)))
 
-  (is (= (:p1 b3) (p/point 0 2)))
-  (is (= (:p2 b3) (p/point 1 2)))
+  (is (p/close? (:p1 b3) (p/point 0 2)))
+  (is (p/close? (:p2 b3) (p/point 1 2)))
 
-  (is (= (:p1 b4) (p/point 2 0)))
-  (is (= (:p2 b4) (p/point 2 1)))
+  (is (p/close? (:p1 b4) (p/point 2 0)))
+  (is (p/close? (:p2 b4) (p/point 2 1)))
 
   (is (= (:p1 b5) nil)))
 
