@@ -19,6 +19,7 @@
   [point line]
   (let [ly (l/solve-line-at line (:x point))]
     (cond
+      (nil? ly) :on
       (c/close-to (:y point) ly) :on
       (> (:y point) ly) :above
       (< (:y point) ly) :below)))

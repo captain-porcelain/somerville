@@ -1,9 +1,13 @@
 (ns somerville.artsy.image-triangulation
+  (:import
+    [java.awt Color Graphics2D Rectangle AlphaComposite]
+    [java.awt.image BufferedImage])
   (:require
     [somerville.fills.flood-fill :as ff]
     [somerville.image :as i]
     [somerville.geometry.point :as p]
     [somerville.geometry.voronoi :as v]
+    [somerville.fills.convex-hull :as ch]
     [somerville.color.color :as c]
     [somerville.geometry.rendering.svg :as svg]
     [clojure.string :as s]))
@@ -72,6 +76,24 @@
                 tmp (draw-partition image %)]
             (i/write-image filename image)) partitions)))
 
+(defn render-hull
+  "Render grid walls to image."
+  [filename width height polygon seed]
+  (let [filename (str (s/replace filename ".png" "-hull-") (:x seed) "-" (:y seed) ".png")
+        image (i/make-image width height)
+        graphics ^Graphics2D (.createGraphics image)
+        tmp (.setPaint graphics Color/white)
+        tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.setPaint graphics Color/black)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+        tmp (.dispose graphics)]
+    (i/write-image filename image)))
+
+(defn render-hulls
+  [filename width height hulls]
+  (dorun (map #(render-hull filename width height (:hull %) (:seed %)) hulls)))
+
+
 ;;==================================================================================================================
 ;; Actual triangulation
 
@@ -81,10 +103,13 @@
   (let [image (i/load-image image-file-name)
         partitions (find-partitions image 1000 15)
         tmp (dorun (println (str "Found " (count partitions) " partitions")))
-        approximation (v/voronoi (map :center partitions) 0 0 (.getWidth image) (.getHeight image))
-        tmp (dorun (println (str "Writing SVG")))
+        approximation (map #(assoc % :hull (ch/quick-hull (:points %))) partitions)
+        ;approximation (v/voronoi (map :center partitions) 0 0 (.getWidth image) (.getHeight image))
+        tmp (dorun (map #(println (count (:points %))) partitions))
+        ;tmp (dorun (println (str "Writing SVG")))
         tmp (draw-partitions-separately "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
         tmp (draw-partitions "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
+        tmp (render-hulls "/tmp/partitions.png" (.getWidth image) (.getHeight image) approximation)
         ]
     ;(svg/voronoi approximation "/tmp/voronoi.svg")
     partitions
