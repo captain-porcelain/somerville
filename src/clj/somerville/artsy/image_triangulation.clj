@@ -71,7 +71,7 @@
 (defn draw-partitions-separately
   [filename width height partitions]
   (dorun
-    (map #(let [filename (str (s/replace filename ".png" "-") (:x (:seed %)) "-" (:y (:seed %)) ".png")
+    (map #(let [filename (str (s/replace filename ".png" "-") (:x (:seed %)) "-" (:y (:seed %)) "-pixel.png")
                 image (i/make-image width height)
                 tmp (draw-partition image %)]
             (i/write-image filename image)) partitions)))
@@ -79,7 +79,7 @@
 (defn render-hull
   "Render grid walls to image."
   [filename width height polygon seed]
-  (let [filename (str (s/replace filename ".png" "-hull-") (:x seed) "-" (:y seed) ".png")
+  (let [filename (str (s/replace filename ".png" "-") (:x seed) "-" (:y seed) "-hull.png")
         image (i/make-image width height)
         graphics ^Graphics2D (.createGraphics image)
         tmp (.setPaint graphics Color/white)
