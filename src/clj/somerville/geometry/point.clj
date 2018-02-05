@@ -89,8 +89,10 @@
 (defn angle-pos
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3. No negative results."
   [p1 p2 p3]
-  (let [a (angle p1 p2 p3)]
-    (if (< a 0) (+ (* 2 Math/PI) a) a)))
+  (try
+    (let [a (angle p1 p2 p3)]
+      (if (< a 0) (+ (* 2 Math/PI) a) a))
+    (catch Exception e (dorun (println (str "Error calculating angle between:\n" (c/out p1 1) "\n" (c/out p2 1) "\n" (c/out p3 1)))))))
 
 (defn point-at
   "Given a point find another one in dist at angle."
