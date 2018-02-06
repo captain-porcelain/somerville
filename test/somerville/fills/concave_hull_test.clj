@@ -25,8 +25,21 @@
 (def points (list p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11))
 (def points2 (list p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13))
 
+;
+;           |
+;       12  |   13
+;           |
+;       1   2   3
+;           |
+; - 4 - 5 - 6 - 7 - 8 -
+;           |
+;       9   10  11
+;           |
+;
+
 (deftest neighbors
-  (let [kn (ch/k-nearest-neighbors 2 (first points) points)]
-    (is (= p1 (nth kn 0)))
-    (is (= p2 (nth kn 1)))))
+  (let [kn (ch/k-nearest-neighbors 3 p1 (remove #{p1} points2))]
+    (is (= p2  (nth kn 0)))
+    (is (= p5  (nth kn 1)))
+    (is (= p12 (nth kn 2)))))
 
