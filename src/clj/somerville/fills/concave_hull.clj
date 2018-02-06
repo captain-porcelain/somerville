@@ -1,7 +1,6 @@
 ;; Implementation of Concave Hull (http://www.geosensor.net/papers/duckham08.PR.pdf)
 (ns somerville.fills.concave-hull
   (:require
-    [clojure.set :as s]
     [somerville.geometry.point :as p]
     [somerville.geometry.polygon :as poly]))
 
