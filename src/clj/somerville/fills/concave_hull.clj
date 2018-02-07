@@ -34,5 +34,5 @@
 
 (defn hull
   "Create concave hull for set of points."
-  [points]
-  (poly/from-points (butlast (hull-points points 3))))
+  [points k]
+  (poly/from-points (butlast (hull-points points k))))

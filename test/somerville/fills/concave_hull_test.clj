@@ -18,16 +18,9 @@
 (def p9  (p/point -1 -1))
 (def p10 (p/point  0 -1))
 (def p11 (p/point  1 -1))
-(def p12 (p/point -1  2))
-(def p13 (p/point  1  2))
-
-
 (def points (list p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11))
-(def points2 (list p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13))
 
 ;
-;           |
-;       12  |   13
 ;           |
 ;       1   2   3
 ;           |
@@ -38,8 +31,27 @@
 ;
 
 (deftest neighbors
-  (let [kn (ch/k-nearest-neighbors 3 p1 (remove #{p1} points2))]
-    (is (= p2  (nth kn 0)))
-    (is (= p5  (nth kn 1)))
-    (is (= p12 (nth kn 2)))))
+  (let [kn (ch/k-nearest-neighbors 3 p1 (remove #{p1} points))]
+    (is (= p2 (nth kn 0)))
+    (is (= p5 (nth kn 1)))
+    (is (= p4 (nth kn 2)))))
 
+(deftest hull
+  (let [h (ch/hull points 3)]
+    (is (= 8 (count (:lines h))))
+    (is (= p9  (:p1 (nth (:lines h) 0))))
+    (is (= p4  (:p2 (nth (:lines h) 0))))
+    (is (= p4  (:p1 (nth (:lines h) 1))))
+    (is (= p1  (:p2 (nth (:lines h) 1))))
+    (is (= p1  (:p1 (nth (:lines h) 2))))
+    (is (= p2  (:p2 (nth (:lines h) 2))))
+    (is (= p2  (:p1 (nth (:lines h) 3))))
+    (is (= p3  (:p2 (nth (:lines h) 3))))
+    (is (= p3  (:p1 (nth (:lines h) 4))))
+    (is (= p8  (:p2 (nth (:lines h) 4))))
+    (is (= p8  (:p1 (nth (:lines h) 5))))
+    (is (= p11 (:p2 (nth (:lines h) 5))))
+    (is (= p11 (:p1 (nth (:lines h) 6))))
+    (is (= p10 (:p2 (nth (:lines h) 6))))
+    (is (= p10 (:p1 (nth (:lines h) 7))))
+    (is (= p9  (:p2 (nth (:lines h) 7))))))
