@@ -27,6 +27,11 @@
   ([points]
    (from-points points nil)))
 
+(defn to-points
+  "Create list of points in polygon."
+  [poly]
+  (map :p1 (:lines poly)))
+
 ;;====================================================================================================================================================
 ;; General Helpers
 

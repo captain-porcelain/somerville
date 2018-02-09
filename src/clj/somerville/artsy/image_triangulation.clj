@@ -6,7 +6,6 @@
     [somerville.fills.flood-fill :as ff]
     [somerville.image :as i]
     [somerville.geometry.point :as p]
-    [somerville.geometry.voronoi :as v]
     [somerville.fills.convex-hull :as cxh]
     [somerville.fills.concave-hull :as cvh]
     [somerville.color.color :as c]
@@ -104,14 +103,12 @@
   (let [image (i/load-image image-file-name)
         partitions (find-partitions image 1000 15)
         tmp (dorun (println (str "Found " (count partitions) " partitions")))
-        approximation1 (map #(assoc % :hull (cxh/quick-hull (:points %))) partitions)
-        approximation2 (map #(assoc % :hull (cvh/hull (:points %) 20)) partitions)
-        ;approximation (v/voronoi (map :center partitions) 0 0 (.getWidth image) (.getHeight image))
+        ;approximation1 (map #(assoc % :hull (cxh/quick-hull (:points %))) partitions)
+        ;approximation2 (map #(assoc % :hull (cvh/hull (:points %) 20)) partitions)
         tmp (dorun (map #(println (count (:points %))) partitions))
-        ;tmp (dorun (println (str "Writing SVG")))
         tmp (draw-partitions-separately "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
-        tmp (draw-partitions "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
-        tmp (render-hulls "/tmp/partitions.png" (.getWidth image) (.getHeight image) approximation2)
+        ;tmp (draw-partitions "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
+        ;tmp (render-hulls "/tmp/partitions.png" (.getWidth image) (.getHeight image) approximation2)
         ]
     ;(svg/voronoi approximation "/tmp/voronoi.svg")
     partitions
