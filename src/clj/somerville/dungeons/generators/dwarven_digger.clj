@@ -102,6 +102,31 @@
         t (when (:remove-trailing-ends config) (dorun (remove-trailing-ends g)))]
     g))
 
+;;=======================================================================================================================
+;; Post processing
+;;
+
+(defn open-cells
+  "Find all open cells."
+  [g]
+  (filter #(< 0 (count (get % :links []))) (grid/all-cells g)))
+
+(defn unconnected-open-neighbors
+  "Find open neighbors that are not linked to cell."
+  [g c]
+  (let [open (filter #(< 0 (count (get (:cell %) :links []))) (grid/neighbor-cells g c))]
+    (filter #(not (commons/in? (:direction %) (:links c))) open)))
+
+(defn open-to-neighbors
+  "Add link to neighbors."
+  [g c neighbors]
+  (dorun (map #(grid/place-link-to g c (:cell %)) neighbors)))
+
+(defn remove-thin-walls
+  "Remove walls that are inside one room."
+  [g]
+  (dorun
+    (map #(open-to-neighbors g % (unconnected-open-neighbors g %)) (open-cells g))))
 
 ;;=======================================================================================================================
 ;; Create a dungeon
@@ -168,7 +193,6 @@
   [g]
   (grid/get-from g (commons/get-random (filter #(nil? (:gold (grid/get-from g %))) (grid/unmasked-border-coordinates g)))))
 
-
 ;;=======================================================================================================================
 ;; Interface of the Dwarven Digger
 
@@ -178,6 +202,7 @@
   {:gold-distribution [1 1 3 4]
    :remove-small-regions false
    :remove-trailing-ends true
+   :remove-thin-walls true
    :drunk true
    :width width
    :height height
@@ -202,7 +227,8 @@
          start (random-start g)
          g2 (assoc g :start start :config config)
          tmp (grid/make-entrance g2 start)
-         tmp (dorun (map (fn [i] (dig g2)) (range (:iterations config))))]
+         tmp (dorun (map (fn [i] (dig g2)) (range (:iterations config))))
+         tmp (when (:remove-thin-walls config) (remove-thin-walls g))]
      g2))
 
 (defn dungeon

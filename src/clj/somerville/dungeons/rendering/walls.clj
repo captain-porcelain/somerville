@@ -111,7 +111,7 @@
   (into #{} (map #(str "line " (:x (:p1 %)) "," (:y (:p1 %)) " " (:x (:p2 %)) "," (:y (:p2 %))) (convert-to-walls g wall-length))))
 
 (defn spit-walls
-  "SPit walls to file."
+  "Spit walls to file."
   [g wall-length filename]
   (spit filename (clojure.string/join "\n" (walls g wall-length))))
 
@@ -199,6 +199,21 @@
   (.setStroke graphics (BasicStroke. (:wall-width config)))
   (dorun (map #(draw-line graphics % (:border config)) (convert-to-walls g (:wall-length config))))
   (.setStroke graphics (BasicStroke. 1)))
+
+(defn draw-entrance
+  "Ensure entrance is open."
+  [g graphics]
+  (case (:grid-type g)
+    :rect (cond
+            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
+            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
+            (= (:x c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :west)))
+            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (conj (:links %) :east))))
+    :hex (cond
+            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
+            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
+            (= (:x c) 0)                 (update-cell g c #(assoc % :links (concat (:links %) (list :south-west :north-west))))
+            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (concat (:links %) (list :south-east :north-east)))))))
 
 (defn render-walls
   "Render grid walls to image."
