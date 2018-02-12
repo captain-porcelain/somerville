@@ -106,15 +106,23 @@
                         :rect (make-rect-polygon-walker wall-length)
                         :hex  (make-hex-polygon-walker wall-length)))))
 
+(defn wall-description
+  "Create wall description and include border offset."
+  ([l border]
+   (str "line " (+ border (:x (:p1 l))) "," (+ border (:y (:p1 l))) " " (+ border (:x (:p2 l))) "," (+ border (:y (:p2 l)))))
+  ([l]
+   (wall-description l 0)))
+
 (defn walls
   "Create set of walls for a grid."
-  [g wall-length]
-  (into #{} (map #(str "line " (:x (:p1 %)) "," (:y (:p1 %)) " " (:x (:p2 %)) "," (:y (:p2 %))) (convert-to-walls g wall-length))))
+  [g config]
+  (let [wall-length (:wall-length config)]
+    (into #{} (map #(wall-description % (:border config)) (convert-to-walls g wall-length)))))
 
 (defn spit-walls
   "Spit walls to file."
-  [g wall-length filename]
-  (spit filename (clojure.string/join "\n" (walls g wall-length))))
+  [g config filename]
+  (spit filename (clojure.string/join "\n" (walls g config))))
 
 (def default-config
   {:background-color      [0 0 0 255]
@@ -292,13 +300,28 @@
   (.setStroke graphics (BasicStroke. 1))
   (.setComposite graphics (AlphaComposite/getInstance AlphaComposite/SRC_OVER)))
 
-(defn render-walls
+(defn draw-image
   "Render grid walls to image."
-  [g config imagename]
+  [g config]
   (let [[img graphics] (new-image g config)
         tmp (handle-cells g graphics config)
         tmp (handle-walls g graphics config)
         tmp (draw-entrance g graphics config (.getWidth img) (.getHeight img))
         tmp (.dispose graphics)]
-    (image/write-image imagename (floor-tiles img config))))
+    (floor-tiles img config)))
 
+(defn save-image
+  "Render grid walls to image."
+  [g config imagename]
+  (image/write-image imagename (draw-image g config)))
+
+(defn image-and-walls
+  "Get an image for the given grid and also the wall descriptions."
+  [g config]
+  (let [img (draw-image g config)
+        walls (walls g config)
+        entrance (entrance-polygon g config (.getWidth img) (.getHeight img))]
+    {:image img
+     :wall-description (clojure.string/join "\n"
+                                            (clojure.set/union walls #{(wall-description (nth (:lines entrance) 0))
+                                                                       (wall-description (nth (:lines entrance) 2))}))}))
