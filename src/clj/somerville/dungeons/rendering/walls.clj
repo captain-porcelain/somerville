@@ -13,6 +13,14 @@
 ;==================================================================================================================
 ; General printing of grids
 
+(defn rect-coordinates
+  "Get coordinates for hex cell."
+  [wall-length x y]
+  (let [x1 (* wall-length x)
+        y1 (* wall-length y)
+        x2 (* wall-length (inc x))
+        y2 (* wall-length (inc y))]
+    [(p/point x1 y1) (p/point x2 y1) (p/point x2 y2) (p/point x1 y2)]))
 
 (defn make-rect-wall-walker
   "Create walker for grids based on rectangles returning lines for walls."
@@ -20,26 +28,19 @@
   (fn
     [g c]
     (when (< 0 (count (:links c)))
-      (let [x1 (* wall-length (:x c))
-            y1 (* wall-length (:y c))
-            x2 (* wall-length (inc (:x c)))
-            y2 (* wall-length (inc (:y c)))]
+      (let [[p1 p2 p3 p4] (rect-coordinates wall-length (:x c) (:y c))]
         (list
-          (when (not (commons/in? :north (:links c))) (l/line (p/point x1 y1) (p/point x2 y1)))
-          (when (not (commons/in? :south (:links c))) (l/line (p/point x1 y2) (p/point x2 y2)))
-          (when (not (commons/in? :west  (:links c))) (l/line (p/point x1 y1) (p/point x1 y2)))
-          (when (not (commons/in? :east  (:links c))) (l/line (p/point x2 y1) (p/point x2 y2))))))))
+          (when (not (commons/in? :north (:links c))) (l/line p1 p2))
+          (when (not (commons/in? :south (:links c))) (l/line p4 p3))
+          (when (not (commons/in? :west  (:links c))) (l/line p1 p4))
+          (when (not (commons/in? :east  (:links c))) (l/line p2 p3)))))))
 
 (defn make-rect-polygon-walker
   "Create walker for grids based on rectangles returning polygons."
   [wall-length] (fn
     [g c]
     (when (< 0 (count (:links c)))
-      (let [x1 (* wall-length (:x c))
-            y1 (* wall-length (:y c))
-            x2 (* wall-length (inc (:x c)))
-            y2 (* wall-length (inc (:y c)))]
-        (poly/from-points (p/point x1 y1) (p/point x2 y1) (p/point x2 y2) (p/point x1 y2))))))
+      (poly/from-points (rect-coordinates wall-length (:x c) (:y c))))))
 
 (defn hex-coordinates
   "Get coordinates for hex cell."
@@ -134,13 +135,17 @@
   [g config]
   (let [hwl (int (Math/floor (/ (:wall-length config) 2)))
         h (int (Math/floor (Math/sqrt (- (* (:wall-length config) (:wall-length config)) (* hwl hwl)))))
-        iw (+ hwl (* 3 hwl (:width g)) (* 2 (:border config)))
-        ih (+ h (* 2 h (:height g)) (* 2 (:border config)))
-        img (BufferedImage. iw ih BufferedImage/TYPE_INT_ARGB)
+        hiw (+ hwl (* 3 hwl (:width g)) (* 2 (:border config)))
+        hih (+ h (* 2 h (:height g)) (* 2 (:border config)))
+        riw (+ (* (:wall-length config) (:width g)) (* 2 (:border config)))
+        rih (+ (* (:wall-length config) (:height g)) (* 2 (:border config)))
+        width (if (= :hex (:grid-type g)) hiw riw)
+        height (if (= :hex (:grid-type g)) hih rih)
+        img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
         tmp (.setPaint graphics (get-color (:background-color config)))
-        tmp (.fill graphics (Rectangle. 0 0 iw ih))]
+        tmp (.fill graphics (Rectangle. 0 0 width height))]
     [img graphics]))
 
 (defn draw-polygon
@@ -200,20 +205,92 @@
   (dorun (map #(draw-line graphics % (:border config)) (convert-to-walls g (:wall-length config))))
   (.setStroke graphics (BasicStroke. 1)))
 
+(defn hex-entrance-right
+  "Create polygon to draw entrance on the right side for hex dungeon."
+  [ps width height border]
+  (let [p1 (nth ps 2)
+        tp1 (p/point-at p1 (* -1 (/ Math/PI 6)) 300)
+        l1 (l/line p1 tp1)
+        wl (l/line (p/point width 0) (p/point width height))
+        i1 (l/intersect l1 wl)
+        p2 (nth ps 4)
+        tp2 (p/point-at p2 (/ Math/PI 6) 300)
+        l2 (l/line p2 tp2)
+        i2 (l/intersect l2 wl)]
+    (poly/from-points (list p1 i1 i2 p2))))
+
+(defn hex-entrance-left
+  "Create polygon to draw entrance on the left side for hex dungeon."
+  [ps width height border]
+  (let [p1 (nth ps 1)
+        tp1 (p/point-at p1 (/ Math/PI 6) 300)
+        l1 (l/line p1 tp1)
+        wl (l/line (p/point 0 0) (p/point 0 height))
+        i1 (l/intersect l1 wl)
+        p2 (nth ps 5)
+        tp2 (p/point-at p2 (* -1 (/ Math/PI 6)) 300)
+        l2 (l/line p2 tp2)
+        i2 (l/intersect l2 wl)
+        mi1 (p/point (- (:x i1) border) (:y i1))
+        mi2 (p/point (- (:x i2) border) (:y i2))]
+    (poly/from-points (list p1 mi1 mi2 p2))))
+
+(defn hex-entrance-top
+  "Create polygon to draw entrance on the top for hex dungeon."
+  [ps width height border]
+  (let [p1 (nth ps 1)
+        tp1 (p/point-at p1 (* -4 (/ Math/PI 6)) 300)
+        l1 (l/line p1 tp1)
+        wl (l/line (p/point 0 0) (p/point width 0))
+        i1 (l/intersect l1 wl)
+        p2 (nth ps 2)
+        tp2 (p/point-at p2 (* -2 (/ Math/PI 6)) 300)
+        l2 (l/line p2 tp2)
+        i2 (l/intersect l2 wl)
+        mi1 (p/point (:x i1) (- (:y i1) border))
+        mi2 (p/point (:x i2) (- (:y i2) border))]
+    (poly/from-points (list p1 mi1 mi2 p2))))
+
+(defn hex-entrance-bottom
+  "Create polygon to draw entrance on the bottom for hex dungeon."
+  [ps width height border]
+  (let [p1 (nth ps 4)
+        tp1 (p/point-at p1 (* 2 (/ Math/PI 6)) 300)
+        l1 (l/line p1 tp1)
+        wl (l/line (p/point 0 height) (p/point width height))
+        i1 (l/intersect l1 wl)
+        p2 (nth ps 5)
+        tp2 (p/point-at p2 (* 4 (/ Math/PI 6)) 300)
+        l2 (l/line p2 tp2)
+        i2 (l/intersect l2 wl)]
+    (poly/from-points (list p1 i1 i2 p2))))
+
+(defn entrance-polygon
+  "Get polygon representing entrance."
+  [g config width height]
+  (case (:grid-type g)
+    :rect (let [[p1 p2 p3 p4] (rect-coordinates (:wall-length config) (:x (:start g)) (:y (:start g)))
+                border (:border config)]
+            (cond
+              (= (:y (:start g)) 0)                 (poly/from-points (list p1 (p/point (:x p1) (- 0 border)) (p/point (:x p2) (- 0 border)) p2))
+              (= (:y (:start g)) (dec (:height g))) (poly/from-points (list p1 (p/point (:x p1) (+ height border)) (p/point (:x p2) (+ height border)) p2))
+              (= (:x (:start g)) 0)                 (poly/from-points (list p1 (p/point (- 0 border) (:y p1)) (p/point (- 0 border) (:y p4)) p4))
+              (= (:x (:start g)) (dec (:width g)))  (poly/from-points (list p1 (p/point (+ width border) (:y p1)) (p/point (+ width border) (:y p4)) p4))))
+    :hex (let [ps (hex-coordinates (:wall-length config) (:x (:start g)) (:y (:start g)))]
+           (cond
+             (= (:x (:start g)) 0)                 (hex-entrance-left ps width height (:border config))
+             (= (:x (:start g)) (- (:width g) 1))  (hex-entrance-right ps width height (:border config))
+             (= (:y (:start g)) 0)                 (hex-entrance-top ps width height (:border config))
+             (= (:y (:start g)) (- (:height g) 1)) (hex-entrance-bottom ps width height (:border config))))))
+
 (defn draw-entrance
   "Ensure entrance is open."
-  [g graphics]
-  (case (:grid-type g)
-    :rect (cond
-            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
-            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
-            (= (:x c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :west)))
-            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (conj (:links %) :east))))
-    :hex (cond
-            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
-            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
-            (= (:x c) 0)                 (update-cell g c #(assoc % :links (concat (:links %) (list :south-west :north-west))))
-            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (concat (:links %) (list :south-east :north-east)))))))
+  [g graphics config width height]
+  (.setComposite graphics (AlphaComposite/getInstance AlphaComposite/CLEAR))
+  (.setStroke graphics (BasicStroke. 2))
+  (draw-polygon graphics (entrance-polygon g config width height)  (:border config))
+  (.setStroke graphics (BasicStroke. 1))
+  (.setComposite graphics (AlphaComposite/getInstance AlphaComposite/SRC_OVER)))
 
 (defn render-walls
   "Render grid walls to image."
@@ -221,6 +298,7 @@
   (let [[img graphics] (new-image g config)
         tmp (handle-cells g graphics config)
         tmp (handle-walls g graphics config)
+        tmp (draw-entrance g graphics config (.getWidth img) (.getHeight img))
         tmp (.dispose graphics)]
     (image/write-image imagename (floor-tiles img config))))
 
