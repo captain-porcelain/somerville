@@ -1,7 +1,7 @@
 (ns somerville.maps.rendering.ascii
   (:require
     [somerville.commons :as commons]
-    [somerville.maps.generators.grid :as grid]))
+    [somerville.maps.grid :as grid]))
 
 ;==================================================================================================================
 ; General printing of grids

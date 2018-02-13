@@ -1,7 +1,7 @@
 (ns somerville.maps.generators.dijkstra
   (:require
     [somerville.commons :as commons]
-    [somerville.maps.generators.grid :as grid]))
+    [somerville.maps.grid :as grid]))
 
 (defn dijkstra-flooder
   "Set the distance of a node."

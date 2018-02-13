@@ -1,5 +1,5 @@
 ;; Provides two dimensional grids and functions to manipulate them
-(ns somerville.maps.generators.grid
+(ns somerville.maps.grid
   (:require
     [somerville.commons :as commons]
     [taoensso.timbre :as log]))

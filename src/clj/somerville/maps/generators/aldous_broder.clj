@@ -1,7 +1,7 @@
 (ns somerville.maps.generators.aldous-broder
   (:require
     [somerville.commons :as commons]
-    [somerville.maps.generators.grid :as grid]))
+    [somerville.maps.grid :as grid]))
 
 
 (defn aldous-broder-iterator
