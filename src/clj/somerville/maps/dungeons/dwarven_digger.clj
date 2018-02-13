@@ -221,15 +221,15 @@
 (defn process
   "Handle the process of digging the dungeon."
   [config]
-   (let [g (case (:grid-type config)
-             :rect (grid/grid (:width config) (:height config))
-             :hex  (grid/hex-grid (:width config) (:height config)))
-         start (random-start g)
-         g2 (assoc g :start start :config config)
-         tmp (grid/make-entrance g2 start)
-         tmp (dorun (map (fn [i] (dig g2)) (range (:iterations config))))
-         tmp (when (:remove-thin-walls config) (remove-thin-walls g))]
-     g2))
+  (let [g (case (:grid-type config)
+            :rect (grid/grid (:width config) (:height config))
+            :hex  (grid/hex-grid (:width config) (:height config)))
+        start (random-start g)
+        g2 (assoc g :start start :config config)
+        tmp (grid/make-entrance g2 start)
+        tmp (dorun (map (fn [i] (dig g2)) (range (:iterations config))))
+        tmp (when (:remove-thin-walls config) (remove-thin-walls g))]
+    g2))
 
 (defn dungeon
   "Create a dungeon based on a dwarven digger searching for gold."
