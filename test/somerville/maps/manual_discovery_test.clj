@@ -1,11 +1,11 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
-(ns somerville.dungeons.manual-discovery-test
+(ns somerville.maps.manual-discovery-test
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])
   (:require
     [somerville.image :as image]
-    [somerville.dungeons.discovery :as rcwt]
+    [somerville.maps.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]

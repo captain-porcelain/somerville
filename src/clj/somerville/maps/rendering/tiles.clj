@@ -1,12 +1,12 @@
 ;; Provides the facilities to manipulate images
-(ns somerville.dungeons.rendering.tiles
+(ns somerville.maps.rendering.tiles
   (:import
     [java.awt Graphics2D]
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
     [somerville.image :as image]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 (defn image-size-rect
   "Calculate size of resulting image."

@@ -1,7 +1,7 @@
-(ns somerville.dungeons.generators.aldous-broder
+(ns somerville.maps.generators.aldous-broder
   (:require
     [somerville.commons :as commons]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 
 (defn aldous-broder-iterator

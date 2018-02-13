@@ -1,7 +1,7 @@
-(ns somerville.dungeons.generators.hunt-and-kill
+(ns somerville.maps.generators.hunt-and-kill
   (:require
     [somerville.commons :as commons]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 (defn hunt-candidate
   "Get an unvisited cell that neighbors to a visited one."

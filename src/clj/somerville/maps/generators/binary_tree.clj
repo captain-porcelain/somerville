@@ -1,7 +1,7 @@
-(ns somerville.dungeons.generators.binary-tree
+(ns somerville.maps.generators.binary-tree
   (:require
     [somerville.commons :as commons]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 
 (defn binary-tree-walker

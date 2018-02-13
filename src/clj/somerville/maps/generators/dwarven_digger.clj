@@ -1,7 +1,7 @@
-(ns somerville.dungeons.generators.dwarven-digger
+(ns somerville.maps.generators.dwarven-digger
   (:require
     [somerville.commons :as commons]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 
 ;;=======================================================================================================================
