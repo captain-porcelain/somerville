@@ -1,5 +1,5 @@
 ;; Provides two dimensional grids and functions to manipulate them
-(ns somerville.dungeons.generators.grid
+(ns somerville.maps.generators.grid
   (:require
     [somerville.commons :as commons]
     [taoensso.timbre :as log]))

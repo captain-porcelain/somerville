@@ -1,7 +1,7 @@
-(ns somerville.dungeons.rendering.ascii
+(ns somerville.maps.rendering.ascii
   (:require
     [somerville.commons :as commons]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 ;==================================================================================================================
 ; General printing of grids

@@ -1,4 +1,4 @@
-(ns somerville.dungeons.discovery
+(ns somerville.maps.discovery
   (:require
     [somerville.commons :as commons]
     [somerville.geometry.commons :as gcommons]

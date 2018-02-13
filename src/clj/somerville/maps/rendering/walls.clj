@@ -1,4 +1,4 @@
-(ns somerville.dungeons.rendering.walls
+(ns somerville.maps.rendering.walls
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite RenderingHints Polygon BasicStroke]
     [java.awt.image BufferedImage])
@@ -8,7 +8,7 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.polygon :as poly]
     [somerville.geometry.line :as l]
-    [somerville.dungeons.generators.grid :as grid]))
+    [somerville.maps.generators.grid :as grid]))
 
 ;==================================================================================================================
 ; General printing of grids
