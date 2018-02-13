@@ -1,7 +1,7 @@
 (ns somerville.maps.generators.sidewinder
   (:require
     [somerville.commons :as commons]
-    [somerville.maps.generators.grid :as grid]))
+    [somerville.maps.grid :as grid]))
 
 
 (defn close?

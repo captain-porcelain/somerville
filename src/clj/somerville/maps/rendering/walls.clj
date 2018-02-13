@@ -8,7 +8,7 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.polygon :as poly]
     [somerville.geometry.line :as l]
-    [somerville.maps.generators.grid :as grid]))
+    [somerville.maps.grid :as grid]))
 
 ;==================================================================================================================
 ; General printing of grids

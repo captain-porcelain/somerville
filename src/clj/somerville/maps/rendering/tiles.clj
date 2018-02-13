@@ -6,7 +6,7 @@
   (:require
     [somerville.commons :as commons]
     [somerville.image :as image]
-    [somerville.maps.generators.grid :as grid]))
+    [somerville.maps.grid :as grid]))
 
 (defn image-size-rect
   "Calculate size of resulting image."
