@@ -1,4 +1,4 @@
-(ns somerville.maps.generators.binary-tree
+(ns somerville.maps.mazes.binary-tree
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))

@@ -1,4 +1,4 @@
-(ns somerville.maps.generators.dijkstra
+(ns somerville.maps.mazes.dijkstra
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))
