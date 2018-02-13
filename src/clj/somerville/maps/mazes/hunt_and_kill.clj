@@ -1,4 +1,4 @@
-(ns somerville.maps.generators.hunt-and-kill
+(ns somerville.maps.mazes.hunt-and-kill
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))

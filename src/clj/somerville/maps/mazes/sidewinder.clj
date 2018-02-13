@@ -1,4 +1,4 @@
-(ns somerville.maps.generators.sidewinder
+(ns somerville.maps.mazes.sidewinder
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))
