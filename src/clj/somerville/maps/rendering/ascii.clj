@@ -43,20 +43,14 @@
     (when (wall-right? g (:x e) (:y e) e) "+")))
 
 (defn line2
-  [g e print-gold]
+  [g e print-key]
   (str
     (if (wall-left? g (:x e) (:y e) e) "|" " ")
     (cond
       (:masked e) " x "
-      (and print-gold (not (nil? (:gold e)))) (if (< (:gold e) 10) (str " " (:gold e) " ") (str " " (:gold e) ""))
+      (not (nil? (print-key e))) (if (< (print-key e) 10) (str " " (print-key e) " ") (str " " (print-key e) ""))
       :else "   ")
     (when (wall-right? g (:x e) (:y e) e) "|")))
-
-(defn last-line-old
-  [g]
-  (for [i (range (:width g))]
-    (when-not (:masked (grid/get-from g i (dec (:height g))))
-      (str "+" "---" (when (= i (dec (:width g))) "+")))))
 
 (defn last-line
   [g]
@@ -64,8 +58,8 @@
 
 (defn make-ascii-walker
   "Associated ascii art to each cell."
-  [print-gold]
-  (fn [g e] (grid/set-in g (:x e) (:y e) (assoc e :ascii-1 (line1 g e) :ascii-2 (line2 g e print-gold)))))
+  [print-key]
+  (fn [g e] (grid/set-in g (:x e) (:y e) (assoc e :ascii-1 (line1 g e) :ascii-2 (line2 g e print-key)))))
 
 (defn ascii-row
   "Create partial ASCII representation for one row in the grid."
@@ -76,8 +70,8 @@
 
 (defn ascii-rect
   "Create ASCII representation for a grid."
-  [g print-gold]
-  (let [g2 (grid/walk g (make-ascii-walker print-gold))
+  [g print-key]
+  (let [g2 (grid/walk g (make-ascii-walker print-key))
         lines (for [y (range (:height g2))] (ascii-row g2 y))]
     (str
       (clojure.string/join "\n" lines)
@@ -97,14 +91,14 @@
 
 
 (defn upper-hex
-  [g c print-gold]
+  [g c print-key]
   (if (or (= {} c) (= 0 (count (:links c))))
     "    "
     (str (if (commons/in? :north-west (:links c)) " " "/")
          (if
            (commons/in? :north      (:links c))
-           (if (or (not print-gold) (nil? (:gold c))) "  " (if (< 9 (:gold c)) (:gold c) (str " " (:gold c))))
-           (if (or (not print-gold) (nil? (:gold c))) "‾‾" (if (< 9 (:gold c)) (:gold c) (str "‾" (:gold c)))))
+           (if (nil? (print-key c)) "  " (if (< 9 (print-key c)) (print-key c) (str " " (print-key c))))
+           (if (nil? (print-key c)) "‾‾" (if (< 9 (print-key c)) (print-key c) (str "‾" (print-key c)))))
          (if (commons/in? :north-east (:links c)) " " "\\"))))
 
 (defn lower-hex
@@ -116,27 +110,27 @@
          (if (commons/in? :south-east (:links c)) " " "/"))))
 
 (defn hex-line-a
-  [g y print-gold]
+  [g y print-key]
   (clojure.string/join ""
     (for [x (range (:width g))]
       (str (if (= 0 (mod x 2))
              (lower-hex g (grid/get-from g x (dec y)))
-             (upper-hex g (grid/get-from g x y) print-gold))))))
+             (upper-hex g (grid/get-from g x y) print-key))))))
 
 (defn hex-line-b
-  [g y print-gold]
+  [g y print-key]
   (clojure.string/join ""
     (for [x (range (:width g))]
       (str (if (= 0 (mod x 2))
-             (upper-hex g (grid/get-from g x y) print-gold)
+             (upper-hex g (grid/get-from g x y) print-key)
              (lower-hex g (grid/get-from g x y)))))))
 
 (defn ascii-hex
   "Create ASCII representation for a grid."
-  [g print-gold]
+  [g print-key]
   (clojure.string/join "\n"
     (for [y (range (inc (:height g)))]
-      (str (hex-line-a g y print-gold) "\n" (hex-line-b g y print-gold)))))
+      (str (hex-line-a g y print-key) "\n" (hex-line-b g y print-key)))))
 
 ;==================================================================================================================
 ; General printing of ascii art
@@ -147,9 +141,9 @@
             (case (:grid-type g)
               :rect (ascii-rect g false)
               :hex  (ascii-hex  g false)))))
-  ([g print-gold]
+  ([g print-key]
    (dorun (println
             (case (:grid-type g)
-              :rect (ascii-rect g print-gold)
-              :hex  (ascii-hex  g print-gold))))))
+              :rect (ascii-rect g print-key)
+              :hex  (ascii-hex  g print-key))))))
 
