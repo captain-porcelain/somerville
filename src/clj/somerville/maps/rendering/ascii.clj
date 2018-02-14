@@ -48,7 +48,7 @@
     (if (wall-left? g (:x e) (:y e) e) "|" " ")
     (cond
       (:masked e) " x "
-      (not (nil? (print-key e))) (if (< (print-key e) 10) (str " " (print-key e) " ") (str " " (print-key e) ""))
+      (and (not (nil? print-key)) (not (nil? (print-key e)))) (if (< (print-key e) 10) (str " " (print-key e) " ") (str " " (print-key e) ""))
       :else "   ")
     (when (wall-right? g (:x e) (:y e) e) "|")))
 
@@ -139,8 +139,8 @@
   ([g]
    (dorun (println
             (case (:grid-type g)
-              :rect (ascii-rect g false)
-              :hex  (ascii-hex  g false)))))
+              :rect (ascii-rect g nil)
+              :hex  (ascii-hex  g nil)))))
   ([g print-key]
    (dorun (println
             (case (:grid-type g)
