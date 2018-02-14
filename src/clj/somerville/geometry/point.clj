@@ -43,7 +43,9 @@
 (defn subtract
   "Subtract second point from first"
   [p1 p2]
-  (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2))))
+  (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
+    (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2)) (- (:z p1) (:z p2)))
+    (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2)))))
 
 (defn distance
   "Calculate distance between two points."
@@ -52,8 +54,26 @@
     ;(throw (Exception. (str "point is nil")))
     Long/MAX_VALUE
     (let [dx (- (:x p1) (:x p2))
-          dy (- (:y p1) (:y p2))]
-      (Math/sqrt (+ (* dx dx) (* dy dy))))))
+          dy (- (:y p1) (:y p2))
+          dz (- (get p1 :z 0) (get p2 :z 0))]
+      (Math/sqrt (+ (* dx dx) (* dy dy) (* dz dz))))))
+
+(defn normalize
+  "Normalize point (as vector) to length 1 if possible."
+  [p]
+  (let [z (point 0 0 0)
+        d (distance p z)]
+    (if (c/close-to 0 d)
+      p
+      (point (/ (:x p) d) (/ (:y p) d) (/ (get p :z 0) d)))))
+
+(defn cross
+  "Calculate cross product between two 3D vectors."
+  [p1 p2]
+  (point
+    (- (* (:y p1) (:z p2)) (* (:z p1) (:y p2)))
+    (- (* (:z p1) (:x p2)) (* (:x p1) (:z p2)))
+    (- (* (:x p1) (:y p2)) (* (:y p1) (:x p2)))))
 
 (defn quadrant
   "Get the quadrant a point is in."
@@ -104,4 +124,8 @@
 (defn close?
   "Check if two points are close together."
   [p1 p2]
-  (c/close-to (distance p1 p2) 0))
+  (and
+    (c/close-to (:x p1) (:x p2))
+    (c/close-to (:y p1) (:y p2))
+    (c/close-to (get p1 :z 0) (get p2 :z 0))))
+
