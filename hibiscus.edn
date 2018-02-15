@@ -1,8 +1,11 @@
 {:test-sources "test"
  :test-output "test-results.log"
- :auto-require [[somerville.geometry.point :as p]
-                [somerville.geometry.line :as l]
-                [somerville.geometry.circle :as c]]
+ :auto-require [[somerville.geometry.point :as point]
+                [somerville.geometry.line :as line]
+                [somerville.geometry.circle :as circle]
+                [somerville.maps.rendering.walls :as walls]
+                [somerville.maps.rendering.terrain :as terrain]
+                [somerville.maps.terrain.gaia :as gaia]]
  :cljs-sources ("src/cljc" "src/cljs")
  :cljs-options {:output-to "resources/js/somerville.js"
                 :optimizations :whitespace

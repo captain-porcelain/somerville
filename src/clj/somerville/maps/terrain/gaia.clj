@@ -1,3 +1,4 @@
+;; See http://www.playfuljs.com/realistic-terrain-in-130-lines/
 (ns somerville.maps.terrain.gaia
   (:require
     [somerville.commons :as commons]

@@ -129,3 +129,11 @@
     (c/close-to (:y p1) (:y p2))
     (c/close-to (get p1 :z 0) (get p2 :z 0))))
 
+(defn add
+  [p1 p2]
+  (point (+ (:x p1) (:x p2)) (+ (:y p1) (:y p2)) (+ (get p1 :z 0) (get p2 :z 0))))
+
+(defn scale
+  [p factor]
+  (point (* factor (:x p)) (* factor (:y p)) (* factor (get p :z 0))))
+
