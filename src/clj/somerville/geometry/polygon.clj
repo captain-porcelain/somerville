@@ -32,6 +32,11 @@
   [poly]
   (map :p1 (:lines poly)))
 
+(defn scale
+  "Scale polygon by factor."
+  [poly factor]
+  (from-points (map #(p/scale % factor) (to-points poly))))
+
 ;;====================================================================================================================================================
 ;; General Helpers
 
