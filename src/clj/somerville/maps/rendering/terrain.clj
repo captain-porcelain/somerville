@@ -205,20 +205,34 @@
 
 (def w (atom nil))
 
+(def ox (atom 0))
+(def oy (atom 0))
+(def oz (atom 0))
+(def rx (atom 0))
+(def ry (atom 0))
+(def rz (atom 0))
+(def alt (atom false))
+
 (defn draw-t
   "This function is called by quil repeatedly."
   []
   (quil/background-float 0)
   (quil/stroke-float 0 255 0)
-  ;(quil/fill-float 0 255 0)
+  (quil/fill-float 0 255 0)
+  (quil/lights)
+  (quil/translate @ox @oy @oz)
+  (quil/rotate-x @rx)
+  (quil/rotate-y @ry)
+  (quil/rotate-z @rz)
   (when-not (nil? @view-triangles)
     (dorun
       (for [t @view-triangles]
-        (let [[p1 p2 p3] (polygon/to-points t)]
+        (let [[p1 p2 p3] (polygon/to-points t)
+              ho (* 3/4 (quil/height))]
           (quil/begin-shape :triangles)
-          (quil/vertex (:x p1) (:y p1) (:z p1))
-          (quil/vertex (:x p2) (:y p2) (:z p2))
-          (quil/vertex (:x p3) (:y p3) (:z p3))
+          (quil/vertex (:x p1) (+ ho (:y p1)) (* -1 (:y p1)))
+          (quil/vertex (:x p2) (+ ho (:y p2)) (* -1 (:y p2)))
+          (quil/vertex (:x p3) (+ ho (:z p3)) (* -1 (:y p3)))
           (quil/end-shape))))))
 
 (defn draw-b
@@ -228,17 +242,18 @@
   (quil/stroke-float 20 20 20)
   (quil/fill-float 128 20 128)
   (quil/lights)
-  (quil/rotate-x 0.5)
-  ;(quil/rotate-y 0.5)
-  (quil/translate 100 100 0)
+  (quil/translate @ox @oy @oz)
+  (quil/rotate-x @rx)
+  (quil/rotate-y @ry)
+  (quil/rotate-z @rz)
   (when-not (nil? @w)
     (dorun
       (for [x (range (:width @w))
             y (range (:width @w))]
         (let [z (:height (grid/get-from @w x y))]
-          (quil/translate (* 10 x) (* 10 y) 0)
-          (quil/box 10 10 (* 10 z))
-          (quil/translate (* -10 x) (* -10 y) 0)))))
+          (quil/translate (* 10 x) 0 (* 10 y))
+          (quil/box 10 (* 10 z) 10)
+          (quil/translate (* -10 x) 0 (* -10 y))))))
   )
 
 (defn setup
@@ -248,11 +263,46 @@
   (quil/fill 226)
   (quil/frame-rate 1))
 
+(defn key-released []
+  (if (= (quil/key-code) 18) ; alt
+    (reset! alt false)))
+
+(defn key-pressed []
+  ;(dorun (println (str "pressed code " (quil/key-code))))
+  (if (= (quil/key-code) 18) ; alt
+    (reset! alt true))
+  (if (= (quil/key-code) 39) ; right
+    (if @alt
+      (swap! rx #(+ % 0.1))
+      (swap! ox #(+ % 10))))
+  (if (= (quil/key-code) 37) ; left
+    (if @alt
+      (swap! rx #(- % 0.1))
+      (swap! ox #(- % 10))))
+  (if (= (quil/key-code) 38) ; up
+    (if @alt
+      (swap! ry #(+ % 0.1))
+      (swap! oy #(+ % 10))))
+  (if (= (quil/key-code) 40) ; down
+    (if @alt
+      (swap! ry #(- % 0.1))
+      (swap! oy #(- % 10))))
+  (if (= (quil/key-code) 43) ; +
+    (if @alt
+      (swap! rz #(+ % 0.1))
+      (swap! oz #(+ % 10))))
+  (if (= (quil/key-code) 45) ; down
+    (if @alt
+      (swap! rz #(- % 0.1))
+      (swap! oz #(- % 10)))))
+
 (defn show []
   (quil/sketch
     :title "Gaia Triangulation"
     :renderer :p3d
     :setup setup
-    :draw draw-b
+    :draw draw-t
+    :key-released key-released
+    :key-pressed key-pressed
     :size [200 200]))
 
