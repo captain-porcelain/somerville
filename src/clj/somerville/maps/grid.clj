@@ -33,6 +33,11 @@
   [g w h e]
   (aset (:array g) w h e))
 
+(defn set-integer
+  "Update an element in grid array."
+  [g w h e]
+  (aset (:array g) w h (int e)))
+
 (defn update-cell
   "Update a cell."
   ([g w h f]
@@ -87,15 +92,23 @@
 ; Grid based on two dimensional array
 
 (defn grid-map
-  "Create a two dimensional grid of rectangles sized width x height"
+  "Create a two dimensional grid of rectangles sized width x height."
   [^Integer width ^Integer height grid-type]
   {:width width
    :height height
    :grid-type grid-type
    :array (to-array-2d (repeat width (repeat height {})))})
 
+(defn integer-grid-map
+  "Create a two dimensional grid of integers."
+  [^Integer width ^Integer height grid-type]
+  {:width width
+   :height height
+   :grid-type grid-type
+   :array (make-array Integer/TYPE width height)})
+
 (defn int-grid
-  "Create a two dimensional grid with cells of rectangles sized width x height"
+  "Create a two dimensional grid with cells of rectangles sized width x height."
   [^Integer width ^Integer height grid-type]
   (let [g (grid-map width height grid-type)
         tmp (dorun
@@ -105,15 +118,19 @@
     g))
 
 (defn grid
-  "Create a two dimensional grid with cells of rectangles sized width x height"
+  "Create a two dimensional grid with cells of rectangles sized width x height."
   [^Integer width ^Integer height]
   (int-grid width height :rect))
 
 (defn hex-grid
-  "Create a two dimensional grid with cells of rectangles sized width x height"
+  "Create a two dimensional grid with cells of rectangles sized width x height."
   [^Integer width ^Integer height]
   (int-grid width height :hex))
 
+(defn integer-grid
+  "Create a two dimensional grid of Integers of width x height."
+  [^Integer width ^Integer height]
+  (integer-grid-map width height :rect))
 
 ;==================================================================================================================
 ; Maze Building Helpers

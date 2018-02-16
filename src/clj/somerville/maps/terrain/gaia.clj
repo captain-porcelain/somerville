@@ -10,10 +10,10 @@
 (defn set-initial-values
   "Set initial height values on corners."
   [g config]
-  (grid/update-cell g 0 0 #(assoc % :height (:max config)))
-  (grid/update-cell g 0 (:max config) #(assoc % :height (/ (:max config) 2)))
-  (grid/update-cell g (:max config) 0 #(assoc % :height (/ (:max config) 2)))
-  (grid/update-cell g (:max config) (:max config) #(assoc % :height (:max config)))
+  (grid/set-integer g 0 0 ^Integer (:max config))
+  (grid/set-integer g 0 (:max config) (/ (:max config) 2))
+  (grid/set-integer g (:max config) 0 (/ (:max config) 2))
+  (grid/set-integer g (:max config) (:max config) (:max config))
   g)
 
 (defn average
@@ -56,7 +56,7 @@
 (defn tile-values
   "Get height values for tile corners."
   [g t]
-  (map #(:height (grid/get-from g (:x %) (:y %))) (tile-points t)))
+  (map #(grid/get-from g (:x %) (:y %)) (tile-points t)))
 
 (defn update-new-points
   [g config points w avg]
@@ -65,7 +65,7 @@
                 v (int (+ avg (* r w 2)))
                 ;tmp (dorun (println (str "x: " (:x %)  ", y: " (:y %) ", avg: " avg ", w: " w ", r: " r ", v: " v)))
                 ]
-            (grid/update-cell g (:x %) (:y %) (fn [c] (assoc % :height v))))
+            (grid/set-integer g (:x %) (:y %) v))
          points)))
 
 (defn subtile-points
@@ -101,7 +101,7 @@
 (defn world
   "Create a landscape based on config."
   [config]
-  (let [g (grid/grid (:size config) (:size config))
+  (let [g (grid/integer-grid (:size config) (:size config))
         tmp (set-initial-values g config)
         tmp (loop-over-tiles g config)]
     g))
