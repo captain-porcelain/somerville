@@ -85,11 +85,12 @@
         project   (partial projection/project-1 size width height)]
     (dotimes [y size]
       (dotimes [x size]
-        (let [value  (get (grid/get-from g x y) :height 0)
+        (let [value  (grid/get-from g x y)
               top    (project x y value)
               bottom (project (inc x) y 0)
               water  (project x y water-val)
-              style  (brightness x y (- (get (grid/get-from g (inc x) y) :height 0) value))]
+              next-val (grid/get-from g (inc x) y)
+              style  (brightness x y (- (if (int? next-val) next-val 0) value))]
           (rect graphics top bottom style)
           (rect graphics water bottom (:water-color config)))))))
 
@@ -123,10 +124,10 @@
 
 (defn triangles
   [g [x y]]
-  (let [p1 (p/point x y (get (grid/get-from g x y) :height 0))
-        p2 (p/point (inc x) y (get (grid/get-from g (inc x) y) :height 0))
-        p3 (p/point (inc x) (inc y) (get (grid/get-from g (inc x) (inc y)) :height 0))
-        p4 (p/point x (inc y) (get (grid/get-from g x (inc y)) :height 0))
+  (let [p1 (p/point x y (grid/get-from g x y))
+        p2 (p/point (inc x) y (grid/get-from g (inc x) y))
+        p3 (p/point (inc x) (inc y) (grid/get-from g (inc x) (inc y)))
+        p4 (p/point x (inc y) (grid/get-from g x (inc y)))
         t1 (polygon/from-points (list p1 p2 p4))
         t2 (polygon/from-points (list p2 p3 p4))]
     [t1 t2]))
@@ -145,10 +146,10 @@
   (let [size (:width g)]
     (for [y (range size)
           x (range size)]
-      (let [p1 [x y (get (grid/get-from g x y) :height 0)]
-            p2 [(inc x) y (get (grid/get-from g (inc x) y) :height 0)]
-            p3 [(inc x) (inc y) (get (grid/get-from g (inc x) (inc y)) :height 0)]
-            p4 [x (inc y) (get (grid/get-from g x (inc y)) :height 0)]
+      (let [p1 [x y (grid/get-from g x y)]
+            p2 [(inc x) y (grid/get-from g (inc x) y)]
+            p3 [(inc x) (inc y) (grid/get-from g (inc x) (inc y))]
+            p4 [x (inc y) (grid/get-from g x (inc y))]
             t1 (polygon/from-points (list (project-fn p1) (project-fn p2) (project-fn p4)))
             t2 (polygon/from-points (list (project-fn p2) (project-fn p3) (project-fn p4)))]
         [t1 t2]))))
@@ -250,7 +251,7 @@
     (dorun
       (for [x (range (:width @w))
             y (range (:width @w))]
-        (let [z (:height (grid/get-from @w x y))]
+        (let [z (grid/get-from @w x y)]
           (quil/translate (* 10 x) 0 (* 10 y))
           (quil/box 10 (* 10 z) 10)
           (quil/translate (* -10 x) 0 (* -10 y))))))
