@@ -208,8 +208,26 @@
         lines
         (recur (rest sets) (conj lines (nth (first sets) 0) (nth (first sets) 1) (nth (first sets) 2) (nth (first sets) 3)))))))
 
+(defn heights
+  [g]
+  (let [size (:width g)]
+    (for [y (range size)
+          x (range size)]
+      (grid/get-from g x y))))
 
-
+(defn line-heights
+  [g min-distance max-lines]
+  (let [hs (heights g)
+        min-value (apply min hs)
+        max-value (apply max hs)
+        distance (- max-value min-value)
+        tmp (dorun (println (str "Distance: " distance)))
+        tmp (dorun (println (str "Max Lines: " max-lines)))
+        step (int (/ distance max-lines))
+        step (if (< step min-distance) min-distance step)
+        tmp (dorun (println (str "Step: " step)))]
+    (for [i (range max-lines)]
+      (+ min-value (* (inc i) step)))))
 
 
 
@@ -235,16 +253,23 @@
   ;(.fillOval graphics (- (:x (:p2 line)) 2) (- (:y (:p2 line)) 2) 4 4)
   (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))
 
+(defn render-line-height
+  [graphics triangle-heights height scale]
+  (let [lines (height-lines triangle-heights height)
+        tmp (dorun (println (str "Found " (count lines) " lines")))
+        lines2 (map #(l/line (p/scale (:p1 %) scale) (p/scale (:p2 %) scale)) lines)
+        tmp (dorun (map #(render-line graphics %) lines2))]
+    ))
+
 (defn render-triangulation
   "Render the grid using a triangulation."
-  [g filename scale height]
+  [g filename scale steps]
   (let [w (* scale (:width g))
         h (* scale (:height g))
         [img graphics] (new-image w h)
-        lines (height-lines (triangulation g) height)
-        tmp (dorun (println (str "Found " (count lines) " lines")))
-        lines2 (map #(l/line (p/scale (:p1 %) scale) (p/scale (:p2 %) scale)) lines)
-        tmp (dorun (map #(render-line graphics %) lines2))
+        triangle-heights (triangulation g)
+        heights (line-heights g 1 steps)
+        tmp (dorun (map #(render-line-height graphics triangle-heights % scale) heights))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
 
