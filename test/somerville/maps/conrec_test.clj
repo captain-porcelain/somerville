@@ -2,7 +2,7 @@
 (ns somerville.maps.conrec-test
   (:require
     [somerville.maps.grid :as grid]
-    [somerville.maps.rendering.conrec :as conrec]
+    [somerville.maps.terrain.rendering.conrec :as conrec]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l])
   (:use clojure.test))

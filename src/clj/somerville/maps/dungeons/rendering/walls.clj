@@ -1,4 +1,4 @@
-(ns somerville.maps.rendering.walls
+(ns somerville.maps.dungeons.rendering.walls
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite RenderingHints Polygon BasicStroke]
     [java.awt.image BufferedImage])
