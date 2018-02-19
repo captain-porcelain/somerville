@@ -1,4 +1,4 @@
-(ns somerville.maps.mazes.aldous-broder
+(ns somerville.maps.dungeons.aldous-broder
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))

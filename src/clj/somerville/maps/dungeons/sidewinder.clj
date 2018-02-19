@@ -1,4 +1,4 @@
-(ns somerville.maps.mazes.sidewinder
+(ns somerville.maps.dungeons.sidewinder
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))

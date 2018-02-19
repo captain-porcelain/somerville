@@ -1,5 +1,5 @@
 ;; Various projection algorithms but none do a very good job.
-(ns somerville.maps.rendering.projection
+(ns somerville.geometry.projection
   (:import
     [org.apache.commons.math3.geometry.euclidean.threed Plane Vector3D])
   (:require

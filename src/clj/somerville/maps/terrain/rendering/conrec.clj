@@ -1,5 +1,5 @@
 ;; See http://paulbourke.net/papers/conrec/
-(ns somerville.maps.rendering.conrec
+(ns somerville.maps.terrain.rendering.conrec
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite RenderingHints Polygon BasicStroke]
     [java.awt.image BufferedImage])

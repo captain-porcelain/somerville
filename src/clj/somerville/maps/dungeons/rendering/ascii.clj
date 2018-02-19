@@ -1,4 +1,4 @@
-(ns somerville.maps.rendering.ascii
+(ns somerville.maps.dungeons.rendering.ascii
   (:require
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))
