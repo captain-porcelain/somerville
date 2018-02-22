@@ -1,6 +1,6 @@
-(ns somerville.array-test
+(ns somerville.data-structures.array-test
   (:require
-    [somerville.array :as a])
+    [somerville.data-structures.array :as a])
   (:use [clojure.test]))
 
 (deftest test-transpose

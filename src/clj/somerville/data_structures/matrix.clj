@@ -1,5 +1,5 @@
-(ns somerville.matrix
-  (:require [somerville.array :as a]))
+(ns somerville.data-structures.matrix
+  (:require [somerville.data-structures.array :as a]))
 
 (defn transpose
   "Transpose a matrix m. Put simply: make rows to columns. A 2x3 matrix will be a 3x2 matrix when transposed."
