@@ -12,7 +12,7 @@
   :plugins
   [[lein-cljsbuild "1.1.7"]
    [lein-marginalia "0.8.0"]]
-  :main somerville.core
+  ;:main somerville.core
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :repl-options
   {:timeout 120000}

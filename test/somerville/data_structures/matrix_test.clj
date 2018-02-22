@@ -1,6 +1,6 @@
-(ns somerville.matrix-test
-  (:use [somerville.array])
-  (:use [somerville.matrix])
+(ns somerville.data-structures.matrix-test
+  (:use [somerville.data-structures.array])
+  (:use [somerville.data-structures.matrix])
   (:use [clojure.test]))
 
 (deftest test-transpose

@@ -1,4 +1,4 @@
-(ns somerville.array)
+(ns somerville.data-structures.array)
 
 ;; For these macros see http://www.bestinclass.dk/index.clj/2010/03/functional-fluid-dynamics-in-clojure.html
 ;; Basically these macros provide the functionality to get and set double values in a two dimensional array
