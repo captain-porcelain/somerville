@@ -75,6 +75,11 @@
     (- (* (:z p1) (:x p2)) (* (:x p1) (:z p2)))
     (- (* (:x p1) (:y p2)) (* (:y p1) (:x p2)))))
 
+(defn dot
+  "Calculate dot product between two points."
+  [p1 p2]
+  (+ (* (:x p1) (:x p2)) (* (:y p1) (:y p2))  (* (get p1 :z 0) (get p2 :z 0))))
+
 (defn quadrant
   "Get the quadrant a point is in."
   [p]

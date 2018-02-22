@@ -81,8 +81,8 @@
    :v (Math/tan (to-rad (* (:anglev camera) (/ 0.01745329252 2))))})
 
 (defn project-1
-  [size width height x y z]
-  (let [camera (camera (p/point 0 0 200) (p/point (/ size 2) (/ size 2) 0) (p/point 0 0 1))
+  [width height x y z]
+  (let [camera (camera (p/point 0 0 200) (p/point 0 0 0) (p/point 0 0 1))
         screen (Screen. (p/point (/ width 2) (/ height 2)) width height)
         apertures (aperture camera)
         basis (basis-vectors camera)
