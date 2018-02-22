@@ -117,7 +117,7 @@
 
 (defn grid-points
   [g]
-  (let [size (:width g)]
+  (let [size (dec (:width g))]
     (for [y (range size)
           x (range size)]
       [x y])))
@@ -143,7 +143,7 @@
 (defn create-triangles
   "Create a triangulation for the given grid."
   [g project-fn]
-  (let [size (:width g)]
+  (let [size (dec (:width g))]
     (for [y (range size)
           x (range size)]
       (let [p1 [x y (grid/get-from g x y)]
@@ -187,7 +187,7 @@
         offset (- 0 (found-min triangles :x))
         scale (/ (scale-factor triangles width offset) 2)
         tmp (dorun (println (str "Found max: " (found-max triangles :x) ", scale: " scale ", offset: " offset)))
-        offset 1
+        triangles (map #(vector (polygon/scale (nth % 0) scale) (polygon/scale (nth % 1) scale)) triangles)
         ]
     (dorun (map #(let [[t1 t2] %]
                    (draw-polygon graphics t1 [30 30 30 255] [128 20 128 255])
@@ -201,6 +201,37 @@
         tmp (draw-triangles g config graphics width height)
         tmp (.dispose graphics)]
     (image/write-image filename img)))
+
+
+
+(defn debug-render
+  "Render the grid using a triangulation."
+  [filename width height]
+  (let [config default-config
+        [img graphics] (new-image config width height)
+        pject (fn [v] (projection/project-1 width height (:x v) (:y v) (:z v)))
+
+        p1 (p/point -10  0  0)
+        p2 (p/point  10  0  0)
+        p3 (p/point   0 10  0)
+
+        ps (list p1 p2 p3)
+        tmp (dorun (println (c/out (polygon/from-points ps))))
+
+        pps (map pject ps)
+        tmp (dorun (println (c/out (polygon/from-points pps))))
+
+        tmp(draw-polygon graphics (polygon/from-points pps) [30 30 30 255] [128 20 128 255])
+
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
+
+
+
+
+
+
+
 
 (def view-triangles (atom nil))
 
@@ -233,7 +264,7 @@
           (quil/begin-shape :triangles)
           (quil/vertex (:x p1) (+ ho (:y p1)) (* -1 (:y p1)))
           (quil/vertex (:x p2) (+ ho (:y p2)) (* -1 (:y p2)))
-          (quil/vertex (:x p3) (+ ho (:z p3)) (* -1 (:y p3)))
+          (quil/vertex (:x p3) (+ ho (:y p3)) (* -1 (:y p3)))
           (quil/end-shape))))))
 
 (defn draw-b
