@@ -10,7 +10,7 @@
     [somerville.commons :as commons]
     [somerville.geometry.commons :as c]
     [somerville.maps.grid :as grid]
-    [quil.core :as quil]))
+    ))
 
 ;;=======================================================================================================================
 ;; Calculating colors
@@ -110,8 +110,8 @@
   (let [xs (into-array Integer/TYPE (map :x (polygon/to-points polygon)))
         ys (into-array Integer/TYPE (map :y (polygon/to-points polygon)))
         p (Polygon. xs ys (count xs))
-        tmp (.setPaint graphics (get-color fill-color))
-        tmp (.fillPolygon graphics p)
+        ;tmp (.setPaint graphics (get-color fill-color))
+        ;tmp (.fillPolygon graphics p)
         tmp (.setPaint graphics (get-color line-color))
         tmp (.drawPolygon graphics p)]))
 
@@ -177,21 +177,19 @@
 (defn draw-triangles
   "Draw pairs of triangles."
   [g config graphics width height]
-  (let [size (:width g)
-        ;pject (fn [v] (projection/project-1 size width height (nth v 0) (nth v 1) (nth v 2)))
-        px (p/point 1 0 -1)
-        py (p/point 0 1 0)
-        projector (projection/make-projector px py)
-        pject (fn [v] (projector (p/point (nth v 0) (nth v 1) (nth v 2))))
+  (let [scale 20
+        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 100)
+        focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
+        up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
+        projector (projection/projector camera focus up width height)
+        scale (/ width (:width g))
+        pject (fn [v] (projection/project projector (p/point (* scale (nth v 0)) (* scale (nth v 1)) (* 5 (nth v 2)))))
         triangles (create-triangles g pject)
-        offset (- 0 (found-min triangles :x))
-        scale (/ (scale-factor triangles width offset) 2)
-        tmp (dorun (println (str "Found max: " (found-max triangles :x) ", scale: " scale ", offset: " offset)))
-        triangles (map #(vector (polygon/scale (nth % 0) scale) (polygon/scale (nth % 1) scale)) triangles)
+        triangles (map #(vector (nth % 0) (nth % 1)) triangles)
         ]
     (dorun (map #(let [[t1 t2] %]
-                   (draw-polygon graphics t1 [30 30 30 255] [128 20 128 255])
-                   (draw-polygon graphics t2 [30 30 30 255] [80 10 80 255]))
+                   (draw-polygon graphics t1 [128 20 128 255] [128 20 128 255])
+                   (draw-polygon graphics t2 [128 40 128 255] [80 10 80 255]))
                 triangles))))
 
 (defn render-triangulation
@@ -209,132 +207,45 @@
   [filename width height]
   (let [config default-config
         [img graphics] (new-image config width height)
-        pject (fn [v] (projection/project-1 width height (:x v) (:y v) (:z v)))
 
-        p1 (p/point -10  0  0)
-        p2 (p/point  10  0  0)
-        p3 (p/point   0 10  0)
+        camera (p/point 1 15 10)
+        focus  (p/point 0 0  0)
+        up     (p/point 0 1  0)
+        projector (projection/projector camera focus up width height)
+        pject (fn [v] (projection/project projector v))
 
-        ps (list p1 p2 p3)
-        tmp (dorun (println (c/out (polygon/from-points ps))))
+        p1 (p/point -90  0 -10)
+        p2 (p/point  90  0 -10)
+        p3 (p/point   0 90 -10)
+        p4 (p/point   0  0   5)
 
-        pps (map pject ps)
-        tmp (dorun (println (c/out (polygon/from-points pps))))
+        pt1 (pject p1)
+        pt2 (pject p2)
+        pt3 (pject p3)
+        pt4 (pject p4)
 
-        tmp(draw-polygon graphics (polygon/from-points pps) [30 30 30 255] [128 20 128 255])
+        tmp (dorun (println (c/out p1)))
+        tmp (dorun (println (c/out pt1)))
+        tmp (dorun (println (c/out p2)))
+        tmp (dorun (println (c/out pt2)))
+        tmp (dorun (println (c/out p3)))
+        tmp (dorun (println (c/out pt3)))
+        tmp (dorun (println (c/out p4)))
+        tmp (dorun (println (c/out pt4)))
+
+        t1 (list pt1 pt2 pt3)
+        t2 (list pt1 pt2 pt4)
+        t3 (list pt1 pt3 pt4)
+        t4 (list pt2 pt3 pt4)
+        ;tmp (dorun (println (c/out (polygon/from-points ps))))
+
+        ;tmp (dorun (println (c/out (polygon/from-points pps))))
+
+        tmp (draw-polygon graphics (polygon/from-points t1) [255 30 30 255] [128 20 128 255])
+        tmp (draw-polygon graphics (polygon/from-points t2) [30 255 30 255] [128 20 128 255])
+        tmp (draw-polygon graphics (polygon/from-points t3) [30 30 255 255] [128 20 128 255])
+        tmp (draw-polygon graphics (polygon/from-points t4) [30 30 30 255] [128 20 128 255])
 
         tmp (.dispose graphics)]
     (image/write-image filename img)))
-
-
-
-
-
-
-
-
-(def view-triangles (atom nil))
-
-(def w (atom nil))
-
-(def ox (atom 0))
-(def oy (atom 0))
-(def oz (atom 0))
-(def rx (atom 0))
-(def ry (atom 0))
-(def rz (atom 0))
-(def alt (atom false))
-
-(defn draw-t
-  "This function is called by quil repeatedly."
-  []
-  (quil/background-float 0)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
-  (quil/lights)
-  (quil/translate @ox @oy @oz)
-  (quil/rotate-x @rx)
-  (quil/rotate-y @ry)
-  (quil/rotate-z @rz)
-  (when-not (nil? @view-triangles)
-    (dorun
-      (for [t @view-triangles]
-        (let [[p1 p2 p3] (polygon/to-points t)
-              ho (* 3/4 (quil/height))]
-          (quil/begin-shape :triangles)
-          (quil/vertex (:x p1) (+ ho (:y p1)) (* -1 (:y p1)))
-          (quil/vertex (:x p2) (+ ho (:y p2)) (* -1 (:y p2)))
-          (quil/vertex (:x p3) (+ ho (:y p3)) (* -1 (:y p3)))
-          (quil/end-shape))))))
-
-(defn draw-b
-  "This function is called by quil repeatedly."
-  []
-  (quil/background-float 0)
-  (quil/stroke-float 20 20 20)
-  (quil/fill-float 128 20 128)
-  (quil/lights)
-  (quil/translate @ox @oy @oz)
-  (quil/rotate-x @rx)
-  (quil/rotate-y @ry)
-  (quil/rotate-z @rz)
-  (when-not (nil? @w)
-    (dorun
-      (for [x (range (:width @w))
-            y (range (:width @w))]
-        (let [z (grid/get-from @w x y)]
-          (quil/translate (* 10 x) 0 (* 10 y))
-          (quil/box 10 (* 10 z) 10)
-          (quil/translate (* -10 x) 0 (* -10 y))))))
-  )
-
-(defn setup
-  "This function is called by quil once before drawing"
-  []
-  (quil/smooth)
-  (quil/fill 226)
-  (quil/frame-rate 1))
-
-(defn key-released []
-  (if (= (quil/key-code) 18) ; alt
-    (reset! alt false)))
-
-(defn key-pressed []
-  ;(dorun (println (str "pressed code " (quil/key-code))))
-  (if (= (quil/key-code) 18) ; alt
-    (reset! alt true))
-  (if (= (quil/key-code) 39) ; right
-    (if @alt
-      (swap! rx #(+ % 0.1))
-      (swap! ox #(+ % 10))))
-  (if (= (quil/key-code) 37) ; left
-    (if @alt
-      (swap! rx #(- % 0.1))
-      (swap! ox #(- % 10))))
-  (if (= (quil/key-code) 38) ; up
-    (if @alt
-      (swap! ry #(+ % 0.1))
-      (swap! oy #(+ % 10))))
-  (if (= (quil/key-code) 40) ; down
-    (if @alt
-      (swap! ry #(- % 0.1))
-      (swap! oy #(- % 10))))
-  (if (= (quil/key-code) 43) ; +
-    (if @alt
-      (swap! rz #(+ % 0.1))
-      (swap! oz #(+ % 10))))
-  (if (= (quil/key-code) 45) ; down
-    (if @alt
-      (swap! rz #(- % 0.1))
-      (swap! oz #(- % 10)))))
-
-(defn show []
-  (quil/sketch
-    :title "Gaia Triangulation"
-    :renderer :p3d
-    :setup setup
-    :draw draw-t
-    :key-released key-released
-    :key-pressed key-pressed
-    :size [200 200]))
 

@@ -3,7 +3,10 @@
   (:import
     [org.apache.commons.math3.geometry.euclidean.threed Plane Vector3D])
   (:require
-    [somerville.geometry.point :as p]))
+    [somerville.geometry.line :as l]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.plane :as pl]
+    [somerville.geometry.commons :as c]))
 
 ;;=======================================================================================================================
 ;; Calculating projections based on Apache Commons Math
@@ -122,4 +125,65 @@
         z     (- (* size 3) (+ (* 0.4 z) (* (:y point) 0.05)))]
     (p/point (+ x0 (/ x y)) (+ y0 (/ z y)))))
 
+;;=======================================================================================================================
+;; My own projection
+;; First set up the camera at a point and a projection plane.
+;; Then intersect the line from the camera to the point that is to be projected onto the plane.
+;; Lastly transform the point from the plane into a 2d view.
 
+(defrecord Projector [camera focus up projection-plane screen-center width height]
+  c/Printable
+  (c/out [this i] (str (c/indent i) "Projector settings\n"
+                       "Camera at " (c/out camera) "\n"
+                       "Focussing on " (c/out focus) "\n"
+                       "Plane up is " (c/out up) "\n"
+                       "Projection plane is " (c/out projection-plane) "\n"
+                       "Screen center is " (c/out screen-center) "\n"
+                       "Screen dimensions are " width "x" height))
+  (c/out [this] (c/out this 0)))
+
+(defn projection-plane
+  "Calculate the projection plane for the given camera and focus points considering the orientation given by up."
+  [camera focus up]
+  (let [v1 (p/subtract focus camera)
+        v2 (p/add focus up)
+        v3 (p/cross v1 v2)]
+    (pl/plane focus v2 v3)))
+
+(defn projector
+  "Create a projector that looks from the camera point to the focus point and a screen of width x height.
+  The orientation of the screen plane is determined by the up vector."
+  [camera focus up width height]
+  (Projector. camera focus up (projection-plane camera focus up) (p/point (/ width 2) (/ height 2)) width height))
+
+(defn linear-combination
+  [v w1 w2]
+  )
+
+(defn project
+  "Project the given point using the projector settings."
+  [projector point]
+  (let [i (pl/intersect (:projection-plane projector) (l/line (:camera projector) point))
+        ;tmp (dorun (println (str "Plane intersection: " (c/out i))))
+
+        ;; no correction for angle base
+        vi (p/subtract i (:focus projector))
+        ;tmp (dorun (println (str "Intersection vector: " (c/out vi))))
+        p2d (p/add (:screen-center projector) vi)
+
+        ;; testing cross product magic
+        ; get horizontal base line
+        ;h (p/cross (p/subtract (:focus projector) (:camera projector)) (:up projector))
+        ;horizontal-base-line (p/scale (p/normalize h) (/ (:width projector) 2))
+        ;tmp (dorun (println (str "Horizontal base line: " (c/out horizontal-base-line))))
+        ;vertical-base-line (p/scale (p/normalize (:up projector)) (/ (:height projector) 2))
+        ;tmp (dorun (println (str "Vertical base line: " (c/out vertical-base-line))))
+        ;upper-right-corner (p/add (p/add (:focus projector) horizontal-base-line) vertical-base-line)
+        ;dvi (p/distance i (:focus projector))
+        ;dc (p/distance upper-right-corner (:focus projector))
+        ;alpha (Math/cos (/ dvi dc))
+        ;p2d (p/point-at (:screen-center projector) alpha dvi)
+
+        ;tmp (dorun (println (str "Projected point: " (c/out p2d))))
+        ]
+    p2d))

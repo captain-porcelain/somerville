@@ -43,9 +43,11 @@
 (defn subtract
   "Subtract second point from first"
   [p1 p2]
-  (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
-    (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2)) (- (:z p1) (:z p2)))
-    (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2)))))
+  (if (or (nil? p1) (nil? p2))
+    nil
+    (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
+      (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2)) (- (:z p1) (:z p2)))
+      (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2))))))
 
 (defn distance
   "Calculate distance between two points."
@@ -136,7 +138,9 @@
 
 (defn add
   [p1 p2]
-  (point (+ (:x p1) (:x p2)) (+ (:y p1) (:y p2)) (+ (get p1 :z 0) (get p2 :z 0))))
+  (if (or (nil? p1) (nil? p2))
+    nil
+    (point (+ (:x p1) (:x p2)) (+ (:y p1) (:y p2)) (+ (get p1 :z 0) (get p2 :z 0)))))
 
 (defn scale
   [p factor]
