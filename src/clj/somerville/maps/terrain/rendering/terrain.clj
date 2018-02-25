@@ -82,7 +82,7 @@
   [g config graphics width height]
   (let [size (:width g)
         water-val (* size 0.7)
-        project   (partial projection/project-1 size width height)]
+        project   (partial projection/project size width height)]
     (dotimes [y size]
       (dotimes [x size]
         (let [value  (grid/get-from g x y)

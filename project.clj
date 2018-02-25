@@ -3,7 +3,6 @@
   :dependencies
   [[org.clojure/clojure "1.9.0"]
    [org.clojure/clojurescript "1.9.946"]
-   [org.apache.commons/commons-math3 "3.6.1"]
    [dali "0.7.4"]
    [quil "2.6.0"]
    [fs "1.3.3"]
