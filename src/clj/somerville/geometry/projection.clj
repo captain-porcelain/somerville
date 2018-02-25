@@ -178,23 +178,27 @@
 
         ;; testing cross product magic
         ; get horizontal base line
-        h (p/cross (p/subtract (:focus projector) (:camera projector)) (:up projector))
-        horizontal-base-line (p/scale (p/normalize h) (/ (:width projector) 2))
-        tmp (dorun (println (str "Horizontal base line: " (c/out horizontal-base-line))))
-        vertical-base-line (p/scale (p/normalize (:up projector)) (/ (:height projector) 2))
-        tmp (dorun (println (str "Vertical base line: " (c/out vertical-base-line))))
-        ;upper-right-corner (p/add (p/add (:focus projector) horizontal-base-line) vertical-base-line)
-        ;c (pl/intersect (:projection-plane projector) (l/line (:camera projector) (:focus projector)))
-        c (:focus projector)
-        lower-left-corner (p/subtract (p/subtract c horizontal-base-line) vertical-base-line)
-        tmp (dorun (println (str "Lower Left Corner" (c/out lower-left-corner))))
-        vi (p/subtract i lower-left-corner)
-        tmp (dorun (println (str "Intersection vector: " (c/out vi))))
-        ;dvi (p/distance i (:focus projector))
-        ;dc (p/distance upper-right-corner (:focus projector))
-        ;alpha (Math/cos (/ dvi dc))
-        ;p2d (p/point-at (:screen-center projector) alpha dvi)
-        p2d vi
+        ;h (p/normalize (p/cross (p/subtract (:focus projector) (:camera projector)) (:up projector)))
+        ;horizontal-base-line (p/scale h (/ (:width projector) 2))
+        ;tmp (dorun (println (str "Horizontal base line: " (c/out horizontal-base-line))))
+        ;vertical-base-line (p/scale (p/normalize (:up projector)) (/ (:height projector) 2))
+        ;tmp (dorun (println (str "Vertical base line: " (c/out vertical-base-line))))
+        ;;upper-right-corner (p/add (p/add (:focus projector) horizontal-base-line) vertical-base-line)
+        ;;c (pl/intersect (:projection-plane projector) (l/line (:camera projector) (:focus projector)))
+        ;c (:focus projector)
+        ;lower-left-corner (p/subtract (p/subtract c horizontal-base-line) vertical-base-line)
+        ;tmp (dorun (println (str "Lower Left Corner" (c/out lower-left-corner))))
+        ;vi (p/subtract i lower-left-corner)
+        ;tmp (dorun (println (str "Intersection vector: " (c/out vi))))
+        ;p2d vi
+
+        ;; testing cross product magic
+        ; get horizontal base line
+        h (p/normalize (p/cross (p/subtract (:focus projector) (:camera projector)) (:up projector)))
+        u (p/normalize (:up projector))
+        vi (p/subtract i (:focus projector))
+        [a b] (linear-combination vi h u)
+        p2d (p/add (p/add (:screen-center projector) (p/scale (p/point 1 0) a)) (p/scale (p/point 0 1) b))
 
         ;tmp (dorun (println (str "Projected point: " (c/out p2d))))
         ]
