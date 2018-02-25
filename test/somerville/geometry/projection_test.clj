@@ -29,5 +29,12 @@
         p3d2    (p/point 10 0 0)
         p2d2    (projection/project projector p3d2)
         tmp (dorun (println (c/out p2d2)))]
-    (is (= (p/point 5 5 0) p2d1))))
+    (is (= (p/point 5.0 5.0 0.0) p2d1))))
 
+(deftest linear-combination
+  (let [v (p/point 2 2)
+        s (p/point 1 0)
+        t (p/point 0 1)
+        [a b] (projection/linear-combination v s t)]
+    (is (= 2 a))
+    (is (= 2 b))))
