@@ -123,8 +123,7 @@
         scale (/ width (:width g))
         pject (fn [v] (projection/project projector (p/point (* scale (nth v 0)) (* scale (nth v 1)) (* 5 (nth v 2)))))
         triangles (create-triangles g pject)
-        triangles (map #(vector (nth % 0) (nth % 1)) triangles)
-        ]
+        triangles (map #(vector (nth % 0) (nth % 1)) triangles)]
     (dorun (map #(let [[t1 t2] %]
                    (draw-polygon graphics t1 [128 20 128 255] [128 20 128 255])
                    (draw-polygon graphics t2 [128 40 128 255] [80 10 80 255]))
@@ -153,6 +152,41 @@
         contour (conrec/contour g (:height-steps config))
         scale (/ width (:width g))
         tmp (dorun (map #(draw-height-lines graphics config scale %) (map :lines contour)))
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
+
+
+(defn draw-heights
+  "Draw height lines."
+  [g contour config graphics width height]
+  (let [scale 20
+        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 100)
+        focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
+        up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
+        projector (projection/projector camera focus up width height)
+        scale (/ width (:width g))
+        pject (fn [v] (projection/project projector (p/point (* scale (:x v)) (* scale (:y v)) (* 5 (:z v)))))
+        h3d-lines (map
+                    #(map
+                       (fn [line]
+                         (l/line
+                           (p/point (:x (:p2 line)) (:y (:p2 line)) (:height %))
+                           (p/point (:x (:p1 line)) (:y (:p1 line)) (:height %))))
+                       (:lines %))
+                    contour)]
+    (dorun
+      (map
+        #(dorun
+           (map
+             (fn [line]
+               (render-line graphics (l/line (pject (:p1 line)) (pject (:p2 line))) (:line-color config))) %)) h3d-lines))))
+
+(defn render-heights
+  "Render height lines in 3d."
+  [g config filename width height]
+  (let [[img graphics] (new-image config width height)
+        contour (conrec/contour g (:height-steps config))
+        tmp (draw-heights g contour config graphics width height)
         tmp (.dispose graphics)]
     (image/write-image filename img)))
 
