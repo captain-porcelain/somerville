@@ -1,10 +1,6 @@
 ;; See http://paulbourke.net/papers/conrec/
 (ns somerville.maps.terrain.rendering.conrec
-  (:import
-    [java.awt Color Graphics2D Rectangle AlphaComposite RenderingHints Polygon BasicStroke]
-    [java.awt.image BufferedImage])
   (:require
-    [somerville.image :as image]
     [somerville.maps.grid :as grid]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
@@ -229,79 +225,9 @@
     (for [i (range max-lines)]
       (+ min-value (* (inc i) step)))))
 
+(defn contour
+  "Get contours of heights in given steps apart."
+  [g steps]
+  (let [triangles (triangulation g)]
+    (map #(hash-map :height % :lines (height-lines triangles %)) (line-heights g 1 steps))))
 
-
-(defn get-color
-  "Convert integer array into Color."
-  [c]
-  (Color. ^Integer (int (nth c 0)) ^Integer (int (nth c 1)) ^Integer (int (nth c 2)) ^Integer (int (nth c 3))))
-
-(defn new-image
-  "Create a new image to hold the finished tiles."
-  [width height]
-  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
-        graphics ^Graphics2D (.createGraphics img)
-        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
-        tmp (.setPaint graphics (get-color [40 40 40 255]))
-        tmp (.fill graphics (Rectangle. 0 0 width height))
-        tmp (.setPaint graphics (get-color [255 255 255 255]))]
-    [img graphics]))
-
-(defn render-line
-  [graphics line]
-  ;(.fillOval graphics (- (:x (:p1 line)) 2) (- (:y (:p1 line)) 4) 4 4)
-  ;(.fillOval graphics (- (:x (:p2 line)) 2) (- (:y (:p2 line)) 2) 4 4)
-  (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))
-
-(defn render-line-height
-  [graphics triangle-heights height scale]
-  (let [lines (height-lines triangle-heights height)
-        tmp (dorun (println (str "Found " (count lines) " lines")))
-        lines2 (map #(l/line (p/scale (:p1 %) scale) (p/scale (:p2 %) scale)) lines)
-        tmp (dorun (map #(render-line graphics %) lines2))]
-    ))
-
-(defn render-triangulation
-  "Render the grid using a triangulation."
-  [g filename scale steps]
-  (let [w (* scale (:width g))
-        h (* scale (:height g))
-        [img graphics] (new-image w h)
-        triangle-heights (triangulation g)
-        heights (line-heights g 1 steps)
-        tmp (dorun (map #(render-line-height graphics triangle-heights % scale) heights))
-        tmp (.dispose graphics)]
-    (image/write-image filename img)))
-
-(defn center-spike
-  [g m]
-  (dorun
-    (for [x (range (:width g))
-          y (range (:height g))]
-      (let [mx (mod x m)
-            my (mod y m)]
-        (grid/set-integer g x y (min mx my (- m (inc mx)) (- m (inc my))))))))
-
-(defn sample-grid
-  [size factor]
-  (let [width (* size factor)
-        g (grid/integer-grid width width)
-        tmp (center-spike g size)]
-    g))
-
-(defn one-spike-grid
-  []
-  (let [width 5
-        g (grid/integer-grid width width)
-        tmp (grid/set-integer g 2 2 5)]
-    g))
-
-(defn ascii
-  [g]
-  (clojure.string/join
-    "\n"
-    (for [y (range (:height g))]
-      (clojure.string/join
-        "|"
-        (for [x (range (:width g))]
-          (grid/get-from g x y))))))

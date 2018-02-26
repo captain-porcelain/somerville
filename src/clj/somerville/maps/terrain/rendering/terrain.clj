@@ -3,14 +3,15 @@
     [java.awt Color Graphics2D Rectangle AlphaComposite RenderingHints Polygon BasicStroke]
     [java.awt.image BufferedImage])
   (:require
+    [somerville.maps.terrain.rendering.conrec :as conrec]
     [somerville.geometry.projection :as projection]
     [somerville.geometry.polygon :as polygon]
     [somerville.geometry.point :as p]
+    [somerville.geometry.line :as l]
     [somerville.image :as image]
     [somerville.commons :as commons]
     [somerville.geometry.commons :as c]
-    [somerville.maps.grid :as grid]
-    ))
+    [somerville.maps.grid :as grid]))
 
 ;;=======================================================================================================================
 ;; Calculating colors
@@ -32,31 +33,17 @@
 
 
 ;;=======================================================================================================================
-;; Calculating colors
+;; General Rendering
 
-(defn get-color
-  "Convert integer array into Color."
-  [c]
-  (Color. ^Integer (int (nth c 0)) ^Integer (int (nth c 1)) ^Integer (int (nth c 2)) ^Integer (int (nth c 3))))
-
-(defn minmax
-  [v]
-  (max 0 (min v 255)))
-
-(defn brightness
-  [x y slope]
-  (let [b (+ 128 (Math/floor (* slope 50)))
-        mb (minmax b)]
-    [mb mb mb 255]))
-    ;(cond
-      ;(< b 0)        [0 0 0 128]
-      ;(< b 128)      [b (* 2 b) b 255]
-      ;(<= 128 b 220) [b b (/ b 3) 255]
-      ;:else          [(min b 255) (min b 255) (min b 255) 255])))
-
-
-;;---------------------------------------------------------------------------------------------------------------
-;; Rendering the world as triangulation
+(defn new-image
+  "Create a new image to hold the finished tiles."
+  [config width height]
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
+        tmp (.setPaint graphics (get-color (:background-color config)))
+        tmp (.fill graphics (Rectangle. 0 0 width height))]
+    [img graphics]))
 
 (defn draw-polygon
   "Draw a polygon onto the canvas."
@@ -68,6 +55,23 @@
         ;tmp (.fillPolygon graphics p)
         tmp (.setPaint graphics (get-color line-color))
         tmp (.drawPolygon graphics p)]))
+
+(defn render-line
+  [graphics line line-color]
+  ;(.fillOval graphics (- (:x (:p1 line)) 2) (- (:y (:p1 line)) 4) 4 4)
+  ;(.fillOval graphics (- (:x (:p2 line)) 2) (- (:y (:p2 line)) 2) 4 4)
+  (.setPaint graphics (get-color line-color))
+  (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))
+
+(def default-config
+  {:background-color      [0 0 0 255]
+   :line-color            [128 20 128 255]
+   :water-color           [50 150 200 128]
+   :height-steps          10})
+
+
+;;=======================================================================================================================
+;; Rendering the world as triangulation
 
 (defn grid-points
   [g]
@@ -135,7 +139,20 @@
     (image/write-image filename img)))
 
 
+;;=======================================================================================================================
+;; Rendering the world as height lines
 
+(defn draw-height-lines
+  [graphics config scale lines]
+  (dorun (map #(render-line graphics % (:line-color config)) (map #(l/line (p/scale (:p1 %) scale) (p/scale (:p2 %) scale)) lines))))
 
-(defn render-heights
-  [g config filename width height])
+(defn render-flat-heights
+  "Render height lines as seen from above."
+  [g config filename width height]
+  (let [[img graphics] (new-image config width height)
+        contour (conrec/contour g (:height-steps config))
+        scale (/ width (:width g))
+        tmp (dorun (map #(draw-height-lines graphics config scale %) (map :lines contour)))
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
+
