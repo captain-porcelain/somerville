@@ -67,7 +67,7 @@
   {:background-color      [0 0 0 255]
    :line-color            [128 20 128 255]
    :water-color           [50 150 200 128]
-   :height-steps          10})
+   :height-steps          2})
 
 
 ;;=======================================================================================================================
@@ -119,7 +119,7 @@
         camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 100)
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
         up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
-        projector (projection/projector camera focus up width height)
+        projector (projection/projector camera focus up 2 width height)
         scale (/ width (:width g))
         pject (fn [v] (projection/project projector (p/point (* scale (nth v 0)) (* scale (nth v 1)) (* 5 (nth v 2)))))
         triangles (create-triangles g pject)
@@ -143,7 +143,7 @@
 
 (defn draw-height-lines
   [graphics config scale lines]
-  (dorun (map #(render-line graphics % (:line-color config)) (map #(l/line (p/scale (:p1 %) scale) (p/scale (:p2 %) scale)) lines))))
+  (dorun (map #(render-line graphics (l/scale % scale) (:line-color config)) lines)))
 
 (defn render-flat-heights
   "Render height lines as seen from above."
@@ -160,12 +160,13 @@
   "Draw height lines."
   [g contour config graphics width height]
   (let [scale 20
-        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 100)
-        focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
+        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 400)
+        focus  (p/point (* (:width g) 15) (* (:height g) 15)  0)
         up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
-        projector (projection/projector camera focus up width height)
+        projector (projection/projector camera focus up 2 width height)
         scale (/ width (:width g))
-        pject (fn [v] (projection/project projector (p/point (* scale (:x v)) (* scale (:y v)) (* 5 (:z v)))))
+        scale 20
+        pject (fn [v] (projection/project projector (p/scale v scale)))
         h3d-lines (map
                     #(map
                        (fn [line]

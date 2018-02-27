@@ -137,12 +137,23 @@
     (c/close-to (get p1 :z 0) (get p2 :z 0))))
 
 (defn add
+  "Treat points as vectors and add them."
   [p1 p2]
   (if (or (nil? p1) (nil? p2))
     nil
     (point (+ (:x p1) (:x p2)) (+ (:y p1) (:y p2)) (+ (get p1 :z 0) (get p2 :z 0)))))
 
 (defn scale
+  "Treat point as vector and scale it by factor."
   [p factor]
   (point (* factor (:x p)) (* factor (:y p)) (* factor (get p :z 0))))
+
+(defn linear-combination
+  "Find values a b such that v = a * s + b * t."
+  [v s t]
+  (let [bupper (- (* (:y v) (:x s)) (* (:x v) (:y s)))
+        blower (- (* (:y t) (:x s)) (* (:y s) (:x t)))
+        b (/ bupper blower)
+        a (/ (- (:x v) (* b (:x t))) (:x s))]
+    [a b]))
 

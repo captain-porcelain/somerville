@@ -133,17 +133,43 @@
       (str (hex-line-a g y print-key) "\n" (hex-line-b g y print-key)))))
 
 ;==================================================================================================================
+; Printing integer grids
+
+(defn max-length
+  [g]
+  (apply max
+    (for [y (range (:height g))
+          x (range (:width g))]
+      (count (str (grid/get-from g x y))))))
+
+(defn whitespace-pad
+  [s l]
+  (cond
+    (> l 1) (whitespace-pad (str " " s " ") (- l 2))
+    (= 1 l) (str " " s)
+    :else s))
+
+(defn ascii-ints
+  [g]
+  (let [l (inc (max-length g))]
+    (clojure.string/join "\n"
+      (for [y (range (:height g))]
+        (clojure.string/join " "
+          (for [x (range (:width g))]
+            (whitespace-pad (grid/get-from g x y) (- l (count (str (grid/get-from g x y)))))))))))
+
+;==================================================================================================================
 ; General printing of ascii art
 
 (defn out
   ([g]
-   (dorun (println
-            (case (:grid-type g)
-              :rect (ascii-rect g nil)
-              :hex  (ascii-hex  g nil)))))
+   (out g nil))
   ([g print-key]
-   (dorun (println
-            (case (:grid-type g)
-              :rect (ascii-rect g print-key)
-              :hex  (ascii-hex  g print-key))))))
+   (dorun
+     (println
+       (case (:data-type g)
+         :int (ascii-ints g)
+         :map (case (:grid-type g)
+                :rect (ascii-rect g print-key)
+                :hex  (ascii-hex  g print-key)))))))
 

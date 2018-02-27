@@ -214,3 +214,8 @@
   [line lines]
   (filter #(not (nil? %)) (map #(intersect-segments line %) lines)))
 
+(defn scale
+  "Scale a line by factor."
+  [l factor]
+  (line (p/scale (:p1 l) factor) (p/scale (:p2 l) factor)))
+
