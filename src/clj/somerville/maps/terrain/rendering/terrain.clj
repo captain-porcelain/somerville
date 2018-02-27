@@ -145,12 +145,19 @@
   [graphics config scale lines]
   (dorun (map #(render-line graphics (l/scale % scale) (:line-color config)) lines)))
 
+(defn grid-lines
+  [g height]
+  (concat
+    (for [x (range (inc (:width g)))] (l/line (p/point x 0 height) (p/point x (:height g) height)))
+    (for [y (range (inc (:height g)))] (l/line (p/point 0 y height) (p/point (:width g) y height)))))
+
 (defn render-flat-heights
   "Render height lines as seen from above."
   [g config filename width height]
   (let [[img graphics] (new-image config width height)
         contour (conrec/contour g (:height-steps config))
         scale (/ width (:width g))
+        tmp (dorun (map #(render-line graphics (l/scale % scale) [10 128 55 255]) (grid-lines g 0)))
         tmp (dorun (map #(draw-height-lines graphics config scale %) (map :lines contour)))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
@@ -160,19 +167,23 @@
   "Draw height lines."
   [g contour config graphics width height]
   (let [scale 20
-        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 400)
+        camera (p/point (* -10 (/ (:width g) 2)) (* -10 (/ (:height g) 2)) 30)
         focus  (p/point (* (:width g) 15) (* (:height g) 15)  0)
         up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
-        projector (projection/projector camera focus up 2 width height)
+        projector (projection/projector camera focus up 10 width height)
         scale (/ width (:width g))
-        scale 20
-        pject (fn [v] (projection/project projector (p/scale v scale)))
+        scale 8
+        pject (fn [v] (projection/project projector (p/point (* scale (:x v)) (* scale (:y v)) (:z v))))
+        tmp (render-line graphics (l/line (pject (p/point 0 0 0)) (pject (p/point 0 0 18))) [10 128 55 255])
+        tmp (dorun (map #(render-line graphics (l/line (pject (:p1 %)) (pject (:p2 %))) [10 128 55 255]) (grid-lines g 0)))
+        tmp (dorun (map #(render-line graphics (l/line (pject (:p1 %)) (pject (:p2 %))) [128 10 55 255]) (grid-lines g 7)))
+        tmp (dorun (map #(render-line graphics (l/line (pject (:p1 %)) (pject (:p2 %))) [10 55 128 255]) (grid-lines g 18)))
         h3d-lines (map
                     #(map
                        (fn [line]
                          (l/line
-                           (p/point (:x (:p2 line)) (:y (:p2 line)) (:height %))
-                           (p/point (:x (:p1 line)) (:y (:p1 line)) (:height %))))
+                           (p/point (:x (:p1 line)) (:y (:p1 line)) (:height %))
+                           (p/point (:x (:p2 line)) (:y (:p2 line)) (:height %))))
                        (:lines %))
                     contour)]
     (dorun
@@ -180,7 +191,9 @@
         #(dorun
            (map
              (fn [line]
-               (render-line graphics (l/line (pject (:p1 line)) (pject (:p2 line))) (:line-color config))) %)) h3d-lines))))
+               (render-line graphics (l/line (pject (:p1 line)) (pject (:p2 line))) (:line-color config)))
+             %))
+        h3d-lines))))
 
 (defn render-heights
   "Render height lines in 3d."
