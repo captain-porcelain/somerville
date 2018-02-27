@@ -97,6 +97,7 @@
   {:width width
    :height height
    :grid-type grid-type
+   :data-type :map
    :array (to-array-2d (repeat width (repeat height {})))})
 
 (defn integer-grid-map
@@ -105,6 +106,7 @@
   {:width width
    :height height
    :grid-type grid-type
+   :data-type :int
    :array (make-array Integer/TYPE width height)})
 
 (defn int-grid

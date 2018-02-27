@@ -16,8 +16,8 @@
         (grid/set-integer g x y (min x y (- (:width g) (inc x)) (- (:height g) (inc y)))))))
 
 (defn sample-grid
-  []
-  (let [g (grid/integer-grid 5 5)
+  [size]
+  (let [g (grid/integer-grid size size)
         tmp (center-spike g)]
     g))
 
@@ -29,7 +29,7 @@
     g))
 
 (deftest triangulation
-  (let [t (conrec/triangulation (sample-grid))
+  (let [t (conrec/triangulation (sample-grid 5))
         t0 (nth t 0)]
     (is (= 16 (count t)))
     (is (= 0 (:x (:p1 t0))))
@@ -50,7 +50,7 @@
     (is (= 1/4 (:z (:p0 t0))))))
 
 (deftest relative-height
-  (let [t (conrec/relative-heights (conrec/triangulation (sample-grid)) 1)
+  (let [t (conrec/relative-heights (conrec/triangulation (sample-grid 5)) 1)
         t0 (nth t 0)]
     (is (=  0 (:x (:p1 t0))))
     (is (=  0 (:y (:p1 t0))))
@@ -70,7 +70,7 @@
     (is (= -3/4 (:z (:p0 t0))))))
 
 (deftest case-indices
-  (let [t (conrec/relative-heights (conrec/triangulation (sample-grid)) 1)
+  (let [t (conrec/relative-heights (conrec/triangulation (sample-grid 5)) 1)
         t0 (conrec/triangle-case-indices (nth t 0))
         t6 (conrec/triangle-case-indices (nth t 6))
         t7 (conrec/triangle-case-indices (nth t 7))]
@@ -79,7 +79,7 @@
     (is (= [:below :on :below :below :on] t7))))
 
 (deftest corner-cases
-  (let [t (conrec/relative-heights (conrec/triangulation (sample-grid)) 1)
+  (let [t (conrec/relative-heights (conrec/triangulation (sample-grid 5)) 1)
         [tc1 tc2 tc3 tc4] (conrec/triangle-corner-cases (nth t 6))]
     (is (= [:on :above :on] tc1))
     (is (= [:on :above :on] tc2))

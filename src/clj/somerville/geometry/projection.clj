@@ -13,7 +13,7 @@
 ;; Lastly transform the point from the plane into a 2d view by calculating a linear combination of the vector from the center
 ;; to that point that is then retransformed to a vector with the corresponding vectors in the 2d plane.
 
-(defrecord Projector [camera focus up projection-plane screen-center width height]
+(defrecord Projector [camera focus up projection-plane screen-center width height horizontal-base vertical-base]
   c/Printable
   (c/out [this i] (str (c/indent i) "Projector settings\n"
                        "Camera at " (c/out camera) "\n"
@@ -21,13 +21,15 @@
                        "Plane up is " (c/out up) "\n"
                        "Projection plane is " (c/out projection-plane) "\n"
                        "Screen center is " (c/out screen-center) "\n"
-                       "Screen dimensions are " width "x" height))
+                       "Screen dimensions are " width "x" height "\n"
+                       "Horizontal base is " (c/out horizontal-base) "\n"
+                       "Vertical base is " (c/out vertical-base)))
   (c/out [this] (c/out this 0)))
 
 (defn projection-plane
   "Calculate the projection plane for the given camera and focus points considering the orientation given by up."
-  [camera focus up]
-  (let [v1 (p/subtract focus camera)
+  [camera focus up distance]
+  (let [v1 (p/scale (p/normalize (p/subtract focus camera)) distance)
         v2 (p/add focus up)
         v3 (p/cross v1 v2)]
     (pl/plane focus v2 v3)))
@@ -35,25 +37,20 @@
 (defn projector
   "Create a projector that looks from the camera point to the focus point and a screen of width x height.
   The orientation of the screen plane is determined by the up vector."
-  [camera focus up width height]
-  (Projector. camera focus up (projection-plane camera focus up) (p/point (/ width 2) (/ height 2)) width height))
-
-(defn linear-combination
-  "Find values a b such that v = a * s + b * t."
-  [v s t]
-  (let [bupper (- (* (:y v) (:x s)) (* (:x v) (:y s)))
-        blower (- (* (:y t) (:x s)) (* (:y s) (:x t)))
-        b (/ bupper blower)
-        a (/ (- (:x v) (* b (:x t))) (:x s))]
-    [a b]))
+  [camera focus up distance width height]
+  (Projector.
+    camera focus up
+    (projection-plane camera focus up distance)
+    (p/point (/ width 2) (/ height 2))
+    width height
+    (p/normalize (p/cross (p/subtract focus camera) up))
+    (p/normalize up)))
 
 (defn project
   "Project the given point using the projector settings."
   [projector point]
   (let [i (pl/intersect (:projection-plane projector) (l/line (:camera projector) point))
-        h (p/normalize (p/cross (p/subtract (:focus projector) (:camera projector)) (:up projector)))
-        u (p/normalize (:up projector))
         vi (p/subtract i (:focus projector))
-        [a b] (linear-combination vi h u)
-        p2d (p/add (p/add (:screen-center projector) (p/scale (p/point 1 0) a)) (p/scale (p/point 0 1) b))]
+        [a b] (p/linear-combination vi (:horizontal-base projector) (:vertical-base projector))
+        p2d (p/add (p/add (:screen-center projector) (p/point a 0)) (p/point 0 b))]
     p2d))
