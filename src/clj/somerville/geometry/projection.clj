@@ -30,7 +30,7 @@
   "Calculate the projection plane for the given camera and focus points considering the orientation given by up."
   [camera focus up distance]
   (let [v1 (p/scale (p/normalize (p/subtract focus camera)) distance)
-        v2 (p/add focus up)
+        v2 (p/add (p/add camera v1) up)
         v3 (p/cross v1 v2)]
     (pl/plane focus v2 v3)))
 
