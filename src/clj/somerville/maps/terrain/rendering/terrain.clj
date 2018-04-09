@@ -90,13 +90,27 @@
         t2 (polygon/from-points (list p2 p3 p4))]
     [t1 t2]))
 
-(defn triangulation
+(defn triangulation-bad
   [g]
   (loop [p2s (grid-points g)
          p3s (list)]
     (if (= 0 (count p2s))
       p3s
       (recur (rest p2s) (concat p3s (triangles g (first p2s)))))))
+
+(defn triangulation
+  [g]
+  (let [size (dec (:width g))]
+    (for [x (range size)
+          y (range size)
+          which [:upper :lower]]
+      (let [p1 (p/point x y (grid/get-from g x y))
+            p2 (p/point (inc x) y (grid/get-from g (inc x) y))
+            p3 (p/point (inc x) (inc y) (grid/get-from g (inc x) (inc y)))
+            p4 (p/point x (inc y) (grid/get-from g x (inc y)))]
+        (if (= :upper which)
+          (polygon/from-points (list p1 p2 p4))
+          (polygon/from-points (list p2 p3 p4)))))))
 
 (defn create-triangles
   "Create a triangulation for the given grid."
@@ -115,12 +129,16 @@
 (defn draw-triangles
   "Draw pairs of triangles."
   [g config graphics width height]
-  (let [scale 20
-        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 100)
+  (let [scale 1
+        camera (p/point 0 0 30)
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
         up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
+        tmp (dorun (println (c/out camera)))
+        tmp (dorun (println (c/out focus)))
+        tmp (dorun (println (c/out up)))
         projector (projection/projector camera focus up 2 width height)
         scale (/ width (:width g))
+        scale 1
         pject (fn [v] (projection/project projector (p/point (* scale (nth v 0)) (* scale (nth v 1)) (* 5 (nth v 2)))))
         triangles (create-triangles g pject)
         triangles (map #(vector (nth % 0) (nth % 1)) triangles)]
