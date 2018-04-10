@@ -73,31 +73,6 @@
 ;;=======================================================================================================================
 ;; Rendering the world as triangulation
 
-(defn grid-points
-  [g]
-  (let [size (dec (:width g))]
-    (for [y (range size)
-          x (range size)]
-      [x y])))
-
-(defn triangles
-  [g [x y]]
-  (let [p1 (p/point x y (grid/get-from g x y))
-        p2 (p/point (inc x) y (grid/get-from g (inc x) y))
-        p3 (p/point (inc x) (inc y) (grid/get-from g (inc x) (inc y)))
-        p4 (p/point x (inc y) (grid/get-from g x (inc y)))
-        t1 (polygon/from-points (list p1 p2 p4))
-        t2 (polygon/from-points (list p2 p3 p4))]
-    [t1 t2]))
-
-(defn triangulation-bad
-  [g]
-  (loop [p2s (grid-points g)
-         p3s (list)]
-    (if (= 0 (count p2s))
-      p3s
-      (recur (rest p2s) (concat p3s (triangles g (first p2s)))))))
-
 (defn triangulation
   [g]
   (let [size (dec (:width g))]
@@ -112,40 +87,30 @@
           (polygon/from-points (list p1 p2 p4))
           (polygon/from-points (list p2 p3 p4)))))))
 
-(defn create-triangles
-  "Create a triangulation for the given grid."
-  [g project-fn]
-  (let [size (dec (:width g))]
-    (for [y (range size)
-          x (range size)]
-      (let [p1 [x y (grid/get-from g x y)]
-            p2 [(inc x) y (grid/get-from g (inc x) y)]
-            p3 [(inc x) (inc y) (grid/get-from g (inc x) (inc y))]
-            p4 [x (inc y) (grid/get-from g x (inc y))]
-            t1 (polygon/from-points (list (project-fn p1) (project-fn p2) (project-fn p4)))
-            t2 (polygon/from-points (list (project-fn p2) (project-fn p3) (project-fn p4)))]
-        [t1 t2]))))
+(defn triangulation-4
+  [g]
+  (let [size (dec (dec (:width g)))]
+    (for [x (range size)
+          y (range size)
+          i (range 4)]
+      (let [heights (conrec/triangle-heights g x y)]
+        (case i
+          0 (polygon/from-points (list (:p1 heights) (:p0 heights) (:p2 heights)))
+          1 (polygon/from-points (list (:p2 heights) (:p0 heights) (:p3 heights)))
+          2 (polygon/from-points (list (:p3 heights) (:p0 heights) (:p4 heights)))
+          3 (polygon/from-points (list (:p4 heights) (:p0 heights) (:p1 heights))))))))
 
 (defn draw-triangles
   "Draw pairs of triangles."
   [g config graphics width height]
-  (let [scale 1
-        camera (p/point 0 0 30)
+  (let [camera (p/point (/ (:width g) 2) 0 20)
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
         up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
-        tmp (dorun (println (c/out camera)))
-        tmp (dorun (println (c/out focus)))
-        tmp (dorun (println (c/out up)))
         projector (projection/projector camera focus up 2 width height)
-        scale (/ width (:width g))
-        scale 1
-        pject (fn [v] (projection/project projector (p/point (* scale (nth v 0)) (* scale (nth v 1)) (* 5 (nth v 2)))))
-        triangles (create-triangles g pject)
-        triangles (map #(vector (nth % 0) (nth % 1)) triangles)]
-    (dorun (map #(let [[t1 t2] %]
-                   (draw-polygon graphics t1 [128 20 128 255] [128 20 128 255])
-                   (draw-polygon graphics t2 [128 40 128 255] [80 10 80 255]))
-                triangles))))
+        pject (fn [t] (polygon/from-points (map #(projection/project projector %) (polygon/to-points t))))
+        triangles (triangulation-4 g)
+        projected (map pject triangles)]
+    (dorun (map #(draw-polygon graphics % [128 20 128 255] [128 20 128 255]) projected))))
 
 (defn render-triangulation
   "Render the grid using a triangulation."
