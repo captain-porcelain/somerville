@@ -1,34 +1,11 @@
 (ns somerville.maps.terrain.rendering.povray
   (:require
     [clojure.string :as s]
+    [clojure.java.shell :as shell]
+    [somerville.maps.terrain.rendering.conrec :as conrec]
     [somerville.geometry.point :as p]
     [somerville.geometry.polygon :as polygon]
     [somerville.maps.grid :as grid]))
-
-(defn grid-points
-  [g]
-  (let [size (dec (:width g))]
-    (for [y (range size)
-          x (range size)]
-      [x y])))
-
-(defn triangles
-  [g [x y]]
-  (let [p1 (p/point x y (grid/get-from g x y))
-        p2 (p/point (inc x) y (grid/get-from g (inc x) y))
-        p3 (p/point (inc x) (inc y) (grid/get-from g (inc x) (inc y)))
-        p4 (p/point x (inc y) (grid/get-from g x (inc y)))
-        t1 (polygon/from-points (list p1 p2 p4))
-        t2 (polygon/from-points (list p2 p3 p4))]
-    [t1 t2]))
-
-(defn triangulation-bad
-  [g]
-  (loop [p2s (grid-points g)
-         p3s (list)]
-    (if (= 0 (count p2s))
-      p3s
-      (recur (rest p2s) (concat p3s (triangles g (first p2s)))))))
 
 (defn triangulation
   [g]
@@ -44,10 +21,30 @@
           (polygon/from-points (list p1 p2 p4))
           (polygon/from-points (list p2 p3 p4)))))))
 
+(defn triangulation-4
+  [g]
+  (let [size (dec (dec (:width g)))]
+    (for [x (range size)
+          y (range size)
+          i (range 4)]
+      (let [heights (conrec/triangle-heights g x y)]
+        (case i
+          0 (polygon/from-points (list (:p1 heights) (:p0 heights) (:p2 heights)))
+          1 (polygon/from-points (list (:p2 heights) (:p0 heights) (:p3 heights)))
+          2 (polygon/from-points (list (:p3 heights) (:p0 heights) (:p4 heights)))
+          3 (polygon/from-points (list (:p4 heights) (:p0 heights) (:p1 heights))))))))
+
+(defn heights
+  [g]
+  (let [size (:width g)]
+    (for [y (range size)
+          x (range size)]
+      (grid/get-from g x y))))
+
 (defn camera
   [g config]
-  (let [scale 20
-        camera (p/point (* -20 (/ (:width g) 2)) (* -20 (/ (:height g) 2)) 100)
+  (let [max-height (apply max (heights g))
+        camera (p/point (/ (:width g) 2) 0 (* 1.5 max-height))
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)]
     (str "camera {\n"
          "  location <" (int (:x camera)) ", " (int (:y camera)) ", " (int (:z camera)) ">\n"
@@ -56,19 +53,21 @@
 
 (defn light_source
   [g config]
-  "light_source { <50, 50, -50> color rgb<1, 1, 1> }")
+  (str
+    "light_source { <" (/ (:width g) 2) ", 0, " (* 1.5 (apply max (heights g))) "> color rgb<1, 1, 1> }"))
 
 (defn texture
-  [g config]
-  (str "    texture {\n"
-       "      pigment { color rgb<0.9, 0.9, 0.9> }\n"
-       "      finish { ambient 0.2 diffuse 0.7 }\n"
-       "    }"))
+  [zs config]
+  (let [m (apply max zs)]
+    (cond
+      (> m 100) "texture { Snow }"
+      (> m 50) "texture { T_Stone10 }"
+      :else "texture { T_Stone37 }")))
 
-(defn declare-red
+(defn declare-snow
   []
-  (str "#declare Red = texture {\n"
-       "  pigment { color rgb<0.8, 0.2, 0.2> }\n"
+  (str "#declare Snow = texture {\n"
+       "  pigment { White_Marble }\n"
        "  finish { ambient 0.2 diffuse 0.5 }\n"
        "}"))
 
@@ -82,11 +81,17 @@
          ",\n"
          "    <" (float (:x (nth ps 2))) "," (float (:y (nth ps 2))) "," (float (:z (nth ps 2))) ">"
          "\n"
-         "texture { Red }\n"
-         ;(texture g config)
-         ;"\n"
+         ;"texture { T_Stone37 }\n"
+         (texture (map :z ps) config)
+         "\n"
          "  }"
          )))
+
+(defn mesh
+  [g config]
+  (str "mesh {\n"
+       (s/join "\n" (map #(triangle % g config) (triangulation-4 g)))
+       "\n}"))
 
 (defn box
   [[x y] g]
@@ -94,23 +99,26 @@
        "\t<" x ", " y ", 0>,\n"
        "\t<" (inc x) ", " (inc y) ", " (grid/get-from g x y) ">\n"
        "\ttexture {\n"
-       "\t\tT_Stone25\n"
+       "\t\tT_Stone37\n"
        "\t}\n"
        "}"))
 
-(defn mesh
-  [g config]
-  (str "mesh {\n"
-       (s/join "\n" (map #(triangle % g config) (triangulation g)))
-       "\n}"))
+(defn grid-points
+  "Get points of grid."
+  [g]
+  (let [size (dec (:width g))]
+    (for [y (range size)
+          x (range size)]
+      [x y])))
 
 (defn boxes
+  "Transform the "
   [g config]
   (s/join "\n" (map #(box % g) (grid-points g))))
 
 (defn scene-description
   "Create povray scene description"
-  [g config]
+  [g config payload]
   (str "#include \"colors.inc\"\n"
        "#include \"stones.inc\"\n"
        "#include \"textures.inc\"\n"
@@ -122,13 +130,27 @@
        "\n\n"
        (light_source g config)
        "\n\n"
-       (declare-red)
+       (declare-snow)
        "\n\n"
-       ;(mesh g config)))
-       (boxes g config)))
+       payload))
+
+(defn render
+  [filename width height]
+  (shell/sh "povray" filename (str "-W" width) (str "-H" height)))
 
 (defn render-triangulation
   "Render the grid using a triangulation."
   [g config filename width height]
-  )
+  (let [pov (s/replace filename ".png" ".pov")]
+    (do
+      (spit pov (scene-description g config (mesh g config)))
+      (:exit (render pov width height)))))
+
+(defn render-blocks
+  "Render the grid using blocks."
+  [g config filename width height]
+  (let [pov (s/replace filename ".png" ".pov")]
+    (do
+      (spit pov (scene-description g config (boxes g config)))
+      (:exit (render pov width height)))))
 
