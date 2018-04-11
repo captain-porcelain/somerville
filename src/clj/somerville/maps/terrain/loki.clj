@@ -127,5 +127,5 @@
         tmp (set-initial-values g config)
         tmp (dorun (process g config))
         ]
-    g))
+    (assoc g :config config)))
 
