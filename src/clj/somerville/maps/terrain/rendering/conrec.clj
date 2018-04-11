@@ -1,6 +1,11 @@
 ;; See http://paulbourke.net/papers/conrec/
 (ns somerville.maps.terrain.rendering.conrec
+  (:import
+    [java.awt Graphics2D Rectangle RenderingHints]
+    [java.awt.image BufferedImage])
   (:require
+    [somerville.color.color :as color]
+    [somerville.image :as image]
     [somerville.maps.grid :as grid]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
@@ -20,10 +25,10 @@
   "For a point the the 3 neighboring points with increasing x and y and create 4 triangles.
   The center point receives the average height value."
   [g x y]
-  (let [z1 (grid/get-from g x y)
-        z2 (grid/get-from g (inc x) y)
-        z3 (grid/get-from g (inc x) (inc y))
-        z4 (grid/get-from g x (inc y))
+  (let [z1 (:z (grid/get-from g x y))
+        z2 (:z (grid/get-from g (inc x) y))
+        z3 (:z (grid/get-from g (inc x) (inc y)))
+        z4 (:z (grid/get-from g x (inc y)))
         z0 (/ (+ z1 z2 z3 z4) 4)
         p0 (p/point (+ x 0.5) (+ y 0.5) z0)
         p1 (p/point x y z1)
@@ -209,7 +214,7 @@
   (let [size (:width g)]
     (for [y (range size)
           x (range size)]
-      (grid/get-from g x y))))
+      (:z (grid/get-from g x y)))))
 
 (defn line-heights
   [g min-distance max-lines]
@@ -230,4 +235,45 @@
   [g steps]
   (let [triangles (triangulation g)]
     (map #(hash-map :height % :lines (height-lines triangles %)) (line-heights g 1 steps))))
+
+;;=======================================================================================================================
+;; Rendering the height lines
+
+(defn new-image
+  "Create a new image to hold the finished tiles."
+  [config width height]
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
+        tmp (.setPaint graphics (color/to-awt (apply color/rgba (:background-color config))))
+        tmp (.fill graphics (Rectangle. 0 0 width height))]
+    [img graphics]))
+
+(defn render-line
+  [graphics line line-color]
+  (.setPaint graphics (color/to-awt (apply color/rgba line-color)))
+  (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))
+
+(defn draw-height-lines
+  [graphics c scale lines]
+  (dorun (map #(render-line graphics (l/scale % scale) c) lines)))
+
+(def default-config
+  {:background-color      [0 0 0 255]
+   :line-color-1          [128 20 128 255]
+   :line-color-2          [255 255 255 255]
+   :height-steps          4})
+
+(defn render
+  "Render height lines as seen from above."
+  [g config filename width height]
+  (let [[img graphics] (new-image config width height)
+        contour (contour g (:height-steps config))
+        scale (/ width (:width g))
+        c1 (apply color/rgba (:line-color-1 config))
+        c2 (apply color/rgba (:line-color-2 config))
+        colors (map color/to-vector (color/color-steps c1 c2 (:height-steps config)))
+        tmp (dorun (map #(draw-height-lines graphics %2 scale %1) (map :lines contour) colors))
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
 

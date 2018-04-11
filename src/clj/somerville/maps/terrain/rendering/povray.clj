@@ -9,20 +9,6 @@
 
 (defn triangulation
   [g]
-  (let [size (dec (:width g))]
-    (for [x (range size)
-          y (range size)
-          which [:upper :lower]]
-      (let [p1 (p/point x y (grid/get-from g x y))
-            p2 (p/point (inc x) y (grid/get-from g (inc x) y))
-            p3 (p/point (inc x) (inc y) (grid/get-from g (inc x) (inc y)))
-            p4 (p/point x (inc y) (grid/get-from g x (inc y)))]
-        (if (= :upper which)
-          (polygon/from-points (list p1 p2 p4))
-          (polygon/from-points (list p2 p3 p4)))))))
-
-(defn triangulation-4
-  [g]
   (let [size (dec (dec (:width g)))]
     (for [x (range size)
           y (range size)
@@ -39,12 +25,12 @@
   (let [size (:width g)]
     (for [y (range size)
           x (range size)]
-      (grid/get-from g x y))))
+      (:z (grid/get-from g x y)))))
 
 (defn camera
   [g config]
   (let [max-height (apply max (heights g))
-        camera (p/point (/ (:width g) 2) 0 (* 1.5 max-height))
+        camera (p/point (/ (:width g) 2) 0 (* 1.8 max-height))
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)]
     (str "camera {\n"
          "  location <" (int (:x camera)) ", " (int (:y camera)) ", " (int (:z camera)) ">\n"
@@ -90,14 +76,14 @@
 (defn mesh
   [g config]
   (str "mesh {\n"
-       (s/join "\n" (map #(triangle % g config) (triangulation-4 g)))
+       (s/join "\n" (map #(triangle % g config) (triangulation g)))
        "\n}"))
 
 (defn box
   [[x y] g]
   (str "box {\n"
        "\t<" x ", " y ", 0>,\n"
-       "\t<" (inc x) ", " (inc y) ", " (grid/get-from g x y) ">\n"
+       "\t<" (inc x) ", " (inc y) ", " (:z (grid/get-from g x y)) ">\n"
        "\ttexture {\n"
        "\t\tT_Stone37\n"
        "\t}\n"
