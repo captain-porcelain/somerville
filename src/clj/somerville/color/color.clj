@@ -1,4 +1,6 @@
-(ns somerville.color.color)
+(ns somerville.color.color
+  (:import
+    [java.awt Color]))
 
 (defrecord ColorRGBA [r g b a])
 (defrecord ColorLab [l a b])
@@ -71,3 +73,28 @@
         ad (- (:a lab2) (:a lab1))
         bd (- (:b lab2) (:b lab1))]
     (java.lang.Math/sqrt (+ (* ld ld) (+ ad ad) (* bd bd)))))
+
+(defn to-awt
+  "Convert rgba color into java awt Color."
+  [c]
+  (Color. ^Integer (int (:r c)) ^Integer (int (:g c)) ^Integer (int (:b c)) ^Integer (int (:a c))))
+
+(defn to-vector
+  "Convert record to vector"
+  [c]
+  [(:r c) (:g c) (:b c) (:a c)])
+
+(defn interpolate-rgb
+  "Interpolate between two colors in RGBA space."
+  [c1 c2 t]
+  (rgba
+    (+ (:r c1) (* t (- (:r c2) (:r c1))))
+    (+ (:g c1) (* t (- (:g c2) (:g c1))))
+    (+ (:b c1) (* t (- (:b c2) (:b c1))))
+    (+ (:a c1) (* t (- (:a c2) (:a c1))))))
+
+(defn color-steps
+  "Create interpolated colors between c1 and c2."
+  [c1 c2 steps]
+  (map #(interpolate-rgb c1 c2 %) (map #(/ % (dec steps)) (range steps))))
+
