@@ -11,11 +11,19 @@
   []
   (ColorRGBA. (rand-int 255) (rand-int 255) (rand-int 255) 255))
 
+(defn convert-awt
+  [^Integer c]
+  (let [col (java.awt.Color. c)]
+    (ColorRGBA. (.getRed col) (.getGreen col) (.getBlue col) (.getAlpha col))))
+
+(defn convert-bit
+  [^Integer c]
+  (ColorRGBA. (bit-shift-right (bit-and c 0xff0000) 16) (bit-shift-right (bit-and c 0xff00) 8) (bit-and c 0xff)  (bit-shift-right (bit-and c 0xff000000) 24)))
+
 (defn rgba
   "Convert integer to rgb tupel. No transparancy is supported."
   ([^Integer c]
-    (let [col (java.awt.Color. c)]
-      (ColorRGBA. (.getRed col) (.getGreen col) (.getBlue col) 0)))
+    (convert-bit c))
   ([^Integer r ^Integer g ^Integer b]
    (ColorRGBA. r g b 255))
   ([^Integer r ^Integer g ^Integer b ^Integer a]
@@ -98,3 +106,10 @@
   [c1 c2 steps]
   (map #(interpolate-rgb c1 c2 %) (map #(/ % (dec steps)) (range steps))))
 
+(defn same?
+  [c1 c2]
+  (and
+    (= (:r c1) (:r c2))
+    (= (:g c1) (:g c2))
+    (= (:b c1) (:b c2))
+    (= (:a c1) (:a c2))))

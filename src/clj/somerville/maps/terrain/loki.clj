@@ -58,24 +58,37 @@
                                  coords)))]
     (/ (reduce + fields) (count fields))))
 
+(defn check-restrictions
+  [v g x y]
+  (let [level (:level (:restrictions (grid/get-from g x y)))]
+    (if (nil? level)
+      v
+      (case level
+        :flat 1
+        :above (if (< v 1) 1 v)
+        :below (if (> v 0) -1 v)))))
+
 (defn randomize
   [a w config]
   (let [up (= 0 (rand-int 2))
-        dist (rand-int
-               (*
-                w
-                (:roughness config)
-                ;(if up
-                  ;(- (:max config) a)
-                  ;(- a (:min config)))
-                ))]
+        dist (rand-int (* w (:roughness config)))]
     (if up (+ a dist) (- a dist))))
+
+(defn new-value
+  [g x y w coords config]
+  (let [avg (average g coords)
+        min-val (- avg (* w (:roughness config)))
+        max-val (+ avg (* w (:roughness config)))
+        save-min (check-restrictions min-val g x y)
+        save-max (check-restrictions max-val g x y)
+        dist (- save-max save-min)]
+    (+ save-min (rand-int dist))))
 
 (defn diamond-step
   "Handle setting on field as part of a diamond step."
   [g [x y w] config]
   ;(dorun (println (str "Diamond " w " - " x ", " y))))
-  (set-z g x y (randomize (average g (square-coords x y w)) w config)))
+  (set-z g x y (new-value g x y w (square-coords x y w) config)))
 
 (defn diamond-steps
   "Calculate the fields to be set as part of a diamond step."
@@ -90,7 +103,7 @@
   "Handle setting on field as part of a square step."
   [g [x y] w config]
   ;(dorun (println (str "Square " x ", " y))))
-  (set-z g x y (randomize (average g (diamond-coords x y w)) w config)))
+  (set-z g x y (new-value g x y w (diamond-coords x y w) config)))
 
 (defn square-steps
   "Handle the square steps for a given diamond coordinate.
@@ -122,10 +135,15 @@
 
 (defn world
   "Create a landscape based on config."
-  [config]
-  (let [g (grid/grid (:size config) (:size config))
-        tmp (set-initial-values g config)
-        tmp (dorun (process g config))
-        ]
-    (assoc g :config config)))
+  ([config]
+    (let [g (grid/grid (:size config) (:size config))
+          tmp (set-initial-values g config)
+          tmp (dorun (process g config))]
+      (assoc g :config config)))
+  ([config mask]
+    (let [g (grid/grid (:size config) (:size config))
+          tmp (set-initial-values g config)
+          tmp (dorun (for [[x y restrictions] mask] (grid/update-cell g x y #(assoc % :restrictions restrictions))))
+          tmp (dorun (process g config))]
+      (assoc g :config config))))
 
