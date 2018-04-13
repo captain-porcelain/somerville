@@ -28,20 +28,21 @@
       (:z (grid/get-from g x y)))))
 
 (defn camera
-  [g config]
+  [g width height config]
   (let [max-height (apply max (heights g))
         detail (:detail (:config g))
-        camera (p/point (/ (:width g) 2) (/ (:height g) 5) (* (/ detail 1.8) max-height))
+        camera (p/point (/ (:width g) 2) (* 4 (/ (:height g) 5)) (* (/ detail 1.8) max-height))
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2) 0)]
     (str "camera {\n"
-         "  location <" (float (:x camera)) ", " (float (:y camera)) ", " (float (:z camera)) ">\n"
-         "  look_at <" (float (:x focus)) ", " (float (:y focus)) ", " (float (:z focus)) ">\n"
+         "  location <" (* -1 (float (:x camera))) ", " (* -1 (float (:y camera))) ", " (float (:z camera)) ">\n"
+         "  look_at <" (* -1 (float (:x focus))) ", " (* -1 (float (:y focus))) ", " (float (:z focus)) ">\n"
+         "  right image_width/image_height*x\n"
          "}")))
 
 (defn light_source
   [g config]
   (str
-    "light_source { <" (/ (:width g) 2) ", 0, " (* 1.5 (apply max (heights g))) "> color rgb<1, 1, 1> }"))
+    "light_source { <" (* -1 (/ (:width g) 2)) ", 0, " (* 1.5 (apply max (heights g))) "> color rgb<1, 1, 1> }"))
 
 (defn background
   [config]
@@ -96,9 +97,9 @@
   [polygon g config]
   (let [ps (polygon/to-points polygon)]
     (str "  triangle { "
-         "<" (float (:x (nth ps 0))) "," (float (:y (nth ps 0))) "," (float (level-z (:z (nth ps 0)) config)) ">, "
-         "<" (float (:x (nth ps 1))) "," (float (:y (nth ps 1))) "," (float (level-z (:z (nth ps 1)) config)) ">, "
-         "<" (float (:x (nth ps 2))) "," (float (:y (nth ps 2))) "," (float (level-z (:z (nth ps 2)) config)) "> "
+         "<" (* -1 (float (:x (nth ps 0)))) "," (* -1 (float (:y (nth ps 0)))) "," (float (level-z (:z (nth ps 0)) config)) ">, "
+         "<" (* -1 (float (:x (nth ps 1)))) "," (* -1 (float (:y (nth ps 1)))) "," (float (level-z (:z (nth ps 1)) config)) ">, "
+         "<" (* -1 (float (:x (nth ps 2)))) "," (* -1 (float (:y (nth ps 2)))) "," (float (level-z (:z (nth ps 2)) config)) "> "
          (texture (apply max (map :z ps)) config)
          " }")))
 
@@ -131,7 +132,7 @@
 
 (defn scene-description
   "Create povray scene description"
-  [g config payload]
+  [g config width height payload]
   (str "#include \"colors.inc\"\n"
        "#include \"stones.inc\"\n"
        "#include \"textures.inc\"\n"
@@ -139,7 +140,7 @@
        "#include \"glass.inc\"\n"
        "#include \"metals.inc\"\n"
        "#include \"woods.inc\"\n\n"
-       (camera g config)
+       (camera g width height config)
        "\n\n"
        (light_source g config)
        "\n\n"
@@ -151,15 +152,14 @@
 
 (defn render
   [filename width height]
-  ;(shell/sh "povray" filename (str "-W" width) (str "-H" height)))
-  (shell/sh "povray" filename))
+  (shell/sh "povray" filename (str "-W" width) (str "-H" height)))
 
 (defn render-triangulation
   "Render the grid using a triangulation."
   [g config filename width height]
   (let [pov (s/replace filename ".png" ".pov")]
     (do
-      (spit pov (scene-description g config (mesh g config)))
+      (spit pov (scene-description g config width height (mesh g config)))
       (:exit (render pov width height)))))
 
 (def default-config
@@ -168,7 +168,7 @@
    :level-map             [[32 "HT_DarkStone"]
                            [28 "HT_Rock"]
                            [20 "HT_Green"]
-                           [10  "HT_Sand"]
+                           [0 "HT_Sand"]
                            [-1000 "HT_Water"]]})
 
 (defn render-blocks
@@ -176,6 +176,6 @@
   [g config filename width height]
   (let [pov (s/replace filename ".png" ".pov")]
     (do
-      (spit pov (scene-description g config (boxes g config)))
+      (spit pov (scene-description g config width height (boxes g config)))
       (:exit (render pov width height)))))
 

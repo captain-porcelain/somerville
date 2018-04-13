@@ -17,7 +17,7 @@
       (for [x (range width)
             y (range height)]
         (let [c (color/rgba (.getRGB ifile x y))]
-          (when (< 0 (:a c)) [x y {:level :flat}]))))))
+          (when (< 0 (:a c)) [x y {:min 1 :max 5}]))))))
 
 (defn parse-mask
   "Assume filename points to an image with a mask:
@@ -29,6 +29,7 @@
         width (.getWidth ifile)
         height (.getHeight ifile)
         blue (color/rgba 0 0 255 255)
+        yellow (color/rgba 255 255 0 255)
         green (color/rgba 0 255 0 255)]
     (filter
       #(not (nil? %))
@@ -36,6 +37,7 @@
             y (range height)]
         (let [c (color/rgba (.getRGB ifile x y))]
           (cond
-            (color/same? blue c) [x y {:level :below}]
-            (color/same? green c) [x y {:level :above}]
-            :else [x y c blue (color/same? blue c)]))))))
+            (color/same? blue c) [x y {:min -25 :max 0}]
+            (color/same? yellow c) [x y {:min -5 :max 5}]
+            (color/same? green c) [x y {:min 1 :max 75}]
+            :else nil))))))

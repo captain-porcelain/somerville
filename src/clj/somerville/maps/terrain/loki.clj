@@ -39,16 +39,6 @@
 ;==========================================================================================================================
 ; Actual Algorithm
 
-(defn set-initial-values
-  "Set initial height values on corners."
-  [g config]
-  (let [m (dec (:size config))]
-    (set-z g 0 0 (rand-int (:max config)))
-    (set-z g 0 m (rand-int (:max config)))
-    (set-z g m 0 (rand-int (:max config)))
-    (set-z g m m (rand-int (:max config)))
-    g))
-
 (defn average
   "Calculate average value for series of coords."
   [g coords]
@@ -58,31 +48,63 @@
                                  coords)))]
     (/ (reduce + fields) (count fields))))
 
-(defn check-restrictions
-  [v g x y]
-  (let [level (:level (:restrictions (grid/get-from g x y)))]
-    (if (nil? level)
-      v
-      (case level
-        :flat 1
-        :above (if (< v 1) 1 v)
-        :below (if (> v 0) -1 v)))))
+(defn allowed-range-1
+  [avg w roughness restrictions]
+  (let [min-val (- avg (* w roughness))
+        tmp (dorun (println (str "min-val: " min-val)))
+        max-val (+ avg (* w roughness))
+        tmp (dorun (println (str "max-val: " max-val)))
+        restricted-min (get restrictions :min min-val)
+        tmp (dorun (println (str "restricted-min: " restricted-min)))
+        restricted-max (get restrictions :max max-val)
+        tmp (dorun (println (str "restricted-max: " restricted-max)))
+        save-min-1 (if (< min-val restricted-min) restricted-min min-val)
+        save-min (if (> save-min-1 restricted-max) restricted-min save-min-1)
+        tmp (dorun (println (str "save-min: " save-min)))
+        save-max-1 (if (> max-val restricted-max) restricted-max max-val)
+        save-max (if (< save-max-1 restricted-min) restricted-max save-max-1)
+        tmp (dorun (println (str "save-max: " save-max)))
+        ]
+    [save-min save-max]))
 
-(defn randomize
-  [a w config]
-  (let [up (= 0 (rand-int 2))
-        dist (rand-int (* w (:roughness config)))]
-    (if up (+ a dist) (- a dist))))
+(defn allowed-range
+  [avg w roughness restrictions]
+  (let [min-val (- avg (* w roughness))
+        ;tmp (dorun (println (str "min-val: " min-val)))
+        max-val (+ avg (* w roughness))
+        ;tmp (dorun (println (str "max-val: " max-val)))
+        restricted-min (get restrictions :min min-val)
+        ;tmp (dorun (println (str "restricted-min: " restricted-min)))
+        restricted-max (get restrictions :max max-val)
+        ;tmp (dorun (println (str "restricted-max: " restricted-max)))
+        ]
+    (cond
+      (> min-val restricted-max) [restricted-min restricted-max]
+      (< max-val restricted-min) [restricted-min restricted-max]
+      (and (> restricted-max max-val) (< min-val restricted-min)) [restricted-min max-val]
+      (and (> max-val restricted-max) (< restricted-min min-val)) [min-val restricted-max]
+      (and (> max-val restricted-max) (< min-val restricted-min)) [restricted-min restricted-max]
+      :else [min-val max-val])))
+
+(defn random-value
+  [avg w roughness restrictions]
+  (let [[save-min save-max] (allowed-range avg w roughness restrictions)
+        dist (- save-max save-min)]
+    (+ save-min (rand-int dist))))
 
 (defn new-value
   [g x y w coords config]
-  (let [avg (average g coords)
-        min-val (- avg (* w (:roughness config)))
-        max-val (+ avg (* w (:roughness config)))
-        save-min (check-restrictions min-val g x y)
-        save-max (check-restrictions max-val g x y)
-        dist (- save-max save-min)]
-    (+ save-min (rand-int dist))))
+  (random-value (average g coords) w (:roughness config) (:restrictions (grid/get-from g x y))))
+
+(defn set-initial-values
+  "Set initial height values on corners."
+  [g config]
+  (let [m (dec (:size config))]
+    (set-z g 0 0 (random-value (rand-int (:max config)) (:size config) (:roughness config) (:restrictions (grid/get-from g 0 0))))
+    (set-z g 0 m (random-value (rand-int (:max config)) (:size config) (:roughness config) (:restrictions (grid/get-from g 0 m))))
+    (set-z g m 0 (random-value (rand-int (:max config)) (:size config) (:roughness config) (:restrictions (grid/get-from g m 0))))
+    (set-z g m m (random-value (rand-int (:max config)) (:size config) (:roughness config) (:restrictions (grid/get-from g m m))))
+    g))
 
 (defn diamond-step
   "Handle setting on field as part of a diamond step."
