@@ -6,6 +6,13 @@
 
 
 (defrecord Line2 [p1 p2]
+  java.lang.Comparable
+  (java.lang.Comparable/compareTo
+    [this other]
+    (if
+      (= 0 (.compareTo (:p1 this) (:p1 other)))
+      (.compareTo (:p2 this) (:p2 other))
+      (.compareTo (:p1 this) (:p1 other))))
   c/Printable
   (c/out [this i] (str (c/indent i) "Line from " (if (nil? p1) "NIL" (c/out p1)) " to " (if (nil? p2) "NIL" (c/out p2))))
   (c/out [this] (c/out this 0)))
