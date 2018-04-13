@@ -17,6 +17,16 @@
 
 ;; define a three dimensional point
 (defrecord Point3 [x y z]
+  java.lang.Comparable
+  (java.lang.Comparable/compareTo
+    [this other]
+    (if
+      (= (:x this) (:x other))
+      (if
+        (= (:y this) (:y other))
+        (c/compareTo (:z this) (:z other))
+        (c/compareTo (:y this) (:y other)))
+      (c/compareTo (:x this) (:x other))))
   c/Printable
   (c/out [this i] (str (c/indent i) "Point (" x "," y "," z ")"))
   (c/out [this] (c/out this 0)))
@@ -31,7 +41,9 @@
 (defn midpoint
   "Get the midpoint of two points."
   [p1 p2]
-  (point (/ (+ (:x p1) (:x p2)) 2) (/ (+ (:y p1) (:y p2)) 2)))
+  (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
+    (point (/ (+ (:x p1) (:x p2)) 2) (/ (+ (:y p1) (:y p2)) 2) (/ (+ (:z p1) (:z p2)) 2))
+    (point (/ (+ (:x p1) (:x p2)) 2) (/ (+ (:y p1) (:y p2)) 2))))
 
 (defn slope
   "Get the slope of two points."
