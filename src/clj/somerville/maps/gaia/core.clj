@@ -46,20 +46,33 @@
     ;(map #(apply line/line (sort (list p (second %)))) (take 5 distances))))
 
 (defn create-net
+  "Create lines from a set of points. Each point is connected to all those that are closest to it."
   [points]
   (distinct (sort (reduce concat (map #(closest % points) points)))))
 
+(defn triangles
+  "Create a set of triangles from a set of lines. If two lines share a point create the triangle from
+  first point to shared to last point and thus back to first."
+  [lines]
+  (filter #(not (nil? %))
+    (for [l1 lines
+          l2 lines]
+      (when (not= l1 l2)
+        (when (= (:p2 l1) (:p1 l2))
+          (polygon/from-points (list (:p1 l1) (:p2 l1) (:p2 l2))))))))
+
 (defn icosahedron
-  "Create a list of lines that represent an icosahedron."
+  "Create a set of triangles that represent an icosahedron."
   [scale]
-  (map #(line/scale % scale) (create-net icosahedron-corners)))
+  (triangles (map #(line/scale % scale) (create-net icosahedron-corners))))
 
 (defn cube
   "Create a list of lines that represent a cube."
   [scale]
-  (map #(line/scale % scale) (create-net cube-corners)))
+  (triangles (map #(line/scale % scale) (create-net cube-corners))))
 
 (defn slerp
+  "Spheric linear interpolation between two points at parameter t."
   [p1 p2 t]
   (let [np1 (point/normalize p1)
         np2 (point/normalize p2)
@@ -72,21 +85,12 @@
         s1 (/ (Math/sin theta) (Math/sin theta0))]
     (point/add (point/scale p1 s0) (point/scale p2 s1))))
 
-(defn subdivide
+(defn subdivide-lines
   "Take a list of lines half each and create lines for each of the resulting points to its closest neighbors."
   [lines]
   (let [midpoints (map #(slerp (:p1 %) (:p2 %) 0.5) lines)
         points (apply s/union (map #(hash-set (:p1 %) (:p2 %)) lines))]
     (create-net (s/union (into #{} midpoints) points))))
-
-(defn triangles
-  [lines]
-  (filter #(not (nil? %))
-    (for [l1 lines
-          l2 lines]
-      (when (not= l1 l2)
-        (when (= (:p2 l1) (:p1 l2))
-          (polygon/from-points (list (:p1 l1) (:p2 l1) (:p2 l2))))))))
 
 ;;=================================================================================================================
 ;; Taken from Ariadne

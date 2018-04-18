@@ -11,11 +11,10 @@
 (def height 600)
 (def color {:r 128 :g 40 :b 20})
 
-;(def world (gaia/triangles (gaia/cube 200)))
-(def world (gaia/triangles (gaia/subdivide (gaia/cube 200))))
-;(def world (gaia/triangles (gaia/icosahedron 400)))
-;(def world (gaia/triangles (gaia/subdivide (gaia/icosahedron 400))))
-;(def world (gaia/triangles (gaia/subdivide (gaia/subdivide (gaia/icosahedron 400)))))
+(def world (gaia/cube 200))
+;(def world (gaia/icosahedron 400))
+;(def world (gaia/subdivide (gaia/icosahedron 400)))
+;(def world (gaia/subdivide (gaia/subdivide (gaia/icosahedron 400))))
 ;(def world (gaia/random-area-lines 300 16))
 
 (def tau (* 2 Math/PI))
