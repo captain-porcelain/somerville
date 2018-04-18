@@ -11,8 +11,10 @@
 (def height 600)
 (def color {:r 128 :g 40 :b 20})
 
+;(def world (gaia/triangles (gaia/cube 200)))
+(def world (gaia/triangles (gaia/subdivide (gaia/cube 200))))
 ;(def world (gaia/triangles (gaia/icosahedron 400)))
-(def world (gaia/triangles (gaia/subdivide (gaia/icosahedron 400))))
+;(def world (gaia/triangles (gaia/subdivide (gaia/icosahedron 400))))
 ;(def world (gaia/triangles (gaia/subdivide (gaia/subdivide (gaia/icosahedron 400)))))
 ;(def world (gaia/random-area-lines 300 16))
 
@@ -35,7 +37,7 @@
   "get mouse based angle"
   [width]
   (let [[x y] @position]
-    (* tau (/ (- width x) width))))
+    (* tau (/ (- x width) width))))
 
 (defn get-mouse-angle-y
   "get mouse based angle"
