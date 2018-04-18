@@ -26,6 +26,17 @@
     (point/point 0.42532500 -0.26286500 0.0000000)
     (point/point -0.42532500 -0.26286500 0.0000000)))
 
+(def cube-corners
+  (list
+    (point/point -1 -1 -1)
+    (point/point -1 -1  1)
+    (point/point -1  1 -1)
+    (point/point -1  1  1)
+    (point/point  1 -1 -1)
+    (point/point  1 -1  1)
+    (point/point  1  1 -1)
+    (point/point  1  1  1)))
+
 (defn closest
   "Find the points in ps that are closest to a point p."
   [p ps]
@@ -42,6 +53,11 @@
   "Create a list of lines that represent an icosahedron."
   [scale]
   (map #(line/scale % scale) (create-net icosahedron-corners)))
+
+(defn cube
+  "Create a list of lines that represent a cube."
+  [scale]
+  (map #(line/scale % scale) (create-net cube-corners)))
 
 (defn slerp
   [p1 p2 t]
