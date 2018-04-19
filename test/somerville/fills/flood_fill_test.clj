@@ -39,7 +39,8 @@
     (is (= (ff/in-bounds? p1  -1  -1 10 10) true))
     (is (= (ff/in-bounds? p1   0   0 10 10) false))
     (is (= (count (ff/fill p1 #{} negative-decider-fn -5 -5 5 5)) 25))
-    (is (= (count (ff/fill p1 #{} blocked-decider-fn -5 -5 5 5)) 77))
+    ;(is (= (count (ff/fill p1 #{} blocked-decider-fn -5 -5 5 5)) 77))
+    (is (= (count (ff/fill p1 #{} blocked-decider-fn -5 -5 5 5)) 30))
     ))
 
 ;(defn test-fill

@@ -77,3 +77,49 @@
   [polygon line]
   (let [s (shorten-line-int polygon line)]
     (when-not (= (:p1 s) (:p2 s)) s)))
+
+(defn- signed-area-impl
+  "Worker function for recursively calculating the signed area of a 2d polygon."
+  [points area]
+  (if (< (count points) 2)
+    (/ area 2)
+    (let [xiyi1 (* (:x (first points)) (:y (second points)))
+          xi1yi (* (:x (second points)) (:y (first points)))
+          a (- xiyi1 xi1yi)]
+      (recur (rest points) (+ area a)))))
+
+(defn signed-area
+  "Calculate signed area of a 2d polygon."
+  [poly]
+  (let [points (to-points poly)]
+    (signed-area-impl (conj points (first points)) 0)))
+
+;; The algorithm was found at http://paulbourke.net/geometry/polyarea/
+(defn- centroid-x-y
+  "Calculate the centroid of a 2d polygon."
+  [points cx cy]
+  (if (< (count points) 2)
+    [cx cy]
+    (let [xiyi1 (* (:x (first points)) (:y (second points)))
+          xi1yi (* (:x (second points)) (:y (first points)))
+          sub (- xiyi1 xi1yi)
+          xixi1 (+ (:x (first points)) (:x (second points)))
+          yiyi1 (+ (:y (first points)) (:y (second points)))]
+      (recur (rest points) (+ cx (* xixi1 sub)) (+ cy (* yiyi1 sub))))))
+
+(defn centroid-2d
+  "calculate the centroid of a 2 dimensional polygon"
+  [poly]
+  (let [points (to-points poly)
+        a (signed-area poly)
+        [cx cy] (centroid-x-y (conj points (first points)) 0 0)]
+    (p/point (/ cx (* 6 a)) (/ cy (* 6 a)))))
+
+(defn centroid-3d
+  "calculate the centroid of a 3 dimensional polygon"
+  [polygon]
+  (let [points (to-points polygon)
+        xs (map :x points)
+        ys (map :y points)
+        zs (map :z points)]
+    (p/point (c/avg xs) (c/avg ys) (c/avg zs))))
