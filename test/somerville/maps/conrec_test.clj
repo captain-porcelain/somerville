@@ -7,25 +7,28 @@
     [somerville.geometry.line :as l])
   (:use clojure.test))
 
-
 (defn center-spike
   [g]
   (dorun
     (for [x (range (:width g))
           y (range (:height g))]
-        (grid/set-integer g x y (min x y (- (:width g) (inc x)) (- (:height g) (inc y)))))))
+        (grid/update-cell g x y #(assoc % :z (min x y (- (:width g) (inc x)) (- (:height g) (inc y))))))))
 
 (defn sample-grid
   [size]
-  (let [g (grid/integer-grid size size)
+  (let [g (grid/grid size size)
         tmp (center-spike g)]
     g))
 
 (defn one-spike-grid
   []
   (let [width 5
-        g (grid/integer-grid width width)
-        tmp (grid/set-integer g 2 2 5)]
+        g (grid/grid width width)
+        tmp (dorun
+              (for [x (range (:width g))
+                    y (range (:height g))]
+                (grid/update-cell g x y #(assoc % :z 0))))
+        tmp (grid/update-cell g 2 2 #(assoc % :z 5))]
     g))
 
 (deftest triangulation

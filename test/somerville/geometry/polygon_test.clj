@@ -106,3 +106,19 @@
         (is (= (p/point -1.0 0.0) (:p1 cut)))
         (is (= (p/point  1.0 0.0) (:p2 cut)))))))
 
+(deftest centroid-2d
+  (let [p1 (p/point 1 0)
+        p2 (p/point 1 1)
+        p3 (p/point 0 1)
+        p4 (p/point 0 0)
+        polygon (poly/from-points (list p1 p2 p3 p4))]
+    (is (= (p/point 1/2 1/2) (poly/centroid-2d polygon)))))
+
+(deftest centroid-3d
+  (let [p1 (p/point 1 0 2)
+        p2 (p/point 1 1 2)
+        p3 (p/point 0 1 2)
+        p4 (p/point 0 0 2)
+        polygon (poly/from-points (list p1 p2 p3 p4))]
+    (is (= (p/point 1/2 1/2 2) (poly/centroid-3d polygon)))))
+

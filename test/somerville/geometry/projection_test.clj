@@ -28,6 +28,7 @@
         p2d1    (projection/project projector p3d1)
         p3d2    (p/point 10 0 0)
         p2d2    (projection/project projector p3d2)
-        tmp (dorun (println (c/out p2d2)))]
+        ;tmp (dorun (println (c/out p2d2)))
+        ]
     (is (p/close? (p/point 5.0 5.0 0.0) p2d1))))
 
