@@ -28,3 +28,10 @@
     (< n1 n2) -1
     (> n1 n2)  1
     :else      0))
+
+(defn avg
+  "calculate average of list of numbers"
+  [numbers]
+  (if (= 0 (count numbers))
+    0
+    (/ (reduce + numbers) (count numbers))))
