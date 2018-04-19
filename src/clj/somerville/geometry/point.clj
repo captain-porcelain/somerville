@@ -169,3 +169,18 @@
         a (/ (- (:x v) (* b (:x t))) (:x s))]
     [a b]))
 
+(defn slerp
+  "Spheric linear interpolation between two points at parameter t."
+  [p1 p2 t]
+  (let [np1 (normalize p1)
+        np2 (normalize p2)
+        dot (dot np1 np2)
+        dot (if (< dot 0) (* -1 dot) dot)
+        np1 (if (< dot 0) (scale np1 -1) np1)
+        theta0 (Math/acos dot)
+        theta (* t theta0)
+        s0 (- (Math/cos theta) (* dot (/ (Math/sin theta) (Math/sin theta0))))
+        s1 (/ (Math/sin theta) (Math/sin theta0))]
+    (add (scale p1 s0) (scale p2 s1))))
+
+

@@ -4,6 +4,7 @@
   (:require
     [clojure.set :as s]
     [somerville.geometry.commons :as gcommons]
+    [somerville.geometry.triangle :as triangle]
     [somerville.geometry.polygon :as polygon]
     [somerville.geometry.point :as point]
     [somerville.geometry.line :as line])
@@ -53,44 +54,29 @@
 (defn triangles
   "Create a set of triangles from a set of lines. If two lines share a point create the triangle from
   first point to shared to last point and thus back to first."
-  [lines]
+  [lines ignore-close]
   (filter #(not (nil? %))
     (for [l1 lines
           l2 lines]
       (when (not= l1 l2)
-        (when (= (:p2 l1) (:p1 l2))
-          (polygon/from-points (list (:p1 l1) (:p2 l1) (:p2 l2))))))))
+        (when (and
+                (or ignore-close (gcommons/close-to (point/distance (:p1 l1) (:p2 l1)) (point/distance (:p1 l1) (:p2 l2))))
+                (= (:p2 l1) (:p1 l2)))
+          (triangle/triangle (:p1 l1) (:p2 l1) (:p2 l2)))))))
 
 (defn icosahedron
   "Create a set of triangles that represent an icosahedron."
   [scale]
-  (triangles (map #(line/scale % scale) (create-net icosahedron-corners))))
+  (triangles (map #(line/scale % scale) (create-net icosahedron-corners)) false))
 
 (defn cube
   "Create a list of lines that represent a cube."
   [scale]
-  (triangles (map #(line/scale % scale) (create-net cube-corners))))
+  (triangles (map #(line/scale % scale) (create-net cube-corners)) true))
 
-(defn slerp
-  "Spheric linear interpolation between two points at parameter t."
-  [p1 p2 t]
-  (let [np1 (point/normalize p1)
-        np2 (point/normalize p2)
-        dot (point/dot np1 np2)
-        dot (if (< dot 0) (* -1 dot) dot)
-        np1 (if (< dot 0) (point/scale np1 -1) np1)
-        theta0 (Math/acos dot)
-        theta (* t theta0)
-        s0 (- (Math/cos theta) (* dot (/ (Math/sin theta) (Math/sin theta0))))
-        s1 (/ (Math/sin theta) (Math/sin theta0))]
-    (point/add (point/scale p1 s0) (point/scale p2 s1))))
-
-(defn subdivide-lines
-  "Take a list of lines half each and create lines for each of the resulting points to its closest neighbors."
-  [lines]
-  (let [midpoints (map #(slerp (:p1 %) (:p2 %) 0.5) lines)
-        points (apply s/union (map #(hash-set (:p1 %) (:p2 %)) lines))]
-    (create-net (s/union (into #{} midpoints) points))))
+(defn subdivide
+  [triangles]
+  (into '() (apply s/union (map #(into #{} (triangle/subdivide %)) triangles))))
 
 ;;=================================================================================================================
 ;; Taken from Ariadne

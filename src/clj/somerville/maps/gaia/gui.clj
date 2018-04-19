@@ -1,21 +1,19 @@
 (ns somerville.maps.gaia.gui
-  (:require [somerville.geometry.line :as line]
-            [somerville.geometry.commons :as gcommons]
-    [somerville.geometry.polygon :as polygon]
-            [somerville.geometry.point :as point]
+  (:require [somerville.color.color :as color]
+            [somerville.geometry.polygon :as polygon]
             [somerville.maps.gaia.core :as gaia]
             [quil.core :as quil])
   (:gen-class))
 
 (def width 600)
 (def height 600)
-(def color {:r 128 :g 40 :b 20})
+(def line-color (color/rgba 128 40 20))
+(def fill-color (color/rgba 40 40 40 128))
+(def focus-line-color (color/rgba 128 200 20))
+(def focus-fill-color (color/rgba 80 80 80 128))
+(def index (atom 0))
 
-(def world (gaia/cube 200))
-;(def world (gaia/icosahedron 400))
-;(def world (gaia/subdivide (gaia/icosahedron 400)))
-;(def world (gaia/subdivide (gaia/subdivide (gaia/icosahedron 400))))
-;(def world (gaia/random-area-lines 300 16))
+(def world (atom (gaia/icosahedron 400)))
 
 (def tau (* 2 Math/PI))
 
@@ -64,27 +62,16 @@
   (quil/fill 226)
   (quil/frame-rate 10))
 
-(defn draw-line
-  "Draws one polygon representing an area of the world."
-  [l]
-  (quil/fill-float 40 40 40 128)
-  (quil/stroke-float (:r color) (:g color) (:b color))
-  (quil/begin-shape :lines)
-  (quil/vertex (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)))
-  (quil/vertex (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l)))
-  (quil/end-shape))
-
 (defn draw-triangle
   "Draws one polygon representing an area of the world."
-  [t]
-  (let [ps (polygon/to-points t)]
-    (quil/fill-float 40 40 40 128)
-    (quil/stroke-float (:r color) (:g color) (:b color))
-    (quil/begin-shape :triangles)
-    (quil/vertex (:x (nth ps 0)) (:y (nth ps 0)) (:z (nth ps 0)))
-    (quil/vertex (:x (nth ps 1)) (:y (nth ps 1)) (:z (nth ps 1)))
-    (quil/vertex (:x (nth ps 2)) (:y (nth ps 2)) (:z (nth ps 2)))
-    (quil/end-shape)))
+  [t fc lc]
+  (quil/fill-float (:r fc) (:g fc) (:b fc) (:a fc))
+  (quil/stroke-float (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/begin-shape :triangles)
+  (quil/vertex (:x (:p1 t)) (:y (:p1 t)) (:z (:p1 t)))
+  (quil/vertex (:x (:p2 t)) (:y (:p2 t)) (:z (:p2 t)))
+  (quil/vertex (:x (:p3 t)) (:y (:p3 t)) (:z (:p3 t)))
+  (quil/end-shape))
 
 (defn draw
   "This function is called by processing repeatedly."
@@ -95,9 +82,21 @@
       (quil/with-rotation [(get-mouse-angle-x 800) 0 1 0]
         (quil/with-rotation [(/ 0 tau) 0 0 1]
           (dorun
-            (for [l world]
-              (draw-triangle l)
-              )))))))
+            (for [l @world]
+              (draw-triangle l fill-color line-color)
+              ))
+          (draw-triangle (nth @world @index) focus-fill-color focus-line-color))))))
+
+(defn key-pressed []
+  "Trigger actions on key presses."
+  (dorun (println (str "Pressed key with code " (quil/key-code))))
+  (case (quil/key-code)
+    43 (when (< @index (dec (count @world))) (swap! index inc)) ;; +
+    45 (when (> @index 0) (swap! index dec)) ;; -
+    67 (do (reset! index 0) (reset! world (gaia/cube 200)));; c
+    73 (do (reset! index 0) (reset! world (gaia/icosahedron 400))) ;; i
+    83 (do (reset! index 0) (reset! world (gaia/subdivide @world))) ;; s
+    nil))
 
 (defn show []
   (quil/sketch
@@ -108,5 +107,6 @@
     :renderer :p3d
     :mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed
-    :mouse-released mouse-released))
+    :mouse-released mouse-released
+    :key-pressed key-pressed))
 
