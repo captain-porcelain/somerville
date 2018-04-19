@@ -6,6 +6,7 @@
    [dali "0.7.4"]
    [quil "2.6.0"]
    [fs "1.3.3"]
+   [ubergraph "0.5.0"]
    [com.taoensso/timbre "4.10.0"]]
 
   :plugins
