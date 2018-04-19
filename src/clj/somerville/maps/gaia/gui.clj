@@ -83,13 +83,12 @@
         (quil/with-rotation [(/ 0 tau) 0 0 1]
           (dorun
             (for [l @world]
-              (draw-triangle l fill-color line-color)
-              ))
+              (draw-triangle l fill-color line-color)))
           (draw-triangle (nth @world @index) focus-fill-color focus-line-color))))))
 
 (defn key-pressed []
   "Trigger actions on key presses."
-  (dorun (println (str "Pressed key with code " (quil/key-code))))
+  ;(dorun (println (str "Pressed key with code " (quil/key-code))))
   (case (quil/key-code)
     43 (when (< @index (dec (count @world))) (swap! index inc)) ;; +
     45 (when (> @index 0) (swap! index dec)) ;; -
