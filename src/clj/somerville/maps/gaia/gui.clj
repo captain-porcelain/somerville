@@ -47,13 +47,14 @@
   []
   (let [x (quil/mouse-x)
         y (quil/mouse-y)]
-    (dorun (println (str "mouse pressed at " x " - " y)))
+    ;(dorun (println (str "mouse pressed at " x " - " y)))
     (reset! mouse-position [x y])))
 
 (defn mouse-released
   "for now we just print a status message"
   []
-  (dorun (println "mouse released")))
+  ;(dorun (println "mouse released"))
+  )
 
 (defn setup
   "This function is called by quil once before drawing"
