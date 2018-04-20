@@ -7,6 +7,7 @@
     [somerville.geometry.commons :as gcommons]
     [somerville.geometry.triangle :as triangle]
     [somerville.geometry.point :as point]
+    [somerville.geometry.polygon :as polygon]
     [somerville.geometry.line :as line]))
 
 (def icosahedron-corners
@@ -75,6 +76,22 @@
   [ts]
   (into '() (apply s/union (map #(into #{} (triangle/subdivide %)) ts))))
 
+(defn polygonate
+  [p ts]
+  (let [affected (filter #(or (= (:p1 %) p (= (:p2 %) p)) (= (:p3 %) p)) ts)
+        centers (map #(point/scale (point/add (:p1 %) (point/add (:p2 %) (:p3 %))) 1/3) affected)]
+    (polygon/from-points centers)))
+
+(defn triangle-points
+  "Get all unique points from list of triangles."
+  [ts]
+  (apply s/union (map #(into #{} (list (:p1 %) (:p2 %) (:p3 %))) ts)))
+
+(defn translate-surface
+  "Translate triangle surface to polygon for each triangle point."
+  [ts]
+  (map #(polygonate % ts) (triangle-points ts)))
+
 ;;=================================================================================================================
 ;; Create a graph that holds all triangles and connects them to their neighbours.
 
@@ -86,9 +103,14 @@
 (defn neighbours
   "Get list of neighbors in ts for t as pairs [t1 t2]."
   [t ts]
-  (filter #(not (nil? %)) (map #(if (share-edge? t %) [t %] nil) (remove #{t} ts))))
+  (into #{} (filter #(not (nil? %)) (map #(if (share-edge? t %) [t %] nil) (remove #{t} ts)))))
 
-(defn create-net
-  "Create net / graph of triangles."
+(defn create-edges
+  "Create edges of triangles."
   [ts]
-  (apply uber/graph (map #(neighbours % ts) ts)))
+  (into '() (apply s/union (map #(neighbours % ts) ts))))
+
+(defn create-graph
+  [ts]
+  (apply uber/add-edges (apply uber/add-nodes (uber/graph) ts) (create-edges ts)))
+
