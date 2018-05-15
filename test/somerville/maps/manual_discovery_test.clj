@@ -154,6 +154,12 @@
         walls (slurp "test-resources/maglubiyet-2.walls")]
     (time (run-manual-test "maglubiyet-2" walls points 1520 1734 400))))
 
+(defn manual-test-maglubiyet-3
+  []
+  (let [points '([1340 883])
+        walls (slurp "test-resources/maglubiyet-2.walls")]
+    (time (run-manual-test "maglubiyet-3" walls points 1520 1734 400))))
+
 ;(manual-test-clear)
 ;(manual-test-simple-line)
 ;(manual-test-vertical-parallel-line)
@@ -161,5 +167,5 @@
 ;(manual-test-rooms)
 ;(manual-test-baramzigli)
 ;(manual-test-maglubiyet)
-;(manual-test-maglubiyet-2)
+(manual-test-maglubiyet-3)
 
