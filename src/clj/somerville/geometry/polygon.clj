@@ -123,3 +123,31 @@
         ys (map :y points)
         zs (map :z points)]
     (p/point (c/avg xs) (c/avg ys) (c/avg zs))))
+
+;; adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-combine-complex-polygons
+
+(defn outline-split-points
+  [l is]
+  (concat (cons (:p1 l) (sort-by #(p/distance (:p1 l) %) is)) (list (:p2 l))))
+
+(defn outline-split
+  [l is]
+  (loop [ps (outline-split-points l is)
+         m {}]
+    (if (<= (count ps) 1)
+      m
+      (recur (rest ps) (assoc m (first ps) (list (first (rest ps))))))))
+
+(defn outline-graph
+  [poly1 poly2]
+  (apply merge-with concat
+         (concat
+           (map #(outline-split % (intersect-segments poly2 %)) (:lines poly1))
+           (map #(outline-split % (intersect-segments poly1 %)) (:lines poly2)))))
+
+(defn outline
+  [poly1 poly2]
+  (let [g (outline-graph poly1 poly2)
+        fp (p/low-left (concat (to-points poly1) (to-points poly2)))]
+    ))
+

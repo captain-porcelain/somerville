@@ -183,4 +183,16 @@
         s1 (/ (Math/sin theta) (Math/sin theta0))]
     (add (scale p1 s0) (scale p2 s1))))
 
+(defn average
+  "Create average of points."
+  [ps]
+  (scale (reduce add ps) (/ 1 (count ps))))
+
+(defn low-left
+  "Find point closest to the lower left."
+  [ps]
+  (let [mx (apply min (map :x ps))
+        my (apply min (map :y ps))
+        ll (point mx my)]
+    (first (sort-by #(distance ll %) ps))))
 
