@@ -68,3 +68,11 @@
         [a b] (p/linear-combination v s t)]
     (is (= 2 a))
     (is (= 2 b))))
+
+(deftest average
+  (let [p1 (p/point 2 2)
+        p2 (p/point 1 0)
+        p3 (p/point 0 1)
+        pa (p/average (list p1 p2 p3))]
+    (is (= (p/point 1 1 0) pa))))
+

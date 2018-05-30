@@ -91,14 +91,14 @@
             cut (poly/shorten-line polygon line)]
         (is (= lp1 (:p1 cut)))
         (is (= lp2 (:p2 cut)))))
-    (testing "Line cuttin polygon once"
+    (testing "Line cutting polygon once"
       (let [lp1 (p/point -0.5 0)
             lp2 (p/point  1.5 0)
             line (l/line lp1 lp2)
             cut (poly/shorten-line polygon line)]
         (is (= lp1 (:p1 cut)))
         (is (= (p/point 1.0 0.0) (:p2 cut)))))
-    (testing "Line cuttin polygon twice"
+    (testing "Line cutting polygon twice"
       (let [lp1 (p/point -1.5 0)
             lp2 (p/point  1.5 0)
             line (l/line lp1 lp2)
@@ -121,4 +121,18 @@
         p4 (p/point 0 0 2)
         polygon (poly/from-points (list p1 p2 p3 p4))]
     (is (= (p/point 1/2 1/2 2) (poly/centroid-3d polygon)))))
+
+
+(deftest outline-graph
+  (let [pa1 (p/point 2 3)
+        pa2 (p/point 4 5)
+        pa3 (p/point 6 1)
+        pb1 (p/point 5 4)
+        pb2 (p/point 7 4)
+        pb3 (p/point 7 2)
+        pb4 (p/point 5 2)
+        p1 (poly/from-points (list pa1 pa2 pa3))
+        p2 (poly/from-points (list pb1 pb2 pb3 pb4))
+        tmp (dorun (println (p/low-left (list pa1 pa2 pa3 pb1 pb2 pb3 pb4))))]
+    (dorun (println (poly/outline-graph p1 p2)))))
 
