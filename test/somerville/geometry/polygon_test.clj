@@ -133,6 +133,13 @@
         pb4 (p/point 5 2)
         p1 (poly/from-points (list pa1 pa2 pa3))
         p2 (poly/from-points (list pb1 pb2 pb3 pb4))
-        tmp (dorun (println (p/low-left (list pa1 pa2 pa3 pb1 pb2 pb3 pb4))))]
-    (dorun (println (poly/outline-graph p1 p2)))))
+        pll (p/low-left (list pa1 pa2 pa3 pb1 pb2 pb3 pb4))
+        og (poly/outline-graph p1 p2)
+        tmp (dorun (println "lower left point:"))
+        tmp (dorun (println (commons/out pll)))
+        tmp (dorun (println "lower left follow up points:"))
+        tmp (dorun (println (clojure.string/join "\n" (map commons/out (get og pll)))))
+        tmp (dorun (println "outline graph:"))
+        ]
+    (dorun (println og))))
 
