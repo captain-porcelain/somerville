@@ -126,19 +126,25 @@
 
 ;; adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-combine-complex-polygons
 
-(defn outline-split-points
-  [l is]
-  (concat (cons (:p1 l) (sort-by #(p/distance (:p1 l) %) is)) (list (:p2 l))))
+(defn sort-points-on-line
+  "Sort points on a line with the start and end points that line."
+  [l ps]
+  (concat (cons (:p1 l) (sort-by #(p/distance (:p1 l) %) ps)) (list (:p2 l))))
 
 (defn outline-split
-  [l is]
-  (loop [ps (outline-split-points l is)
+  "Given a line and points on that line create a map holding all points as keys
+  and a list of one point that is next to that point as values."
+  [l ps]
+  (loop [ps (sort-points-on-line l ps)
          m {}]
     (if (<= (count ps) 1)
       m
-      (recur (rest ps) (assoc m (first ps) (list (first (rest ps))))))))
+      (recur (rest ps) (assoc m
+                              (first ps) (list (first (rest ps)))
+                              (first (rest ps)) (list (first ps)))))))
 
 (defn outline-graph
+  "Create a graph that reflects the outline of two polygons with all intersections between them."
   [poly1 poly2]
   (apply merge-with concat
          (concat
@@ -146,8 +152,10 @@
            (map #(outline-split % (intersect-segments poly1 %)) (:lines poly2)))))
 
 (defn outline
+  "Create a polygon that outlines two polygons."
   [poly1 poly2]
   (let [g (outline-graph poly1 poly2)
         fp (p/low-left (concat (to-points poly1) (to-points poly2)))]
     ))
+
 
