@@ -38,6 +38,11 @@
   ([x y z]
    (Point3. x y z)))
 
+(defn ensure-3d
+  "Ensure point has three dimensions."
+  [p]
+  (if (nil? (:z p)) (point (:x p) (:y p) 0) p))
+
 (defn midpoint
   "Get the midpoint of two points."
   [p1 p2]
@@ -84,10 +89,12 @@
 (defn cross
   "Calculate cross product between two 3D vectors."
   [p1 p2]
-  (point
-    (- (* (:y p1) (:z p2)) (* (:z p1) (:y p2)))
-    (- (* (:z p1) (:x p2)) (* (:x p1) (:z p2)))
-    (- (* (:x p1) (:y p2)) (* (:y p1) (:x p2)))))
+  (let [p1 (ensure-3d p1)
+        p2 (ensure-3d p2)]
+    (point
+      (- (* (:y p1) (:z p2)) (* (:z p1) (:y p2)))
+      (- (* (:z p1) (:x p2)) (* (:x p1) (:z p2)))
+      (- (* (:x p1) (:y p2)) (* (:y p1) (:x p2))))))
 
 (defn dot
   "Calculate dot product between two points."
@@ -132,6 +139,16 @@
     (let [a (angle p1 p2 p3)]
       (if (< a 0) (+ (* 2 Math/PI) a) a))
     (catch Exception e (dorun (println (str "Error calculating angle between:\n" (c/out p1 1) "\n" (c/out p2 1) "\n" (c/out p3 1)))))))
+
+(defn angle-dot
+  "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3 using dot product. No negative results."
+  [p1 p2 p3]
+  (let [v1 (normalize (subtract p2 p1))
+        v2 (normalize (subtract p3 p1))
+        vcross (cross v1 v2)
+        vdot (Math/acos (dot v1 v2))
+        vdot (if (< (:z vcross) 0) (- (* 2 Math/PI) vdot))]
+    vdot))
 
 (defn point-at
   "Given a point find another one in dist at angle."
