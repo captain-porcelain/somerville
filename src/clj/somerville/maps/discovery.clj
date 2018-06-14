@@ -1,6 +1,10 @@
 (ns somerville.maps.discovery
+  (:import
+    [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
+    [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
+    [somerville.image :as image]
     [somerville.geometry.commons :as gcommons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
@@ -258,3 +262,28 @@
      triangles))
   ([point wall-description visualrange]
    (discover-point point wall-description visualrange nil)))
+
+
+(defn draw-triangle
+  "Transform a triangle into a Java graphics polygon and render it."
+  [triangle ^Graphics2D graphics]
+  (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
+        ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
+        p (Polygon. xs ys (count xs))
+        tmp (.fillPolygon graphics p)
+        tmp (.drawPolygon graphics p)]))
+
+(defn render-discoveries
+  "Render overlay image for discoveries."
+  [width height triangles filename]
+  (let [img ^BufferedImage (image/make-image width height)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
+        tmp (.setPaint graphics Color/black)
+        tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.setComposite graphics (AlphaComposite/getInstance AlphaComposite/CLEAR))
+        tmp (.setStroke graphics (BasicStroke. 2))
+        tmp (dorun (map #(draw-triangle % graphics) triangles))
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))
+
