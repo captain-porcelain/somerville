@@ -167,5 +167,14 @@
 ;(manual-test-rooms)
 ;(manual-test-baramzigli)
 ;(manual-test-maglubiyet)
-(manual-test-maglubiyet-3)
+;(manual-test-maglubiyet-3)
+
+(defn manual-test-rendering-maglubiyet-3
+  []
+  (let [points '([1340 883])
+        walls (slurp "test-resources/maglubiyet-2.walls")
+        triangles (rcwt/discover-point (p/point (first (first points)) (second (first points))) walls 400)]
+    (rcwt/render-discoveries 1520 1734 triangles "/tmp/test-rendering.png")))
+
+;(manual-test-rendering-maglubiyet-3)
 
