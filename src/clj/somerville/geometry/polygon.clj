@@ -124,6 +124,8 @@
         zs (map :z points)]
     (p/point (c/avg xs) (c/avg ys) (c/avg zs))))
 
+
+;;====================================================================================================================================================
 ;; adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-combine-complex-polygons
 
 (defn sort-points-on-line
@@ -139,9 +141,7 @@
          m {}]
     (if (<= (count ps) 1)
       m
-      (recur (rest ps) (assoc m
-                              (first ps) (list (first (rest ps)))
-                              (first (rest ps)) (list (first ps)))))))
+      (recur (rest ps) (assoc m (first ps) (list (first (rest ps))))))))
 
 (defn outline-graph
   "Create a graph that reflects the outline of two polygons with all intersections between them."
@@ -151,30 +151,34 @@
            (map #(outline-split % (intersect-segments poly2 %)) (:lines poly1))
            (map #(outline-split % (intersect-segments poly1 %)) (:lines poly2)))))
 
+(defn outline-angle-candidates
+  "Sort the outline candidates by angle."
+  [previous current candidates]
+  (sort-by second (map #(vector % (p/angle-dot current previous %)) candidates)))
+
 (defn next-outline-point
   "Get the next point in the outline."
-  [current average candidates]
-  (first (last (sort-by second (map #(vector % (p/angle current average %)) candidates)))))
+  [previous current candidates]
+  (if (nil? previous)
+    (first candidates)
+    (first (last (outline-angle-candidates previous current candidates)))))
 
 (defn build-outline
-  [graph average start]
+  "Iterate through graph to get the outline."
+  [graph start]
   (loop [g graph
-         p (next-outline-point start average (get graph start))
-         ps (list p)]
+         p (next-outline-point nil start (get graph start))
+         ps (vector start)]
     (if (= start p)
-      ps
-      (let [tmp (dorun (println (c/out (next-outline-point p average (get g p)))))
-            tmp (dorun (println (str "Graph size: " (count g))))
-            tmp (dorun (println (str "Outline size: " (count ps))))]
-        (recur (dissoc g p) (next-outline-point p average (get g p)) (conj ps p))))))
+      {:outline (from-points ps) :remaining g}
+      (recur (dissoc g p) (next-outline-point (last ps) p (get g p)) (conj ps p)))))
 
 (defn outline
   "Create a polygon that outlines two polygons."
   [poly1 poly2]
   (let [graph (outline-graph poly1 poly2)
         points (concat (to-points poly1) (to-points poly2))
-        average (p/average points)
         start (p/low-left points)]
-    (from-points (build-outline graph average start))))
+    (:outline (build-outline graph start))))
 
 
