@@ -284,6 +284,20 @@
         tmp (.setComposite graphics (AlphaComposite/getInstance AlphaComposite/CLEAR))
         tmp (.setStroke graphics (BasicStroke. 2))
         tmp (dorun (map #(draw-triangle % graphics) triangles))
+        tmp (.dispose graphics)
+        i (image/write-image filename img)]
+    i))
+
+(defn update-discoveries
+  "Update rendered overlay image for discoveries."
+  [triangles filename]
+  (let [img ^BufferedImage (image/load-image filename)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
+        tmp (.setComposite graphics (AlphaComposite/getInstance AlphaComposite/CLEAR))
+        tmp (.setStroke graphics (BasicStroke. 2))
+        tmp (dorun (map #(draw-triangle % graphics) triangles))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
+
 
