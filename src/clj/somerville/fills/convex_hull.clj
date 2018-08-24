@@ -11,18 +11,18 @@
 (defn cut-line
   "Get line between the points with minimun x and maximum x."
   [points]
-  (let [sorted (sort-by :x points)]
+  (let [sorted (sort-by p/x points)]
     (l/line (first sorted) (last sorted))))
 
 (defn above?
   "Check if a point is above a line."
   [point line]
-  (let [ly (l/solve-line-at line (:x point))]
+  (let [ly (l/solve-line-at line (p/x point))]
     (cond
       (nil? ly) :on
-      (c/close-to (:y point) ly) :on
-      (> (:y point) ly) :above
-      (< (:y point) ly) :below)))
+      (c/close-to (p/y point) ly) :on
+      (> (p/y point) ly) :above
+      (< (p/y point) ly) :below)))
 
 (defn partition-points
   "Partition points by given line."

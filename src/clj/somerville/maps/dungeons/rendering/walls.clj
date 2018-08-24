@@ -28,7 +28,7 @@
   (fn
     [g c]
     (when (< 0 (count (:links c)))
-      (let [[p1 p2 p3 p4] (rect-coordinates wall-length (:x c) (:y c))]
+      (let [[p1 p2 p3 p4] (rect-coordinates wall-length (p/x c) (p/y c))]
         (list
           (when (not (commons/in? :north (:links c))) (l/line p1 p2))
           (when (not (commons/in? :south (:links c))) (l/line p4 p3))
@@ -40,7 +40,7 @@
   [wall-length] (fn
     [g c]
     (when (< 0 (count (:links c)))
-      (poly/from-points (rect-coordinates wall-length (:x c) (:y c))))))
+      (poly/from-points (rect-coordinates wall-length (p/x c) (p/y c))))))
 
 (defn hex-coordinates
   "Get coordinates for hex cell."
@@ -69,7 +69,7 @@
   (fn
     [g c]
     (when (< 0 (count (:links c)))
-      (let [[p1 p2 p3 p4 p5 p6] (hex-coordinates wall-length (:x c) (:y c))]
+      (let [[p1 p2 p3 p4 p5 p6] (hex-coordinates wall-length (p/x c) (p/y c))]
         (list
           (when (not (commons/in? :north      (:links c))) (l/line p2 p3))
           (when (not (commons/in? :south      (:links c))) (l/line p6 p5))
@@ -83,7 +83,7 @@
   [wall-length]
   (fn
     [g c]
-    (when (< 0 (count (:links c))) (poly/from-points (hex-coordinates wall-length (:x c) (:y c))))))
+    (when (< 0 (count (:links c))) (poly/from-points (hex-coordinates wall-length (p/x c) (p/y c))))))
 
 (defn convert-to-walls
   "Convert grid to list of lines representing relevant walls."
@@ -109,7 +109,7 @@
 (defn wall-description
   "Create wall description and include border offset."
   ([l border]
-   (str "line " (+ border (:x (:p1 l))) "," (+ border (:y (:p1 l))) " " (+ border (:x (:p2 l))) "," (+ border (:y (:p2 l)))))
+   (str "line " (+ border (p/x (:p1 l))) "," (+ border (p/y (:p1 l))) " " (+ border (p/x (:p2 l))) "," (+ border (p/y (:p2 l)))))
   ([l]
    (wall-description l 0)))
 
@@ -159,8 +159,8 @@
 (defn draw-polygon
   "Draw a polygon onto the canvas."
   [graphics polygon border]
-  (let [xs (into-array Integer/TYPE (map #(+ (:x %) border) (poly/to-points polygon)))
-        ys (into-array Integer/TYPE (map #(+ (:y %) border) (poly/to-points polygon)))
+  (let [xs (into-array Integer/TYPE (map #(+ (p/x %) border) (poly/to-points polygon)))
+        ys (into-array Integer/TYPE (map #(+ (p/y %) border) (poly/to-points polygon)))
         p (Polygon. xs ys (count xs))
         tmp (.fillPolygon graphics p)
         tmp (.drawPolygon graphics p)]))
@@ -168,7 +168,7 @@
 (defn draw-line
   "Draw a line onto the canvas."
   [graphics line border]
-  (.drawLine graphics (+ border (:x (:p1 line))) (+ border (:y (:p1 line))) (+ border (:x (:p2 line))) (+ border (:y (:p2 line)))))
+  (.drawLine graphics (+ border (p/x (:p1 line))) (+ border (p/y (:p1 line))) (+ border (p/x (:p2 line))) (+ border (p/y (:p2 line)))))
 
 (defn floor-tiles
   "Render floor tiles and overlay given wall drawing."
@@ -239,8 +239,8 @@
         tp2 (p/point-at p2 (* -1 (/ Math/PI 6)) 300)
         l2 (l/line p2 tp2)
         i2 (l/intersect l2 wl)
-        mi1 (p/point (- (:x i1) border) (:y i1))
-        mi2 (p/point (- (:x i2) border) (:y i2))]
+        mi1 (p/point (- (p/x i1) border) (p/y i1))
+        mi2 (p/point (- (p/x i2) border) (p/y i2))]
     (poly/from-points (list p1 mi1 mi2 p2))))
 
 (defn hex-entrance-top
@@ -255,8 +255,8 @@
         tp2 (p/point-at p2 (* -2 (/ Math/PI 6)) 300)
         l2 (l/line p2 tp2)
         i2 (l/intersect l2 wl)
-        mi1 (p/point (:x i1) (- (:y i1) border))
-        mi2 (p/point (:x i2) (- (:y i2) border))]
+        mi1 (p/point (p/x i1) (- (p/y i1) border))
+        mi2 (p/point (p/x i2) (- (p/y i2) border))]
     (poly/from-points (list p1 mi1 mi2 p2))))
 
 (defn hex-entrance-bottom
@@ -277,19 +277,19 @@
   "Get polygon representing entrance."
   [g config width height]
   (case (:grid-type g)
-    :rect (let [[p1 p2 p3 p4] (rect-coordinates (:wall-length config) (:x (:start g)) (:y (:start g)))
+    :rect (let [[p1 p2 p3 p4] (rect-coordinates (:wall-length config) (p/x (:start g)) (p/y (:start g)))
                 border (:border config)]
             (cond
-              (= (:y (:start g)) 0)                 (poly/from-points (list p1 (p/point (:x p1) (- 0 border)) (p/point (:x p2) (- 0 border)) p2))
-              (= (:y (:start g)) (dec (:height g))) (poly/from-points (list p1 (p/point (:x p1) (+ height border)) (p/point (:x p2) (+ height border)) p2))
-              (= (:x (:start g)) 0)                 (poly/from-points (list p1 (p/point (- 0 border) (:y p1)) (p/point (- 0 border) (:y p4)) p4))
-              (= (:x (:start g)) (dec (:width g)))  (poly/from-points (list p1 (p/point (+ width border) (:y p1)) (p/point (+ width border) (:y p4)) p4))))
-    :hex (let [ps (hex-coordinates (:wall-length config) (:x (:start g)) (:y (:start g)))]
+              (= (p/y (:start g)) 0)                 (poly/from-points (list p1 (p/point (p/x p1) (- 0 border)) (p/point (p/x p2) (- 0 border)) p2))
+              (= (p/y (:start g)) (dec (:height g))) (poly/from-points (list p1 (p/point (p/x p1) (+ height border)) (p/point (p/x p2) (+ height border)) p2))
+              (= (p/x (:start g)) 0)                 (poly/from-points (list p1 (p/point (- 0 border) (p/y p1)) (p/point (- 0 border) (p/y p4)) p4))
+              (= (p/x (:start g)) (dec (:width g)))  (poly/from-points (list p1 (p/point (+ width border) (p/y p1)) (p/point (+ width border) (p/y p4)) p4))))
+    :hex (let [ps (hex-coordinates (:wall-length config) (p/x (:start g)) (p/y (:start g)))]
            (cond
-             (= (:x (:start g)) 0)                 (hex-entrance-left ps width height (:border config))
-             (= (:x (:start g)) (- (:width g) 1))  (hex-entrance-right ps width height (:border config))
-             (= (:y (:start g)) 0)                 (hex-entrance-top ps width height (:border config))
-             (= (:y (:start g)) (- (:height g) 1)) (hex-entrance-bottom ps width height (:border config))))))
+             (= (p/x (:start g)) 0)                 (hex-entrance-left ps width height (:border config))
+             (= (p/x (:start g)) (- (:width g) 1))  (hex-entrance-right ps width height (:border config))
+             (= (p/y (:start g)) 0)                 (hex-entrance-top ps width height (:border config))
+             (= (p/y (:start g)) (- (:height g) 1)) (hex-entrance-bottom ps width height (:border config))))))
 
 (defn draw-entrance
   "Ensure entrance is open."

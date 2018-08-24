@@ -22,12 +22,12 @@
 (defn sort-points
   "Sort points by y position."
   [points]
-  (sort-by #(:y %) points))
+  (sort-by #(p/y %) points))
 
 (defn sort-events
   "Sort events by y position."
   [events]
-  (sort-by #(:y (:point %)) events))
+  (sort-by #(p/y (:point %)) events))
 
 (defn events
   "Create sorted events for a list of points."
@@ -48,9 +48,9 @@
    (Edge. start left right nil))
   ([p1 p2]
    "Create an unfinished edge from two points by calculating the start at y = 0."
-   (let [lp (if (< (:x p1) (:x p2)) p1 p2)
-         rp (if (< (:x p1) (:x p2)) p2 p1)
-         s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
+   (let [lp (if (< (p/x p1) (p/x p2)) p1 p2)
+         rp (if (< (p/x p1) (p/x p2)) p2 p1)
+         s (p/point (/ (+ (p/x p1) (p/x p2)) 2) 0)]
      (edge s lp rp))))
 
 (defn edge-intersection
@@ -67,10 +67,10 @@
   "Define the starting point a new edge. It is defined by a newly split parabola's value at x."
   [focuspoint event]
   (p/point
-    (:x (:point event))
+    (p/x (:point event))
     (par/solve-parabola-at
-      (par/parabola-from-focuspoint-and-directrix-y focuspoint (:y (:point event)))
-      (:x (:point event)))))
+      (par/parabola-from-focuspoint-and-directrix-y focuspoint (p/y (:point event)))
+      (p/x (:point event)))))
 
 ;; ==============================================================================================================
 ;; Define records and functions for managing a binary search tree.
@@ -187,12 +187,12 @@
     (let [left-point  (:point (:event (z/node (left-leaf  zipper))))
           right-point (:point (:event (z/node (right-leaf zipper))))
           event-point (:point event)
-          parabola-left (par/parabola-from-focuspoint-and-directrix-y left-point (:y event-point))
-          parabola-right (par/parabola-from-focuspoint-and-directrix-y right-point (:y event-point))
+          parabola-left (par/parabola-from-focuspoint-and-directrix-y left-point (p/y event-point))
+          parabola-right (par/parabola-from-focuspoint-and-directrix-y right-point (p/y event-point))
           parabola (par/subtract parabola-left parabola-right)
           zeros (par/find-zero-of-parabola parabola)
-          x (if (< (:y left-point) (:y right-point)) (second zeros) (first zeros))]
-      (if (< (:x (:point event)) x)
+          x (if (< (p/y left-point) (p/y right-point)) (second zeros) (first zeros))]
+      (if (< (p/x (:point event)) x)
         (recur (z/down zipper) event)
         (recur (z/right (z/down zipper)) event)))))
 
@@ -222,9 +222,9 @@
     (let [intersection (circle-intersection lp rp ll rl)]
       (when (not (nil? intersection))
         (let [distance (p/distance (:point (:event (z/node ll))) intersection)
-              circle-y (- (:y intersection) distance)]
+              circle-y (- (p/y intersection) distance)]
           (when (< circle-y sweep-y)
-            (event (p/point (:x intersection) circle-y) :circle)))))))
+            (event (p/point (p/x intersection) circle-y) :circle)))))))
 
 (defn create-subtree
   "Create TreeNode structure for representing a new site event.
@@ -275,7 +275,7 @@
         [new-tree new-nodes] (if (= :site (:type e))
                                (add-parabola tree e)
                                (remove-parabola tree e))
-        new-events (filter #(not (nil? %)) (map #(check-circle % (:y (:point e))) new-nodes))]
+        new-events (filter #(not (nil? %)) (map #(check-circle % (p/y (:point e))) new-nodes))]
     (Voronoi.
       (:points v)
       (sort-events (concat events new-events))

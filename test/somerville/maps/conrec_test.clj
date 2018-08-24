@@ -12,7 +12,7 @@
   (dorun
     (for [x (range (:width g))
           y (range (:height g))]
-        (grid/update-cell g x y #(assoc % :z (min x y (- (:width g) (inc x)) (- (:height g) (inc y))))))))
+        (grid/update-cell g x y #(assoc % p/z (min x y (- (:width g) (inc x)) (- (:height g) (inc y))))))))
 
 (defn sample-grid
   [size]
@@ -27,50 +27,50 @@
         tmp (dorun
               (for [x (range (:width g))
                     y (range (:height g))]
-                (grid/update-cell g x y #(assoc % :z 0))))
-        tmp (grid/update-cell g 2 2 #(assoc % :z 5))]
+                (grid/update-cell g x y #(assoc % p/z 0))))
+        tmp (grid/update-cell g 2 2 #(assoc % p/z 5))]
     g))
 
 (deftest triangulation
   (let [t (conrec/triangulation (sample-grid 5))
         t0 (nth t 0)]
     (is (= 16 (count t)))
-    (is (= 0 (:x (:p1 t0))))
-    (is (= 0 (:y (:p1 t0))))
-    (is (= 0 (:z (:p1 t0))))
-    (is (= 1 (:x (:p2 t0))))
-    (is (= 0 (:y (:p2 t0))))
-    (is (= 0 (:z (:p2 t0))))
-    (is (= 1 (:x (:p3 t0))))
-    (is (= 1 (:y (:p3 t0))))
-    (is (= 1 (:z (:p3 t0))))
-    (is (= 0 (:x (:p4 t0))))
-    (is (= 1 (:y (:p4 t0))))
-    (is (= 0 (:z (:p4 t0))))
+    (is (= 0 (p/x (:p1 t0))))
+    (is (= 0 (p/y (:p1 t0))))
+    (is (= 0 (p/z (:p1 t0))))
+    (is (= 1 (p/x (:p2 t0))))
+    (is (= 0 (p/y (:p2 t0))))
+    (is (= 0 (p/z (:p2 t0))))
+    (is (= 1 (p/x (:p3 t0))))
+    (is (= 1 (p/y (:p3 t0))))
+    (is (= 1 (p/z (:p3 t0))))
+    (is (= 0 (p/x (:p4 t0))))
+    (is (= 1 (p/y (:p4 t0))))
+    (is (= 0 (p/z (:p4 t0))))
 
-    (is (= 0.5 (:x (:p0 t0))))
-    (is (= 0.5 (:y (:p0 t0))))
-    (is (= 1/4 (:z (:p0 t0))))))
+    (is (= 0.5 (p/x (:p0 t0))))
+    (is (= 0.5 (p/y (:p0 t0))))
+    (is (= 1/4 (p/z (:p0 t0))))))
 
 (deftest relative-height
   (let [t (conrec/relative-heights (conrec/triangulation (sample-grid 5)) 1)
         t0 (nth t 0)]
-    (is (=  0 (:x (:p1 t0))))
-    (is (=  0 (:y (:p1 t0))))
-    (is (= -1 (:z (:p1 t0))))
-    (is (=  1 (:x (:p2 t0))))
-    (is (=  0 (:y (:p2 t0))))
-    (is (= -1 (:z (:p2 t0))))
-    (is (=  1 (:x (:p3 t0))))
-    (is (=  1 (:y (:p3 t0))))
-    (is (=  0 (:z (:p3 t0))))
-    (is (=  0 (:x (:p4 t0))))
-    (is (=  1 (:y (:p4 t0))))
-    (is (= -1 (:z (:p4 t0))))
+    (is (=  0 (p/x (:p1 t0))))
+    (is (=  0 (p/y (:p1 t0))))
+    (is (= -1 (p/z (:p1 t0))))
+    (is (=  1 (p/x (:p2 t0))))
+    (is (=  0 (p/y (:p2 t0))))
+    (is (= -1 (p/z (:p2 t0))))
+    (is (=  1 (p/x (:p3 t0))))
+    (is (=  1 (p/y (:p3 t0))))
+    (is (=  0 (p/z (:p3 t0))))
+    (is (=  0 (p/x (:p4 t0))))
+    (is (=  1 (p/y (:p4 t0))))
+    (is (= -1 (p/z (:p4 t0))))
 
-    (is (=  0.5 (:x (:p0 t0))))
-    (is (=  0.5 (:y (:p0 t0))))
-    (is (= -3/4 (:z (:p0 t0))))))
+    (is (=  0.5 (p/x (:p0 t0))))
+    (is (=  0.5 (p/y (:p0 t0))))
+    (is (= -3/4 (p/z (:p0 t0))))))
 
 (deftest case-indices
   (let [t (conrec/relative-heights (conrec/triangulation (sample-grid 5)) 1)

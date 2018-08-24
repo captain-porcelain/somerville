@@ -11,19 +11,19 @@
 
 (defn negative-value-fn
   [p]
-  (and (< (:x p) 0) (< (:y p) 0)))
+  (and (< (p/x p) 0) (< (p/y p) 0)))
 
 (defn negative-decider-fn
   [p1 p2]
-  (and (< (:x p2) 0) (< (:y p2) 0)))
+  (and (< (p/x p2) 0) (< (p/y p2) 0)))
 
 (defn blocked-value-fn
   [p]
-  (if (= (:x p) 2) 100 (:x p)))
+  (if (= (p/x p) 2) 100 (p/x p)))
 
 (defn blocked-decider-fn
   [p1 p2]
-  (let [vfn (fn [p] (if (= (:x p) 2) 100 (:x p)))
+  (let [vfn (fn [p] (if (= (p/x p) 2) 100 (p/x p)))
         v1 (vfn p1)
         v2 (vfn p2)]
     (and (< -2 (- v1 v2)) (> 2 (- v1 v2)))))

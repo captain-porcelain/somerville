@@ -21,9 +21,9 @@
   equidistant from the directrix and the focuspoint. The created
   parabola is open towards the positive y. The directrix is given by the y value only."
   [point directrix-y]
-  (let [x (:x point)
-        distance (- (:y point) directrix-y)
-        y (- (:y point) (/ distance 2))
+  (let [x (p/x point)
+        distance (- (p/y point) directrix-y)
+        y (- (p/y point) (/ distance 2))
         a (/ 1 (* 2 distance))
         b (/ (* -1 x) distance)
         c (+ y (/ (* x x) (* 2 distance)))]
@@ -34,7 +34,7 @@
   equidistant from the directrix and the focuspoint. The created
   parabola is open towards the positive y."
   [point directrix]
-  (parabola-from-focuspoint-and-directrix-y point (l/solve-line-at-sloped directrix (:x point))))
+  (parabola-from-focuspoint-and-directrix-y point (l/solve-line-at-sloped directrix (p/x point))))
 
 (defn discriminate
   "The solution for a quadratic formula is the p-q formula: x1,x2 = - p/2 +- sqrt((p/2)² - q).
@@ -106,12 +106,12 @@
     (list (smaller-parabola p1 p2 0))
     (if (= 1 (count is))
       (list
-        (smaller-parabola p1 p2 (- (:x (first is)) 1))
-        (smaller-parabola p1 p2 (+ (:x (first is)) 1)))
+        (smaller-parabola p1 p2 (- (p/x (first is)) 1))
+        (smaller-parabola p1 p2 (+ (p/x (first is)) 1)))
       (list
-        (smaller-parabola p1 p2 (- (:x (first is)) 1))
-        (smaller-parabola p1 p2 (/ (+ (:x (first is)) (:x (second is))) 2))
-        (smaller-parabola p1 p2 (+ (:x (second is)) 1))))))
+        (smaller-parabola p1 p2 (- (p/x (first is)) 1))
+        (smaller-parabola p1 p2 (/ (+ (p/x (first is)) (p/x (second is))) 2))
+        (smaller-parabola p1 p2 (+ (p/x (second is)) 1))))))
 
 (defn append-beachline-parts
   [old-parts new-parts]
@@ -137,7 +137,7 @@
 
 (defn get-parabola-from-beachline
   [beachline x]
-  (let [bigger (count (filter #(> (:x %) x) (:intersections beachline)))
+  (let [bigger (count (filter #(> (p/x %) x) (:intersections beachline)))
         n (- (count (:intersections beachline)) bigger)]
     (nth (:parabolas beachline) n)))
 

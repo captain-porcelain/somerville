@@ -15,8 +15,8 @@
   [line]
   [:line
    style
-   [(int (:x (:p1 line))) (int (:y (:p1 line)))]
-   [(int (:x (:p2 line))) (int (:y (:p2 line)))]])
+   [(int (p/x (:p1 line))) (int (p/y (:p1 line)))]
+   [(int (p/x (:p2 line))) (int (p/y (:p2 line)))]])
 
 ;;-----------------------------------------------------------------------------
 ;; Voronoi Rendering

@@ -20,12 +20,12 @@
 (defn make-line
   "Given a point make a line with all following points up to the max value."
   [p max-x]
-  (map #(p/point % (:y p)) (take-while #(<= % max-x) (iterate inc (:x p)))))
+  (map #(p/point % (p/y p)) (take-while #(<= % max-x) (iterate inc (p/x p)))))
 
 (defn make-column
   "Given a point make a column with all following points up to the max value."
   [p max-y]
-  (map #(p/point (:x p) %) (take-while #(<= % max-y) (iterate inc (:y p)))))
+  (map #(p/point (p/x p) %) (take-while #(<= % max-y) (iterate inc (p/y p)))))
 
 (defn filter-line
   "Take points of a line while decider-fn accepts the points."
@@ -51,10 +51,10 @@
 (defn overlaps?
   "Check if two lines overlap on the x axis."
   [l1 l2]
-  (let [x11 (:x (:p1 l1))
-        x12 (:x (:p2 l1))
-        x21 (:x (:p1 l2))
-        x22 (:x (:p2 l2))]
+  (let [x11 (p/x (:p1 l1))
+        x12 (p/x (:p2 l1))
+        x21 (p/x (:p1 l2))
+        x22 (p/x (:p2 l2))]
     (or
       (and (<= x11 x21) (<= x12 x22) (>= x12 x21))
       (and (<= x11 x21) (>= x12 x22))
@@ -102,7 +102,7 @@
 (defn cluster-size
   "Calculate size of cluster in points."
   [c]
-  (reduce + (map #(+ 1 (- (:x (:p2 %)) (:x (:p1 %)))) c)))
+  (reduce + (map #(+ 1 (- (p/x (:p2 %)) (p/x (:p1 %)))) c)))
 
 (defn clusters
   "Find clusters of line segments that are accepted by the decider function."
@@ -118,9 +118,9 @@
   "Check if a point is in a line."
   [p line]
   (and
-    (=  (:y p) (:y (:p1 line)))
-    (>= (:x p) (:x (:p1 line)))
-    (<= (:x p) (:x (:p2 line)))))
+    (=  (p/y p) (p/y (:p1 line)))
+    (>= (p/x p) (p/x (:p1 line)))
+    (<= (p/x p) (p/x (:p2 line)))))
 
 (defn in-cluster?
   "Check if a point is in a cluster."
@@ -130,9 +130,9 @@
 (defn line-weight
   "Calculate weight of one line."
   [line]
-  (let [length (+ 1 (- (:x (:p2 line)) (:x (:p1 line))))
-        wx (reduce + (take length (iterate inc (:x (:p1 line)))))
-        wy (* length (:y (:p1 line)))]
+  (let [length (+ 1 (- (p/x (:p2 line)) (p/x (:p1 line))))
+        wx (reduce + (take length (iterate inc (p/x (:p1 line)))))
+        wy (* length (p/y (:p1 line)))]
     {:wx wx :wy wy}))
 
 (defn cluster-center

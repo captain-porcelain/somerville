@@ -48,34 +48,34 @@
       (let [line (l/line (p/point -2 0) (p/point 2 0))
             intersections (poly/intersect polygon line)]
         (is (=  2 (count intersections)))
-        (is (=  1 (:x (nth intersections 0))))
-        (is (=  0 (:y (nth intersections 0))))
-        (is (= -1 (:x (nth intersections 1))))
-        (is (=  0 (:y (nth intersections 1))))))
+        (is (=  1 (p/x (nth intersections 0))))
+        (is (=  0 (p/y (nth intersections 0))))
+        (is (= -1 (p/x (nth intersections 1))))
+        (is (=  0 (p/y (nth intersections 1))))))
     (testing "Vertical line"
       (let [line (l/line (p/point 0 2) (p/point 0 -2))
             intersections (poly/intersect polygon line)]
         (is (=  2 (count intersections)))
-        (is (=  0 (:x (nth intersections 0))))
-        (is (=  1 (:y (nth intersections 0))))
-        (is (=  0 (:x (nth intersections 1))))
-        (is (= -1 (:y (nth intersections 1))))))
+        (is (=  0 (p/x (nth intersections 0))))
+        (is (=  1 (p/y (nth intersections 0))))
+        (is (=  0 (p/x (nth intersections 1))))
+        (is (= -1 (p/y (nth intersections 1))))))
     (testing "Horizonzal line as segments"
       (let [line (l/line (p/point -2 0) (p/point 2 0))
             intersections (poly/intersect-segments polygon line)]
         (is (=  2 (count intersections)))
-        (is (= -1 (:x (nth intersections 0))))
-        (is (=  0 (:y (nth intersections 0))))
-        (is (=  1 (:x (nth intersections 1))))
-        (is (=  0 (:y (nth intersections 1))))))
+        (is (= -1 (p/x (nth intersections 0))))
+        (is (=  0 (p/y (nth intersections 0))))
+        (is (=  1 (p/x (nth intersections 1))))
+        (is (=  0 (p/y (nth intersections 1))))))
     (testing "Vertical line as segments"
       (let [line (l/line (p/point 0.1 2) (p/point 0.1 -2))
             intersections (poly/intersect polygon line)]
         (is (= 2 (count intersections)))
-        (is (commons/close-to  0.1 (:x (nth intersections 0))))
-        (is (commons/close-to  1   (:y (nth intersections 0))))
-        (is (commons/close-to  0.1 (:x (nth intersections 1))))
-        (is (commons/close-to -1   (:y (nth intersections 1))))))))
+        (is (commons/close-to  0.1 (p/x (nth intersections 0))))
+        (is (commons/close-to  1   (p/y (nth intersections 0))))
+        (is (commons/close-to  0.1 (p/x (nth intersections 1))))
+        (is (commons/close-to -1   (p/y (nth intersections 1))))))))
 
 (deftest cutting-lines
   (let [p1 (p/point -1  1)

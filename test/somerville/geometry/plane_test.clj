@@ -10,7 +10,7 @@
   (let [line (l/line (p/point 0 0 10) (p/point 0 0 -10))
         plane (pl/plane (p/point -1 -1 0) (p/point -1 1 0) (p/point 1 -1 0))
         i (pl/intersect plane line)]
-    (is (= (:x i) 0))
-    (is (= (:y i) 0))
-    (is (= (:z i) 0))))
+    (is (= (p/x i) 0))
+    (is (= (p/y i) 0))
+    (is (= (p/z i) 0))))
 

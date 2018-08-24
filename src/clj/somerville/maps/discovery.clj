@@ -114,7 +114,7 @@
   [point walls visualrange polygon-steps]
   (let [circle-points (c/circle-points (c/circle point visualrange) polygon-steps)
         polygon (poly/from-points circle-points point)
-        relevant-walls (shorten-walls polygon (filter #(not (= (:x point) (:x (:p1 %)) (:x (:p2 %)))) walls))
+        relevant-walls (shorten-walls polygon (filter #(not (= (p/x point) (p/x (:p1 %)) (p/x (:p2 %)))) walls))
         cuts (cut-walls relevant-walls)]
     (concat (:lines polygon) cuts)))
 
@@ -159,7 +159,7 @@
     ;(dorun (println (str (gcommons/out point)(gcommons/out event-point)(gcommons/out candidate))))
     ;(dorun (println (p/angle-pos point event-point candidate)))
     (or
-      (gcommons/close-to (:y point) (:y event-point) (:y candidate))
+      (gcommons/close-to (p/y point) (p/y event-point) (p/y candidate))
       (gcommons/close-to 0 (p/distance event-point candidate))
       (gcommons/close-to (* 2 Math/PI) alpha)
       (gcommons/close-to 0 alpha))))
@@ -247,7 +247,7 @@
   ([point wall-description visualrange debugmapref]
    (let [polygon-steps 16
          walls (parse wall-description)
-         ref-point (p/point -1 (:y point))
+         ref-point (p/point -1 (p/y point))
          sorted-walls (map #(sort-line-points % point ref-point) (filter #(not (short? %)) (relevant-walls point walls visualrange polygon-steps)))
          events (gather-events sorted-walls point ref-point)
          events (concat events (list (first events)))
@@ -267,8 +267,8 @@
 (defn draw-triangle
   "Transform a triangle into a Java graphics polygon and render it."
   [triangle ^Graphics2D graphics]
-  (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
-        ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
+  (let [xs (into-array Integer/TYPE (list (p/x (:p1 triangle)) (p/x (:p2 triangle)) (p/x (:p3 triangle))))
+        ys (into-array Integer/TYPE (list (p/y (:p1 triangle)) (p/y (:p2 triangle)) (p/y (:p3 triangle))))
         p (Polygon. xs ys (count xs))
         tmp (.fillPolygon graphics p)
         tmp (.drawPolygon graphics p)]))

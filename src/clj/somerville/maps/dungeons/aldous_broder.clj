@@ -1,6 +1,7 @@
 (ns somerville.maps.dungeons.aldous-broder
   (:require
     [somerville.commons :as commons]
+    [somerville.geometry.point :as p]
     [somerville.maps.grid :as grid]))
 
 
@@ -8,7 +9,7 @@
   "Run Aldous-Broder Algorithm on a grid."
   [g c remaining]
   (let [candidate (commons/get-random (grid/neighbor-cells g c))
-        next-cell [(:x (:cell candidate)) (:y (:cell candidate))]
+        next-cell [(p/x (:cell candidate)) (p/y (:cell candidate))]
         tmp (when (commons/in? next-cell remaining) (grid/place-link g c (:direction candidate)))]
     next-cell))
 

@@ -1,60 +1,57 @@
 (ns somerville.geometry.point
   (:require
-    [somerville.geometry.commons :as c]))
+    [somerville.geometry.commons :as c]
+    [clojure.string :as s]))
 
-;; define a two dimensional point
-(defrecord Point2 [x y]
+(defprotocol IPoint
+  (x [this] "Get x coordinate")
+  (y [this] "Get y coordinate")
+  (z [this] "Get z coordinate"))
+
+;; define a general point in three dimensions.
+(defrecord Point [v]
+  IPoint
+  (x [this] (nth (:v this) 0))
+  (y [this] (nth (:v this) 1))
+  (z [this] (nth (:v this) 2))
   java.lang.Comparable
   (java.lang.Comparable/compareTo
     [this other]
     (if
-      (= (:x this) (:x other))
-      (c/compareTo (:y this) (:y other))
-      (c/compareTo (:x this) (:x other))))
-  c/Printable
-  (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
-  (c/out [this] (c/out this 0)))
-
-;; define a three dimensional point
-(defrecord Point3 [x y z]
-  java.lang.Comparable
-  (java.lang.Comparable/compareTo
-    [this other]
-    (if
-      (= (:x this) (:x other))
+      (= (x this) (x other))
       (if
-        (= (:y this) (:y other))
-        (c/compareTo (:z this) (:z other))
-        (c/compareTo (:y this) (:y other)))
-      (c/compareTo (:x this) (:x other))))
+        (= (y this) (y other))
+        (c/compareTo (z this) (z other))
+        (c/compareTo (y this) (y other)))
+      (c/compareTo (x this) (x other))))
   c/Printable
-  (c/out [this i] (str (c/indent i) "Point (" x "," y "," z ")"))
+  (c/out [this i] (str (c/indent i) "Point (" (s/join ", " v) ")"))
   (c/out [this] (c/out this 0)))
 
 (defn point
   "Create a point in either 2 or 3 dimensions."
   ([x y]
-   (Point2. x y))
+   (Point. [x y 0]))
   ([x y z]
-   (Point3. x y z)))
+   (Point. [x y z])))
 
 (defn ensure-3d
   "Ensure point has three dimensions."
   [p]
-  (if (nil? (:z p)) (point (:x p) (:y p) 0) p))
+  (if (nil? (z p)) (point (x p) (y p) 0) p))
 
 (defn midpoint
   "Get the midpoint of two points."
   [p1 p2]
-  (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
-    (point (/ (+ (:x p1) (:x p2)) 2) (/ (+ (:y p1) (:y p2)) 2) (/ (+ (:z p1) (:z p2)) 2))
-    (point (/ (+ (:x p1) (:x p2)) 2) (/ (+ (:y p1) (:y p2)) 2))))
+  (if (and (not (nil? (z p1))) (not (nil? (z p2))))
+    (point (/ (+ (x p1) (x p2)) 2) (/ (+ (y p1) (y p2)) 2) (/ (+ (z p1) (z p2)) 2))
+    (point (/ (+ (x p1) (x p2)) 2) (/ (+ (y p1) (y p2)) 2))))
 
 (defn slope
   "Get the slope of two points."
   [p1 p2]
-  (let [dx (- (:x p2) (:x p1))
-        dy (- (:y p2) (:y p1))]
+  (let [dx (- (x p2) (x p1))
+        dy (- (y p2) (y p1))]
     (if (or (= dx 0.0) (= dx 0)) nil (/ dy dx))))
 
 (defn subtract
@@ -62,9 +59,9 @@
   [p1 p2]
   (if (or (nil? p1) (nil? p2))
     nil
-    (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
-      (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2)) (- (:z p1) (:z p2)))
-      (point (- (:x p1) (:x p2)) (- (:y p1) (:y p2))))))
+    (if (and (not (nil? (z p1))) (not (nil? (z p2))))
+      (point (- (x p1) (x p2)) (- (y p1) (y p2)) (- (z p1) (z p2)))
+      (point (- (x p1) (x p2)) (- (y p1) (y p2))))))
 
 (defn distance
   "Calculate distance between two points."
@@ -72,9 +69,9 @@
   (if (or (nil? p1) (nil? p2))
     ;(throw (Exception. (str "point is nil")))
     Long/MAX_VALUE
-    (let [dx (- (:x p1) (:x p2))
-          dy (- (:y p1) (:y p2))
-          dz (- (get p1 :z 0) (get p2 :z 0))]
+    (let [dx (- (x p1) (x p2))
+          dy (- (y p1) (y p2))
+          dz (- (z p1) (z p2))]
       (Math/sqrt (+ (* dx dx) (* dy dy) (* dz dz))))))
 
 (defn normalize
@@ -84,7 +81,7 @@
         d (distance p z)]
     (if (c/close-to 0 d)
       p
-      (point (/ (:x p) d) (/ (:y p) d) (/ (get p :z 0) d)))))
+      (point (/ (x p) d) (/ (y p) d) (/ (z p) d)))))
 
 (defn cross
   "Calculate cross product between two 3D vectors."
@@ -92,25 +89,25 @@
   (let [p1 (ensure-3d p1)
         p2 (ensure-3d p2)]
     (point
-      (- (* (:y p1) (:z p2)) (* (:z p1) (:y p2)))
-      (- (* (:z p1) (:x p2)) (* (:x p1) (:z p2)))
-      (- (* (:x p1) (:y p2)) (* (:y p1) (:x p2))))))
+      (- (* (y p1) (z p2)) (* (z p1) (y p2)))
+      (- (* (z p1) (x p2)) (* (x p1) (z p2)))
+      (- (* (x p1) (y p2)) (* (y p1) (x p2))))))
 
 (defn dot
   "Calculate dot product between two points."
   [p1 p2]
-  (+ (* (:x p1) (:x p2)) (* (:y p1) (:y p2))  (* (get p1 :z 0) (get p2 :z 0))))
+  (+ (* (x p1) (x p2)) (* (y p1) (y p2))  (* (z p1) (z p2))))
 
 (defn quadrant
   "Get the quadrant a point is in."
   [p]
   (if (nil? p)
     0
-    (cond (and (=  (:x p) 0) (=  (:y p) 0)) 1
-          (and (>  (:x p) 0) (>= (:y p) 0)) 1
-          (and (<= (:x p) 0) (>  (:y p) 0)) 2
-          (and (<  (:x p) 0) (<= (:y p) 0)) 3
-          (and (>= (:x p) 0) (<  (:y p) 0)) 4)))
+    (cond (and (=  (x p) 0) (=  (y p) 0)) 1
+          (and (>  (x p) 0) (>= (y p) 0)) 1
+          (and (<= (x p) 0) (>  (y p) 0)) 2
+          (and (<  (x p) 0) (<= (y p) 0)) 3
+          (and (>= (x p) 0) (<  (y p) 0)) 4)))
 
 (defn angle-to-x
   "Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p."
@@ -124,7 +121,7 @@
         t1 (* 2 d12 d13)
         t (if (= 0 t1) 0 (/ (- (+ (* d12 d12) (* d13 d13)) (* d23 d23)) t1))
         a (Math/acos t)
-        a (if (< (:y p) 0) (- (* 2 Math/PI) a) a)]
+        a (if (< (y p) 0) (- (* 2 Math/PI) a) a)]
     a))
 
 (defn angle
@@ -147,43 +144,43 @@
         v2 (normalize (subtract p3 p1))
         vcross (cross v1 v2)
         vdot (Math/acos (dot v1 v2))
-        vdot (if (< (:z vcross) 0) (- (* 2 Math/PI) vdot))]
+        vdot (if (< (z vcross) 0) (- (* 2 Math/PI) vdot))]
     vdot))
 
 (defn point-at
   "Given a point find another one in dist at angle."
   [p angle dist]
   (point
-    (+ (:x p) (* dist (Math/cos angle)))
-    (+ (:y p) (* dist (Math/sin angle)))))
+    (+ (x p) (* dist (Math/cos angle)))
+    (+ (y p) (* dist (Math/sin angle)))))
 
 (defn close?
   "Check if two points are close together."
   [p1 p2]
   (and
-    (c/close-to (:x p1) (:x p2))
-    (c/close-to (:y p1) (:y p2))
-    (c/close-to (get p1 :z 0) (get p2 :z 0))))
+    (c/close-to (x p1) (x p2))
+    (c/close-to (y p1) (y p2))
+    (c/close-to (z p1) (z p2))))
 
 (defn add
   "Treat points as vectors and add them."
   [p1 p2]
   (if (or (nil? p1) (nil? p2))
     nil
-    (point (+ (:x p1) (:x p2)) (+ (:y p1) (:y p2)) (+ (get p1 :z 0) (get p2 :z 0)))))
+    (point (+ (x p1) (x p2)) (+ (y p1) (y p2)) (+ (z p1) (z p2)))))
 
 (defn scale
   "Treat point as vector and scale it by factor."
   [p factor]
-  (point (* factor (:x p)) (* factor (:y p)) (* factor (get p :z 0))))
+  (point (* factor (x p)) (* factor (y p)) (* factor (z p))))
 
 (defn linear-combination
   "Find values a b such that v = a * s + b * t."
   [v s t]
-  (let [bupper (- (* (:y v) (:x s)) (* (:x v) (:y s)))
-        blower (- (* (:y t) (:x s)) (* (:y s) (:x t)))
+  (let [bupper (- (* (y v) (x s)) (* (x v) (y s)))
+        blower (- (* (y t) (x s)) (* (y s) (x t)))
         b (/ bupper blower)
-        a (/ (- (:x v) (* b (:x t))) (:x s))]
+        a (/ (- (x v) (* b (x t))) (x s))]
     [a b]))
 
 (defn slerp
@@ -208,8 +205,8 @@
 (defn low-left
   "Find point closest to the lower left."
   [ps]
-  (let [mx (apply min (map :x ps))
-        my (apply min (map :y ps))
+  (let [mx (apply min (map x ps))
+        my (apply min (map y ps))
         ll (point mx my)]
     (first (sort-by #(distance ll %) ps))))
 

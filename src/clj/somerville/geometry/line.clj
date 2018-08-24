@@ -32,7 +32,7 @@
   "Get line in slope intercept form f(x) = a*x + b"
   [line]
   (let [s (p/slope (:p1 line) (:p2 line))]
-    {:a s :b (- (:y (:p1 line)) (* s (:x (:p1 line))))}))
+    {:a s :b (- (p/y (:p1 line)) (* s (p/x (:p1 line))))}))
 
 (defn solve-line-at-sloped
   "A line is given by y = a*x + b. This function solves this for a given x."
@@ -43,19 +43,19 @@
 (defn parameter-by-x
   "For a line in parameterized form find the parameter value representing x"
   [line x]
-  (if (= (:x (:p1 line)) (:x (:p2 line)))
+  (if (= (p/x (:p1 line)) (p/x (:p2 line)))
     nil
-    (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))
+    (/ (- x (p/x (:p1 line))) (- (p/x (:p2 line)) (p/x (:p1 line))))))
 
 (defn x-by-t
   "For a parameterized line solve it for a given parameter"
   [line t]
-  (+ (:x (:p1 line)) (* t (- (:x (:p2 line)) (:x (:p1 line))))))
+  (+ (p/x (:p1 line)) (* t (- (p/x (:p2 line)) (p/x (:p1 line))))))
 
 (defn y-by-t
   "For a parameterized line solve it for a given parameter"
   [line t]
-  (+ (:y (:p1 line)) (* t (- (:y (:p2 line)) (:y (:p1 line))))))
+  (+ (p/y (:p1 line)) (* t (- (p/y (:p2 line)) (p/y (:p1 line))))))
 
 (defn solve-line-at
   "For a line given by two points this function solves this for a given x."
@@ -73,27 +73,27 @@
 (defn point-on-segment?
   "Check if given point is on the segment of line given by the lines defining points."
   [line point]
-  (if (c/close-to (:x (:p1 line)) (:x (:p2 line)))
+  (if (c/close-to (p/x (:p1 line)) (p/x (:p2 line)))
     (and
-      (c/close-to (:x (:p1 line)) (:x point))
-      (<= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
-      (>= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point)))
+      (c/close-to (p/x (:p1 line)) (p/x point))
+      (<= (- (min (p/y (:p1 line)) (p/y (:p2 line))) 0) (p/y point))
+      (>= (+ (max (p/y (:p1 line)) (p/y (:p2 line))) 0) (p/y point)))
     (and
-      (<= (- (min (:x (:p1 line)) (:x (:p2 line))) 0) (:x point))
-      (>= (+ (max (:x (:p1 line)) (:x (:p2 line))) 0) (:x point))
-      (<= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
-      (>= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
-      (c/close-to (:y point) (solve-line-at line (:x point))))))
-  ;(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
-        ;ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
+      (<= (- (min (p/x (:p1 line)) (p/x (:p2 line))) 0) (p/x point))
+      (>= (+ (max (p/x (:p1 line)) (p/x (:p2 line))) 0) (p/x point))
+      (<= (- (min (p/y (:p1 line)) (p/y (:p2 line))) 0) (p/y point))
+      (>= (+ (max (p/y (:p1 line)) (p/y (:p2 line))) 0) (p/y point))
+      (c/close-to (p/y point) (solve-line-at line (p/x point))))))
+  ;(let [xs (sort (list (p/x (:p1 l)) (p/x (:p2 l))))
+        ;ys (sort (list (p/y (:p1 l)) (p/y (:p2 l))))]
     ;(and
-      ;(<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p))
-      ;(<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))
+      ;(<= (- (first xs) c/epsilon) (p/x p)) (>= (+ (last xs) c/epsilon) (p/x p))
+      ;(<= (- (first ys) c/epsilon) (p/y p)) (>= (+ (last ys) c/epsilon) (p/y p)))))
 
 (defn vertical?
   "Check if a line is vertical."
   [l]
-  (= (:x (:p1 l)) (:x (:p2 l))))
+  (= (p/x (:p1 l)) (p/x (:p2 l))))
 
 (defn parallel?
   "Check if two lines are parallel."
@@ -116,13 +116,13 @@
 (defn normal
   "Create a line for the normal of a line on the first point of the line."
   [line]
-  (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
+  (let [angle (p/angle (:p1 line) (p/point (+ 1 (p/x (:p1 line))) (p/y (:p1 line))) (:p2 line))]
     (Line2. (:p1 line) (p/point-at (:p1 line) (+ angle (/ java.lang.Math/PI 2)) 1.0))))
 
 (defn normal2
   "Create a line for the normal of a line on the second point of the line."
   [line]
-  (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
+  (let [angle (p/angle (:p1 line) (p/point (+ 1 (p/x (:p1 line))) (p/y (:p1 line))) (:p2 line))]
     (Line2. (:p2 line) (p/point-at (:p2 line) (+ angle (/ java.lang.Math/PI 2)) 1.0))))
 
 (defn parallel
@@ -141,18 +141,18 @@
   [p1 p2]
   (let [s (* -1 (/ 1 (p/slope p1 p2)))
         m (p/midpoint p1 p2)
-        t (- (:y m) (* s (:x m)))]
+        t (- (p/y m) (* s (p/x m)))]
     (Line2. (p/point 0 t) (p/point 1 (+ s t)))))
 
 (defn bisector
   "Get the line that bisects two points."
   [p1 p2]
-  (if (= (:x p1) (:x p2))
-    (if (= (:y p1) (:y p2))
+  (if (= (p/x p1) (p/x p2))
+    (if (= (p/y p1) (p/y p2))
       nil
-      (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2))))
-    (if (= (:y p1) (:y p2))
-      (Line2. (p/point (/ (+ (:x p1) (:x p2)) 2) (:y p1)) (p/point (/ (+ (:x p1) (:x p2)) 2) (+ 1 (:y p1))))
+      (Line2. (p/point (p/x p1) (/ (+ (p/y p1) (p/y p2)) 2)) (p/point (+ 1 (p/x p1)) (/ (+ (p/y p1) (p/y p2)) 2))))
+    (if (= (p/y p1) (p/y p2))
+      (Line2. (p/point (/ (+ (p/x p1) (p/x p2)) 2) (p/y p1)) (p/point (/ (+ (p/x p1) (p/x p2)) 2) (+ 1 (p/y p1))))
       (bisector-internal p1 p2))))
 
 (defn intersect-sloped
@@ -169,14 +169,14 @@
 (defn intersect-parameterized
   "Get intersection point of two parameterized lines."
   [l1 l2]
-  (let [p11x (:x (:p1 l1))
-        p11y (:y (:p1 l1))
-        p12x (:x (:p2 l1))
-        p12y (:y (:p2 l1))
-        p21x (:x (:p1 l2))
-        p21y (:y (:p1 l2))
-        p22x (:x (:p2 l2))
-        p22y (:y (:p2 l2))
+  (let [p11x (p/x (:p1 l1))
+        p11y (p/y (:p1 l1))
+        p12x (p/x (:p2 l1))
+        p12y (p/y (:p2 l1))
+        p21x (p/x (:p1 l2))
+        p21y (p/y (:p1 l2))
+        p22x (p/x (:p2 l2))
+        p22y (p/y (:p2 l2))
         d2y (- p22y p21y)
         ;tmp (when (or (= 0.0 d2y) (= 0 d2y)) (dorun (println (str "d2y is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
         d2y (if (or (= 0.0 d2y) (= 0 d2y)) 0.000000001 d2y)

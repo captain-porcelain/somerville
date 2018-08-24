@@ -25,7 +25,7 @@
   (let [size (:width g)]
     (for [y (range size)
           x (range size)]
-      (:z (grid/get-from g x y)))))
+      (p/z (grid/get-from g x y)))))
 
 (defn camera
   [g width height config]
@@ -34,8 +34,8 @@
         camera (p/point (/ (:width g) 2) (* 4 (/ (:height g) 5)) (* (/ detail 1.8) max-height))
         focus  (p/point (/ (:width g) 2) (/ (:height g) 2) 0)]
     (str "camera {\n"
-         "  location <" (* -1 (float (:x camera))) ", " (* -1 (float (:y camera))) ", " (float (:z camera)) ">\n"
-         "  look_at <" (* -1 (float (:x focus))) ", " (* -1 (float (:y focus))) ", " (float (:z focus)) ">\n"
+         "  location <" (* -1 (float (p/x camera))) ", " (* -1 (float (p/y camera))) ", " (float (p/z camera)) ">\n"
+         "  look_at <" (* -1 (float (p/x focus))) ", " (* -1 (float (p/y focus))) ", " (float (p/z focus)) ">\n"
          "  right image_width/image_height*x\n"
          "}")))
 
@@ -97,10 +97,10 @@
   [polygon g config]
   (let [ps (polygon/to-points polygon)]
     (str "  triangle { "
-         "<" (* -1 (float (:x (nth ps 0)))) "," (* -1 (float (:y (nth ps 0)))) "," (float (level-z (:z (nth ps 0)) config)) ">, "
-         "<" (* -1 (float (:x (nth ps 1)))) "," (* -1 (float (:y (nth ps 1)))) "," (float (level-z (:z (nth ps 1)) config)) ">, "
-         "<" (* -1 (float (:x (nth ps 2)))) "," (* -1 (float (:y (nth ps 2)))) "," (float (level-z (:z (nth ps 2)) config)) "> "
-         (texture (apply max (map :z ps)) config)
+         "<" (* -1 (float (p/x (nth ps 0)))) "," (* -1 (float (p/y (nth ps 0)))) "," (float (level-z (p/z (nth ps 0)) config)) ">, "
+         "<" (* -1 (float (p/x (nth ps 1)))) "," (* -1 (float (p/y (nth ps 1)))) "," (float (level-z (p/z (nth ps 1)) config)) ">, "
+         "<" (* -1 (float (p/x (nth ps 2)))) "," (* -1 (float (p/y (nth ps 2)))) "," (float (level-z (p/z (nth ps 2)) config)) "> "
+         (texture (apply max (map p/z ps)) config)
          " }")))
 
 (defn mesh
@@ -113,8 +113,8 @@
   [[x y] g config]
   (str "box {"
        "<" x ", " y ", 0>, "
-       "<" (inc x) ", " (inc y) ", " (float (level-z (:z (grid/get-from g x y)) config)) "> "
-       (texture (float (:z (grid/get-from g x y))) config)
+       "<" (inc x) ", " (inc y) ", " (float (level-z (p/z (grid/get-from g x y)) config)) "> "
+       (texture (float (p/z (grid/get-from g x y))) config)
        "}"))
 
 (defn grid-points

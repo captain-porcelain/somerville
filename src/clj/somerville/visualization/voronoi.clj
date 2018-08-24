@@ -20,7 +20,7 @@
   [i]
   (quil/stroke-float 0 0 255)
   (quil/fill-float 0 0 255)
-  (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))
+  (quil/rect (p/x (:intersection i)) (p/y (:intersection i)) 4 4))
 
 (defn draw-bisector
   [bisector]
@@ -34,7 +34,7 @@
   [site]
   (quil/stroke-float 255 0 0)
   (quil/fill-float 255 0 0)
-  (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4)
+  (quil/rect (- (p/x (:point site)) 2) (- (p/y (:point site)) 2) 4 4)
   ;(dorun
   ;  (for [b (:bisectors site)]
   ;    (draw-bisector b)))
@@ -54,15 +54,15 @@
       (let []
         (quil/stroke-float 255 255 0)
         (quil/fill-float 255 255 0)
-        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))
+        (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l))))))
   (dorun
     (when (not (nil? @highlighted))
      (for [l (:lines @highlighted)]
         (let []
           (quil/stroke-float 255 255 255)
           (quil/fill-float 255 255 255)
-          (quil/rect (- (:x (:point @highlighted)) 2) (- (:y (:point @highlighted)) 2) 4 4)
-          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))))
+          (quil/rect (- (p/x (:point @highlighted)) 2) (- (p/y (:point @highlighted)) 2) 4 4)
+          (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l))))))))
 
 (defn draw
   "This function is called by quil repeatedly."

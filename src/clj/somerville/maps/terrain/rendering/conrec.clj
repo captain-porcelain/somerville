@@ -25,10 +25,10 @@
   "For a point the the 3 neighboring points with increasing x and y and create 4 triangles.
   The center point receives the average height value."
   [g x y]
-  (let [z1 (:z (grid/get-from g x y))
-        z2 (:z (grid/get-from g (inc x) y))
-        z3 (:z (grid/get-from g (inc x) (inc y)))
-        z4 (:z (grid/get-from g x (inc y)))
+  (let [z1 (p/z (grid/get-from g x y))
+        z2 (p/z (grid/get-from g (inc x) y))
+        z3 (p/z (grid/get-from g (inc x) (inc y)))
+        z4 (p/z (grid/get-from g x (inc y)))
         z0 (/ (+ z1 z2 z3 z4) 4)
         p0 (p/point (+ x 0.5) (+ y 0.5) z0)
         p1 (p/point x y z1)
@@ -60,8 +60,8 @@
 (defn h-case
   [p]
   (cond
-    (> (:z p) 0) :above
-    (< (:z p) 0) :below
+    (> (p/z p) 0) :above
+    (< (p/z p) 0) :below
     :else        :on))
 
 (defn triangle-case-indices
@@ -161,15 +161,15 @@
   ; (h[p2] * xh[p1] - h[p1] * xh[p2]) / (h[p2] - h[p1])
   [p1 p2]
   (/
-   (- (* (:z p2) (:x p1)) (* (:z p1) (:x p2)))
-   (- (:z p2) (:z p1))))
+   (- (* (p/z p2) (p/x p1)) (* (p/z p1) (p/x p2)))
+   (- (p/z p2) (p/z p1))))
 
 (defn y-sect
   ; (h[p2] * yh[p1] - h[p1] * yh[p2]) / (h[p2] - h[p1]);
   [p1 p2]
   (/
-   (- (* (:z p2) (:y p1)) (* (:z p1) (:y p2)))
-   (- (:z p2) (:z p1))))
+   (- (* (p/z p2) (p/y p1)) (* (p/z p1) (p/y p2)))
+   (- (p/z p2) (p/z p1))))
 
 (defn intersect
   [p1 p2]
@@ -214,7 +214,7 @@
   (let [size (:width g)]
     (for [y (range size)
           x (range size)]
-      (:z (grid/get-from g x y)))))
+      (p/z (grid/get-from g x y)))))
 
 (defn line-heights
   [g min-distance max-lines]
@@ -257,7 +257,7 @@
 (defn render-line
   [graphics line line-color width height]
   (.setPaint graphics (color/to-awt (apply color/rgba line-color)))
-  (.drawLine graphics (- width (:x (:p1 line))) (- height (:y (:p1 line))) (- width (:x (:p2 line))) (- height (:y (:p2 line)))))
+  (.drawLine graphics (- width (p/x (:p1 line))) (- height (p/y (:p1 line))) (- width (p/x (:p2 line))) (- height (p/y (:p2 line)))))
 
 (defn draw-height-lines
   [graphics c scale lines width height]

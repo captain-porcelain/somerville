@@ -1,6 +1,7 @@
 (ns somerville.maps.dungeons.rendering.ascii
   (:require
     [somerville.commons :as commons]
+    [somerville.geometry.point :as p]
     [somerville.maps.grid :as grid]))
 
 ;==================================================================================================================
@@ -9,7 +10,7 @@
 (defn print-walker
   "Print every element in the grid."
   [g e]
-  (dorun (println (str "Element at " (:x e) ", " (:y e) ": " e))))
+  (dorun (println (str "Element at " (p/x e) ", " (p/y e) ": " e))))
 
 ;==================================================================================================================
 ; Generate ascii representation of rectangular grids
@@ -39,18 +40,18 @@
   [g e]
   (str
     "+"
-    (if (wall-top? g (:x e) (:y e) e) "---" "   ")
-    (when (wall-right? g (:x e) (:y e) e) "+")))
+    (if (wall-top? g (p/x e) (p/y e) e) "---" "   ")
+    (when (wall-right? g (p/x e) (p/y e) e) "+")))
 
 (defn line2
   [g e print-key]
   (str
-    (if (wall-left? g (:x e) (:y e) e) "|" " ")
+    (if (wall-left? g (p/x e) (p/y e) e) "|" " ")
     (cond
       (:masked e) " x "
       (and (not (nil? print-key)) (not (nil? (print-key e)))) (if (< (print-key e) 10) (str " " (print-key e) " ") (str " " (print-key e) ""))
       :else "   ")
-    (when (wall-right? g (:x e) (:y e) e) "|")))
+    (when (wall-right? g (p/x e) (p/y e) e) "|")))
 
 (defn last-line
   [g]
@@ -59,7 +60,7 @@
 (defn make-ascii-walker
   "Associated ascii art to each cell."
   [print-key]
-  (fn [g e] (grid/set-in g (:x e) (:y e) (assoc e :ascii-1 (line1 g e) :ascii-2 (line2 g e print-key)))))
+  (fn [g e] (grid/set-in g (p/x e) (p/y e) (assoc e :ascii-1 (line1 g e) :ascii-2 (line2 g e print-key)))))
 
 (defn ascii-row
   "Create partial ASCII representation for one row in the grid."

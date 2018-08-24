@@ -83,8 +83,8 @@
   [points area]
   (if (< (count points) 2)
     (/ area 2)
-    (let [xiyi1 (* (:x (first points)) (:y (second points)))
-          xi1yi (* (:x (second points)) (:y (first points)))
+    (let [xiyi1 (* (p/x (first points)) (p/y (second points)))
+          xi1yi (* (p/x (second points)) (p/y (first points)))
           a (- xiyi1 xi1yi)]
       (recur (rest points) (+ area a)))))
 
@@ -100,11 +100,11 @@
   [points cx cy]
   (if (< (count points) 2)
     [cx cy]
-    (let [xiyi1 (* (:x (first points)) (:y (second points)))
-          xi1yi (* (:x (second points)) (:y (first points)))
+    (let [xiyi1 (* (p/x (first points)) (p/y (second points)))
+          xi1yi (* (p/x (second points)) (p/y (first points)))
           sub (- xiyi1 xi1yi)
-          xixi1 (+ (:x (first points)) (:x (second points)))
-          yiyi1 (+ (:y (first points)) (:y (second points)))]
+          xixi1 (+ (p/x (first points)) (p/x (second points)))
+          yiyi1 (+ (p/y (first points)) (p/y (second points)))]
       (recur (rest points) (+ cx (* xixi1 sub)) (+ cy (* yiyi1 sub))))))
 
 (defn centroid-2d
@@ -119,9 +119,9 @@
   "calculate the centroid of a 3 dimensional polygon"
   [polygon]
   (let [points (to-points polygon)
-        xs (map :x points)
-        ys (map :y points)
-        zs (map :z points)]
+        xs (map p/x points)
+        ys (map p/y points)
+        zs (map p/z points)]
     (p/point (c/avg xs) (c/avg ys) (c/avg zs))))
 
 

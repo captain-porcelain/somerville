@@ -12,6 +12,6 @@
 (defn rectangle
   "Get a rectangle from two points."
   [p1 p2]
-  (let [points (sort (list p1 (p/point (:x p1) (:y p2)) p2 (p/point (:x p2) (:y p1))))]
+  (let [points (sort (list p1 (p/point (p/x p1) (p/y p2)) p2 (p/point (p/x p2) (p/y p1))))]
     (Rectangle. (nth points 0) (nth points 1) (nth points 2) (nth points 3))))
 

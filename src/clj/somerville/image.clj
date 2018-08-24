@@ -6,6 +6,7 @@
     [javax.imageio ImageIO]
     [java.io File])
   (:require
+    [somerville.geometry.point :as p]
     [clojure.java.io :as io]))
 
 ;; try to improve performance by having hints when reflection is needed.
@@ -55,7 +56,7 @@
 (defn in-bounds?
   "Check if a pixel is inside an image."
   [^BufferedImage img p]
-  (in-bounds-raw? img [(:x p) (:y p)]))
+  (in-bounds-raw? img [(p/x p) (p/y p)]))
 
 (defn free?
   "Check if a pixel represents a free space."

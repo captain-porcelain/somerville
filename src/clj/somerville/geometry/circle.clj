@@ -26,8 +26,8 @@
   [circle line]
   (let [sl (l/slope-intercept line)
         A (+ (* (:a sl) (:a sl)) 1)
-        B (* 2 (- (* (:a sl) (:b sl)) (* (:a sl) (:y (:p circle))) (:x (:p circle))))
-        C (+ (- (* (:y (:p circle)) (:y (:p circle))) (* (:r circle) (:r circle)) (* 2 (:b sl) (:y (:p circle)))) (* (:x (:p circle)) (:x (:p circle))) (* (:b sl) (:b sl)))
+        B (* 2 (- (* (:a sl) (:b sl)) (* (:a sl) (p/y (:p circle))) (p/x (:p circle))))
+        C (+ (- (* (p/y (:p circle)) (p/y (:p circle))) (* (:r circle) (:r circle)) (* 2 (:b sl) (p/y (:p circle)))) (* (p/x (:p circle)) (p/x (:p circle))) (* (:b sl) (:b sl)))
         indicator (- (* B B) (* 4 A C))]
     (cond
       (< indicator 0) (list)
@@ -41,12 +41,12 @@
 (defn intersect-vertical-line
   "Intersect circle and a vertical line."
   [circle line]
-  (let [xp2 (* (- (:x (:p1 line)) (:x (:p circle))) (- (:x (:p1 line)) (:x (:p circle))))
+  (let [xp2 (* (- (p/x (:p1 line)) (p/x (:p circle))) (- (p/x (:p1 line)) (p/x (:p circle))))
         sqr (Math/sqrt (- (* (:r circle) (:r circle)) xp2))]
     (distinct
       (list
-        (p/point (:x (:p1 line)) (+ (:y (:p circle)) sqr))
-        (p/point (:x (:p1 line)) (- (:y (:p circle)) sqr))))))
+        (p/point (p/x (:p1 line)) (+ (p/y (:p circle)) sqr))
+        (p/point (p/x (:p1 line)) (- (p/y (:p circle)) sqr))))))
 
 (defn intersect-line
   "Intersect circle and line."
@@ -64,8 +64,8 @@
   "Get the rectangle surrounding the circle."
   [circle]
   (r/rectangle
-    (p/point (- (:x (:p circle)) (:r circle)) (- (:y (:p circle)) (:r circle)))
-    (p/point (+ (:x (:p circle)) (:r circle)) (+ (:y (:p circle)) (:r circle)))))
+    (p/point (- (p/x (:p circle)) (:r circle)) (- (p/y (:p circle)) (:r circle)))
+    (p/point (+ (p/x (:p circle)) (:r circle)) (+ (p/y (:p circle)) (:r circle)))))
 
 (defn point-in?
   "Check if a point is inside a circle."
@@ -81,5 +81,5 @@
 (defn circle-points
   "Create list of equidistant points on a circle."
   [circle steps]
-  (map #(p/point (- (:x (:p circle)) (* (:r circle) (Math/cos %))) (- (:y (:p circle)) (* (:r circle) (Math/sin %)))) (angles steps)))
+  (map #(p/point (- (p/x (:p circle)) (* (:r circle) (Math/cos %))) (- (p/y (:p circle)) (* (:r circle) (Math/sin %)))) (angles steps)))
 

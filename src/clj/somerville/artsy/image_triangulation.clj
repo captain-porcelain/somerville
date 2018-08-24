@@ -19,14 +19,14 @@
   "Create a decider function for the flood fill. It is based on color similarity."
   [image threshold-cie]
   (fn [p1 p2]
-    (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
+    (let [vfn (fn [p] (c/rgba (.getRGB image (p/x p) (p/y p))))
           cie (c/cie76 (vfn p1) (vfn p2))]
       (< cie threshold-cie))))
 
 (defn add-seed-color
   "Add color of seed point to partition."
   [part image]
-  (assoc part :color (.getRGB image (:x (:seed part)) (:y (:seed part)))))
+  (assoc part :color (.getRGB image (p/x (:seed part)) (p/y (:seed part)))))
 
 (defn add-seed-colors
   "Add color of seed point to all partitions."
@@ -37,8 +37,8 @@
   "Find center point of partition."
   [points]
   (p/point
-    (int (/ (reduce + (map :x points)) (count points)))
-    (int (/ (reduce + (map :y points)) (count points)))))
+    (int (/ (reduce + (map p/x points)) (count points)))
+    (int (/ (reduce + (map p/y points)) (count points)))))
 
 (defn add-center
   "Add center point to partition."
@@ -60,7 +60,7 @@
 
 (defn draw-partition
   [image part]
-  (dorun (map #(.setRGB image (:x %) (:y %) (:color part)) (:points part))))
+  (dorun (map #(.setRGB image (p/x %) (p/y %) (:color part)) (:points part))))
 
 (defn draw-partitions
   [filename width height partitions]
@@ -71,7 +71,7 @@
 (defn draw-partitions-separately
   [filename width height partitions]
   (dorun
-    (map #(let [filename (str (s/replace filename ".png" "-") (:x (:seed %)) "-" (:y (:seed %)) "-pixel.png")
+    (map #(let [filename (str (s/replace filename ".png" "-") (p/x (:seed %)) "-" (p/y (:seed %)) "-pixel.png")
                 image (i/make-image width height)
                 tmp (draw-partition image %)]
             (i/write-image filename image)) partitions)))
@@ -79,13 +79,13 @@
 (defn render-hull
   "Render grid walls to image."
   [filename width height polygon seed]
-  (let [filename (str (s/replace filename ".png" "-") (:x seed) "-" (:y seed) "-hull.png")
+  (let [filename (str (s/replace filename ".png" "-") (p/x seed) "-" (p/y seed) "-hull.png")
         image (i/make-image width height)
         graphics ^Graphics2D (.createGraphics image)
         tmp (.setPaint graphics Color/white)
         tmp (.fill graphics (Rectangle. 0 0 width height))
         tmp (.setPaint graphics Color/black)
-        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+        tmp (dorun (map #(.drawLine graphics (p/x (:p1 %)) (p/y (:p1 %)) (p/x (:p2 %)) (p/y (:p2 %))) (:lines polygon)))
         tmp (.dispose graphics)]
     (i/write-image filename image)))
 

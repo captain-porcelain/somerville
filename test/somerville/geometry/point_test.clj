@@ -6,14 +6,14 @@
 
 (def p1 (p/point -1 -2))
 (deftest basics
-  (is (= (:x p1) -1))
-  (is (= (:y p1) -2)))
+  (is (= (p/x p1) -1))
+  (is (= (p/y p1) -2)))
 
 (def p2 (p/point 3 5))
 (def midp1p2 (p/midpoint p1 p2))
 (deftest midpoints
-  (is (= (:x midp1p2) 1))
-  (is (= (:y midp1p2) 3/2)))
+  (is (= (p/x midp1p2) 1))
+  (is (= (p/y midp1p2) 3/2)))
 
 (deftest slopes
   (is (= (p/slope p1 p2) 7/4))
