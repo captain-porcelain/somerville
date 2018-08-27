@@ -10,30 +10,30 @@
 ;; These functions will be used in the line fill algorithms.
 (defn negative-decider-fn
   [p1 p2]
-  (and (< (p/x p2) 0) (< (p/y p2) 0)))
+  (and (< (:x p2) 0) (< (:y p2) 0)))
 
 (defn blocked-decider-fn
   [p1 p2]
   (or
-    (and (< (p/x p1) 2) (< (p/x p2) 2))
-    (and (= (p/x p1) 2) (= (p/x p2) 2))
-    (and (> (p/x p1) 2) (> (p/x p2) 2))))
+    (and (< (:x p1) 2) (< (:x p2) 2))
+    (and (= (:x p1) 2) (= (:x p2) 2))
+    (and (> (:x p1) 2) (> (:x p2) 2))))
 
 (defn vertical-decider-fn
   [p1 p2]
   (or
-    (and (< (p/y p1) 2) (< (p/y p2) 2))
-    (and (= (p/y p1) 2) (= (p/y p2) 2))
-    (and (> (p/y p1) 2) (> (p/y p2) 2))))
+    (and (< (:y p1) 2) (< (:y p2) 2))
+    (and (= (:y p1) 2) (= (:y p2) 2))
+    (and (> (:y p1) 2) (> (:y p2) 2))))
 
 (defn complex-decider-fn
   [p1 p2]
-  (if (and (< (p/y p1) 2) (< (p/y p2) 2))
+  (if (and (< (:y p1) 2) (< (:y p2) 2))
     true
     (or
-      (and (< (p/x p1) 2) (< (p/x p2) 2))
-      (and (= (p/x p1) 2) (= (p/x p2) 2))
-      (and (> (p/x p1) 2) (> (p/x p2) 2)))))
+      (and (< (:x p1) 2) (< (:x p2) 2))
+      (and (= (:x p1) 2) (= (:x p2) 2))
+      (and (> (:x p1) 2) (> (:x p2) 2)))))
 
 ;; Verify that the test functions do as they should.
 (deftest deciders
@@ -122,20 +122,20 @@
     (dorun
       (for [p (nth parts 0)]
         (let []
-          (is (= (p/x (:p1 p)) -5))
-          (is (= (p/x (:p2 p))  1)))))
+          (is (= (:x (:p1 p)) -5))
+          (is (= (:x (:p2 p))  1)))))
     (is (= (count (nth parts 1)) 11))
     (dorun
       (for [p (nth parts 1)]
         (let []
-          (is (= (p/x (:p1 p))  2))
-          (is (= (p/x (:p2 p))  2)))))
+          (is (= (:x (:p1 p))  2))
+          (is (= (:x (:p2 p))  2)))))
     (is (= (count (nth parts 2)) 11))
     (dorun
       (for [p (nth parts 2)]
         (let []
-          (is (= (p/x (:p1 p))  3))
-          (is (= (p/x (:p2 p))  5)))))))
+          (is (= (:x (:p1 p))  3))
+          (is (= (:x (:p2 p))  5)))))))
 
 ;; Test partitioning with changing amount of segments per line
 (deftest partition-changing-amounts

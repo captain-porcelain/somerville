@@ -1,6 +1,5 @@
 (ns somerville.maps.gaia.gui
   (:require [somerville.color.color :as color]
-            [somerville.geometry.point :as p]
             [somerville.geometry.polygon :as polygon]
             [somerville.maps.gaia.core :as gaia]
             [quil.core :as quil])
@@ -70,9 +69,9 @@
   (quil/fill-float (:r fc) (:g fc) (:b fc) (:a fc))
   (quil/stroke-float (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/begin-shape :triangles)
-  (quil/vertex (p/x (:p1 t)) (p/y (:p1 t)) (p/z (:p1 t)))
-  (quil/vertex (p/x (:p2 t)) (p/y (:p2 t)) (p/z (:p2 t)))
-  (quil/vertex (p/x (:p3 t)) (p/y (:p3 t)) (p/z (:p3 t)))
+  (quil/vertex (:x (:p1 t)) (:y (:p1 t)) (:z (:p1 t)))
+  (quil/vertex (:x (:p2 t)) (:y (:p2 t)) (:z (:p2 t)))
+  (quil/vertex (:x (:p3 t)) (:y (:p3 t)) (:z (:p3 t)))
   (quil/end-shape))
 
 (defn draw

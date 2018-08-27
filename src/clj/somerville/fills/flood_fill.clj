@@ -8,23 +8,23 @@
   "Filter list of points to those that are neighbours of the given point."
   [point]
   (list
-    (p/point (- (p/x point) 1)  (- (p/y point) 1))
-    (p/point (- (p/x point) 1)     (p/y point))
-    (p/point (- (p/x point) 1)  (+ (p/y point) 1))
-    (p/point    (p/x point)     (- (p/y point) 1))
-    (p/point    (p/x point)     (+ (p/y point) 1))
-    (p/point (+ (p/x point) 1)  (- (p/y point) 1))
-    (p/point (+ (p/x point) 1)     (p/y point))
-    (p/point (+ (p/x point) 1)  (+ (p/y point) 1))))
+    (p/point (- (:x point) 1)  (- (:y point) 1))
+    (p/point (- (:x point) 1)     (:y point))
+    (p/point (- (:x point) 1)  (+ (:y point) 1))
+    (p/point    (:x point)     (- (:y point) 1))
+    (p/point    (:x point)     (+ (:y point) 1))
+    (p/point (+ (:x point) 1)  (- (:y point) 1))
+    (p/point (+ (:x point) 1)     (:y point))
+    (p/point (+ (:x point) 1)  (+ (:y point) 1))))
 
 (defn in-bounds?
   "Check if a pixel is inside an image."
   [p x1 y1 x2 y2]
   (and
-    (<  (p/x p) x2)
-    (>= (p/x p) x1)
-    (<  (p/y p) y2)
-    (>= (p/y p) y1)))
+    (<  (:x p) x2)
+    (>= (:x p) x1)
+    (<  (:y p) y2)
+    (>= (:y p) y1)))
 
 (defn fill
   [seed previous decider-fn x1 y1 x2 y2]

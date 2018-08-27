@@ -10,7 +10,7 @@
 
 (defn decider-fn
   [p1 p2]
-  (let [vfn (fn [p] (c/rgba (.getRGB image (p/x p) (p/y p))))
+  (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
     (< cie 20)))
 

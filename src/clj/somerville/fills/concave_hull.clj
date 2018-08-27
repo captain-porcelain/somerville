@@ -20,9 +20,9 @@
 (defn hull-points
   "Find points of concave hull for set of points."
   [points k]
-  (let [fp (first (sort-by p/y points))]
+  (let [fp (first (sort-by :y points))]
     (loop [point fp
-           old-point (p/point (- (p/x fp) 1) (p/y fp))
+           old-point (p/point (- (:x fp) 1) (:y fp))
            hull (vector point)
            remaining (remove #{point} points)
            i 0]

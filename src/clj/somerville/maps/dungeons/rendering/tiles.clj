@@ -4,7 +4,6 @@
     [java.awt Graphics2D]
     [java.awt.image BufferedImage])
   (:require
-    [somerville.geometry.point :as point]
     [somerville.commons :as commons]
     [somerville.image :as image]
     [somerville.maps.grid :as grid]))
@@ -132,7 +131,7 @@
 (defn tile-name-walker
   "Create the tile names for each cell."
   [g c]
-  (grid/set-in g (point/x c) (point/y c) (assoc c :tile (if (= :rect (:grid-type g)) (tile-name-rect g c) (tile-name-hex g c)))))
+  (grid/set-in g (:x c) (:y c) (assoc c :tile (if (= :rect (:grid-type g)) (tile-name-rect g c) (tile-name-hex g c)))))
 
 (defn tiles
   "Create representation of grid with tiles."

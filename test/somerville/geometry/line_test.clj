@@ -76,19 +76,19 @@
 (def i6 (l/intersect (l/line (p/point 0 0) (p/point 1 1)) (l/line (p/point 0 0) (p/point 1 0))))
 (def i8 (l/intersect (l/line (p/point 1 1) (p/point 2 3)) (l/line (p/point 0 2) (p/point 1 2))))
 (deftest intersections
-  (is (= (p/x i1) 2))
-  (is (= (p/y i1) 1))
+  (is (= (:x i1) 2))
+  (is (= (:y i1) 1))
   (is (= i2 nil))
-  (is (= (int (p/x i3)) 0)) ;; TODO check if this is really a good idea
-  (is (= (int (p/y i3)) 0)) ;; TODO check if this is really a good idea
-  (is (= (p/x i4) 0))
-  (is (= (p/y i4) 0))
-  (is (= (p/x i5) 0))
-  (is (= (p/y i5) 0))
-  (is (= (p/x i6) 0))
-  (is (= (p/y i6) 0))
-  (is (= (c/close-to (p/x i8) 1.5) true))
-  (is (= (c/close-to (p/y i8) 2.0) true)))
+  (is (= (int (:x i3)) 0)) ;; TODO check if this is really a good idea
+  (is (= (int (:y i3)) 0)) ;; TODO check if this is really a good idea
+  (is (= (:x i4) 0))
+  (is (= (:y i4) 0))
+  (is (= (:x i5) 0))
+  (is (= (:y i5) 0))
+  (is (= (:x i6) 0))
+  (is (= (:y i6) 0))
+  (is (= (c/close-to (:x i8) 1.5) true))
+  (is (= (c/close-to (:y i8) 2.0) true)))
 
 (deftest intersections-of-segments
   (let [p1 (p/point -0.5 0.25)

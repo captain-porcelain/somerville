@@ -24,7 +24,7 @@
 
 (defn decider-fn
   [p1 p2]
-  (let [vfn (fn [p] (c/rgba (.getRGB image (p/x p) (p/y p))))
+  (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
     (< cie @threshold-cie)))
 
@@ -33,17 +33,17 @@
   (dorun
     (for [l cluster]
       (let [p (:p1 (first cluster))
-            dc (c/rgba (.getRGB image (p/x p) (p/y p)))
+            dc (c/rgba (.getRGB image (:x p) (:y p)))
             dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (c/rgba 255 255 255) dc)]
         (quil/stroke-float (:r dc) (:g dc) (:b dc))
         (quil/fill-float (:r dc) (:g dc) (:b dc))
-        (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l)))))))
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw-intersection
   [i]
   (quil/stroke-float 0 0 255)
   (quil/fill-float 0 0 255)
-  (quil/rect (p/x (:intersection i)) (p/y (:intersection i)) 4 4))
+  (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))
 
 (defn draw-bisector
   [bisector]
@@ -57,7 +57,7 @@
   [site]
   (quil/stroke-float 255 0 0)
   (quil/fill-float 255 0 0)
-  (quil/rect (- (p/x (:point site)) 2) (- (p/y (:point site)) 2) 4 4)
+  (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4)
   ;(dorun
   ;  (for [b (:bisectors site)]
   ;    (draw-bisector b)))
@@ -77,15 +77,15 @@
       (let []
         (quil/stroke-float 255 255 0)
         (quil/fill-float 255 255 0)
-        (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l))))))
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))
   (dorun
     (when (not (nil? @highlighted))
      (for [l (:lines @highlighted)]
         (let []
           (quil/stroke-float 255 255 255)
           (quil/fill-float 255 255 255)
-          (quil/rect (- (p/x (:point @highlighted)) 2) (- (p/y (:point @highlighted)) 2) 4 4)
-          (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l))))))))
+          (quil/rect (- (:x (:point @highlighted)) 2) (- (:y (:point @highlighted)) 2) 4 4)
+          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))))
 
 (defn do-filter
   []

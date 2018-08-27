@@ -41,7 +41,7 @@
       (let []
         (quil/stroke-float 255 255 0)
         (quil/fill-float 255 255 0)
-        (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l)))))))
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
   "This function is called by quil repeatedly."

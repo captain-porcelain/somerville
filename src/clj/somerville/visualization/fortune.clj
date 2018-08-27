@@ -22,7 +22,7 @@
   [i]
   (quil/stroke-float 0 0 255)
   (quil/fill-float 0 0 255)
-  (quil/rect (p/x (:intersection i)) (p/y (:intersection i)) 4 4))
+  (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))
 
 (defn draw-bisector
   [bisector]
@@ -51,13 +51,13 @@
   [site]
   (quil/stroke-float 246 148 193)
   (quil/fill-float 246 148 193)
-  (quil/rect (- (p/x site) 2) (- (p/y site) 2) 4 4))
+  (quil/rect (- (:x site) 2) (- (:y site) 2) 4 4))
 
 (defn draw-event
   [site]
   (quil/stroke-float 211 248 226)
   (quil/fill-float 211 248 226)
-  (quil/rect (- (p/x (:point site)) 2) (- (p/y (:point site)) 2) 4 4))
+  (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4))
 
 (defn draw-edge
   [edge]
@@ -65,13 +65,13 @@
   (quil/fill-float 169 222 249)
   (when (and (not (nil? (:left edge))) (not (nil? (:right edge))))
     (let [m (p/midpoint (:left edge) (:right edge))]
-      (quil/line (p/x (:start edge)) (p/y (:start edge)) (p/x m) (p/y m)))))
+      (quil/line (:x (:start edge)) (:y (:start edge)) (:x m) (:y m)))))
 
 (defn draw-cell
   [cell]
   (quil/stroke-float 200 200 200)
   (quil/fill-float 200 200 200)
-  (dorun (map #(quil/line (p/x (:p1 %)) (p/y (:p1 %)) (p/x (:p2 %)) (p/y (:p2 %))) (:lines cell))))
+  (dorun (map #(quil/line (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines cell))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -93,7 +93,7 @@
       (when (not (nil? (:edge node))) (draw-edge (:edge node)))))
   (let [step (- (:step @sites) 1)
         sweep-y (if (and (>= step 0) (< step (count (:points @sites))))
-                  (p/y (nth (:points @sites) step))
+                  (:y (nth (:points @sites) step))
                   nil)]
     (if (not (nil? sweep-y))
       (do

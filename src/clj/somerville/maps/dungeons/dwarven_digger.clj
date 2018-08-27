@@ -1,7 +1,6 @@
 (ns somerville.maps.dungeons.dwarven-digger
   (:require
     [somerville.commons :as commons]
-    [somerville.geometry.point :as p]
     [somerville.maps.grid :as grid]))
 
 
@@ -11,7 +10,7 @@
 (defn golden-neighbors
   "Find neighboring cells that contain gold."
   [g [x y]]
-  (map #(vector (p/x (:cell %)) (p/y (:cell %))) (filter #(not (nil? (:gold (:cell %)))) (grid/neighbor-cells g (grid/get-from g [x y])))))
+  (map #(vector (:x (:cell %)) (:y (:cell %))) (filter #(not (nil? (:gold (:cell %)))) (grid/neighbor-cells g (grid/get-from g [x y])))))
 
 (defn all-golden-neighbors
   "Get set of all neighbors that contain gold for set of cells."
@@ -73,7 +72,7 @@
 (defn heap-gold
   "Place a heap of gold on a cell that floods over to neighboring cells."
   [g c value]
-  (grid/flood g (make-gold-flooder value) [(p/x c) (p/y c)] value (commons/get-random (list grid/frontier-in-bounds grid/frontier-rect-in-bounds))))
+  (grid/flood g (make-gold-flooder value) [(:x c) (:y c)] value (commons/get-random (list grid/frontier-in-bounds grid/frontier-rect-in-bounds))))
 
 (defn remove-small-regions
   "Remove gold regions consisting of only one cell."
@@ -89,7 +88,7 @@
     #(grid/update-cell g % (fn [c] (dissoc c :gold)))
     (filter
       #(and
-         (< 0 (count (golden-neighbors g [(p/x %) (p/y %)])))
+         (< 0 (count (golden-neighbors g [(:x %) (:y %)])))
          (= 1 (get % :gold 0)))
       (grid/all-cells g))))
 
@@ -141,7 +140,7 @@
   ;"Get neighbor coordinates that are not on the border."
   ;[g c]
   ;(let [border (grid/unmasked-border-coordinates g)
-        ;candidates (filter #(not (commons/in? [(p/x (:cell %)) (p/y (:cell %))] border)) (grid/neighbor-cells g (grid/get-from g c)))]
+        ;candidates (filter #(not (commons/in? [(:x (:cell %)) (:y (:cell %))] border)) (grid/neighbor-cells g (grid/get-from g c)))]
     ;candidates))
 
 (defn tap-cell
@@ -180,7 +179,7 @@
       (let [candidates (grid/neighbor-cells g (grid/get-from g c))]
         (if (= 0 (count candidates))
           g
-          (let [c2 (best-candidate g (map #(vector (p/x (:cell %)) (p/y (:cell %))) candidates) untapped)
+          (let [c2 (best-candidate g (map #(vector (:x (:cell %)) (:y (:cell %))) candidates) untapped)
                 tmp (grid/place-link-to g (grid/get-from g c) (grid/get-from g c2))
                 region (first (filter #(commons/in? c2 %) untapped))
                 tmp (when-not (nil? region) (dorun (tap-region g region)))
@@ -216,7 +215,7 @@
   [g]
    (let [t (place-gold g (:config g))
          start (:start g)
-         tmp (dorun (carve g [(p/x start) (p/y start)]))]
+         tmp (dorun (carve g [(:x start) (:y start)]))]
      g))
 
 (defn process

@@ -18,8 +18,8 @@
 (defn draw-triangle
   "Transform a triangle into a Java graphics polygon and render it."
   [triangle ^Graphics2D graphics]
-  (let [xs (into-array Integer/TYPE (list (p/x (:p1 triangle)) (p/x (:p2 triangle)) (p/x (:p3 triangle))))
-        ys (into-array Integer/TYPE (list (p/y (:p1 triangle)) (p/y (:p2 triangle)) (p/y (:p3 triangle))))
+  (let [xs (into-array Integer/TYPE (list (:x (:p1 triangle)) (:x (:p2 triangle)) (:x (:p3 triangle))))
+        ys (into-array Integer/TYPE (list (:y (:p1 triangle)) (:y (:p2 triangle)) (:y (:p3 triangle))))
         p (Polygon. xs ys (count xs))
         tmp (.fillPolygon graphics p)
         tmp (.drawPolygon graphics p)]))
@@ -35,21 +35,21 @@
         tmp (.setPaint graphics Color/gray)
         tmp (dorun (map #(draw-triangle % graphics) triangles))
         tmp (.setPaint graphics Color/black)
-        tmp (dorun (map #(.drawLine graphics (p/x (:p1 %)) (p/y (:p1 %)) (p/x (:p2 %)) (p/y (:p2 %))) lines))
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) lines))
         tmp (.setPaint graphics Color/red)
-        tmp (.drawOval graphics (- (p/x (:p circle)) (:r circle)) (- (p/y (:p circle)) (:r circle)) (* 2 (:r circle)) (* 2 (:r circle)))
-        tmp (.drawLine graphics (- (p/x (:p circle)) 5) (- (p/y (:p circle)) 5) (+ (p/x (:p circle)) 5) (+ (p/y (:p circle)) 5))
-        tmp (.drawLine graphics (- (p/x (:p circle)) 5) (+ (p/y (:p circle)) 5) (+ (p/x (:p circle)) 5) (- (p/y (:p circle)) 5))
+        tmp (.drawOval graphics (- (:x (:p circle)) (:r circle)) (- (:y (:p circle)) (:r circle)) (* 2 (:r circle)) (* 2 (:r circle)))
+        tmp (.drawLine graphics (- (:x (:p circle)) 5) (- (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (+ (:y (:p circle)) 5))
+        tmp (.drawLine graphics (- (:x (:p circle)) 5) (+ (:y (:p circle)) 5) (+ (:x (:p circle)) 5) (- (:y (:p circle)) 5))
         tmp (.setPaint graphics Color/green)
         tmp (dorun (map #(do
-                           (.drawLine graphics (- (p/x %) 5) (- (p/y %) 5) (+ (p/x %) 5) (+ (p/y %) 5))
-                           (.drawLine graphics (- (p/x %) 5) (+ (p/y %) 5) (+ (p/x %) 5) (- (p/y %) 5))) points))
+                           (.drawLine graphics (- (:x %) 5) (- (:y %) 5) (+ (:x %) 5) (+ (:y %) 5))
+                           (.drawLine graphics (- (:x %) 5) (+ (:y %) 5) (+ (:x %) 5) (- (:y %) 5))) points))
         tmp (.setPaint graphics Color/blue)
         tmp (when-not (nil? last-point)
-              (.drawLine graphics (p/x last-point) (- (p/y last-point) 5) (p/x last-point) (+ (p/y last-point) 5))
-              (.drawLine graphics (- (p/x last-point) 5) (p/y last-point) (+ (p/x last-point) 5) (p/y last-point)))
+              (.drawLine graphics (:x last-point) (- (:y last-point) 5) (:x last-point) (+ (:y last-point) 5))
+              (.drawLine graphics (- (:x last-point) 5) (:y last-point) (+ (:x last-point) 5) (:y last-point)))
         tmp (.setPaint graphics Color/orange)
-        tmp (dorun (map #(.drawLine graphics (p/x (:p1 %)) (p/y (:p1 %)) (p/x (:p2 %)) (p/y (:p2 %))) active-walls))
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) active-walls))
         tmp (.dispose graphics)]
     (image/write-image filename img)))
 

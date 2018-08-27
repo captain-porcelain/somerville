@@ -28,8 +28,8 @@
 (defn draw-polygon
   "Draw a polygon onto the canvas."
   [graphics polygon line-color fill-color]
-  (let [xs (into-array Integer/TYPE (map p/x (polygon/to-points polygon)))
-        ys (into-array Integer/TYPE (map p/y (polygon/to-points polygon)))
+  (let [xs (into-array Integer/TYPE (map :x (polygon/to-points polygon)))
+        ys (into-array Integer/TYPE (map :y (polygon/to-points polygon)))
         p (Polygon. xs ys (count xs))
         ;tmp (.setPaint graphics (color/to-awt (apply color/rgba fill-color)))
         ;tmp (.fillPolygon graphics p)
@@ -38,10 +38,10 @@
 
 (defn render-line
   [graphics line line-color]
-  ;(.fillOval graphics (- (p/x (:p1 line)) 2) (- (p/y (:p1 line)) 4) 4 4)
-  ;(.fillOval graphics (- (p/x (:p2 line)) 2) (- (p/y (:p2 line)) 2) 4 4)
+  ;(.fillOval graphics (- (:x (:p1 line)) 2) (- (:y (:p1 line)) 4) 4 4)
+  ;(.fillOval graphics (- (:x (:p2 line)) 2) (- (:y (:p2 line)) 2) 4 4)
   (.setPaint graphics (color/to-awt (apply color/rgba line-color)))
-  (.drawLine graphics (p/x (:p1 line)) (p/y (:p1 line)) (p/x (:p2 line)) (p/y (:p2 line))))
+  (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))
 
 (def default-config
   {:background-color      [0 0 0 255]

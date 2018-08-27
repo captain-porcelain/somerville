@@ -2,7 +2,6 @@
 (ns somerville.maps.grid
   (:require
     [somerville.commons :as commons]
-    [somerville.geometry.point :as p]
     [taoensso.timbre :as log]))
 
 ;==================================================================================================================
@@ -18,7 +17,7 @@
      (<= 0 y))
      (not (:masked (try (aget (:array g) x y) (catch Exception e {:masked true})))))
   ([g c]
-   (in-bounds? g (p/x c) (p/y c))))
+   (in-bounds? g (:x c) (:y c))))
 
 (defn get-from
   "Get an element from grid array."
@@ -44,7 +43,7 @@
   ([g w h f]
    (set-in g w h (f (get-from g w h))))
   ([g c f]
-   (set-in g (p/x c) (p/y c) (f (get-from g (p/x c) (p/y c))))))
+   (set-in g (:x c) (:y c) (f (get-from g (:x c) (:y c))))))
 
 
 ;==================================================================================================================
@@ -70,12 +69,12 @@
 (defn unmasked-cell-coordinates
   "Get all cell coordinates that are not masked."
   [g]
-  (map #(vector (p/x %) (p/y %)) (filter #(not (:masked %)) (all-cells g))))
+  (map #(vector (:x %) (:y %)) (filter #(not (:masked %)) (all-cells g))))
 
 (defn masked-cell-coordinates
   "Get all cell coordinates that are not masked."
   [g]
-  (map #(vector (p/x %) (p/y %)) (filter #(:masked %) (all-cells g))))
+  (map #(vector (:x %) (:y %)) (filter #(:masked %) (all-cells g))))
 
 (defn unmasked-cells
   "Get all cell coordinates that are not masked."
@@ -117,7 +116,7 @@
         tmp (dorun
               (for [y (range (:height g))
                     x (range (:width g))]
-                (set-in g x y {:links [] p/x x p/y y})))]
+                (set-in g x y {:links [] :x x :y y})))]
     g))
 
 (defn grid
@@ -143,14 +142,14 @@
   [g c link]
   (get-from g
     (case link
-      :east       [(inc (p/x c)) (p/y c)]
-      :west       [(dec (p/x c)) (p/y c)]
-      :south      [(p/x c)       (inc (p/y c))]
-      :north      [(p/x c)       (dec (p/y c))]
-      :north-west (if (odd? (p/x c)) [(dec (p/x c)) (dec (p/y c))] [(dec (p/x c)) (p/y c)])
-      :south-west (if (odd? (p/x c)) [(dec (p/x c)) (p/y c)]       [(dec (p/x c)) (inc (p/y c))])
-      :north-east (if (odd? (p/x c)) [(inc (p/x c)) (dec (p/y c))] [(inc (p/x c)) (p/y c)])
-      :south-east (if (odd? (p/x c)) [(inc (p/x c)) (p/y c)]       [(inc (p/x c)) (inc (p/y c))]))))
+      :east       [(inc (:x c)) (:y c)]
+      :west       [(dec (:x c)) (:y c)]
+      :south      [(:x c)       (inc (:y c))]
+      :north      [(:x c)       (dec (:y c))]
+      :north-west (if (odd? (:x c)) [(dec (:x c)) (dec (:y c))] [(dec (:x c)) (:y c)])
+      :south-west (if (odd? (:x c)) [(dec (:x c)) (:y c)]       [(dec (:x c)) (inc (:y c))])
+      :north-east (if (odd? (:x c)) [(inc (:x c)) (dec (:y c))] [(inc (:x c)) (:y c)])
+      :south-east (if (odd? (:x c)) [(inc (:x c)) (:y c)]       [(inc (:x c)) (inc (:y c))]))))
 
 (defn link-from-coordinates
   "Get the link from the coordinates of two cells."
@@ -219,7 +218,7 @@
                   [(dec x) (inc y)]
                   [x (inc y)]
                   [(inc x) (inc y)])
-      :hex (map #(vector (p/x (:cell %)) (p/y (:cell %))) (neighbor-cells g (get-from g x y))))))
+      :hex (map #(vector (:x (:cell %)) (:y (:cell %))) (neighbor-cells g (get-from g x y))))))
 
 (defn reverse-link
   "Get the reverse of a link direction."
@@ -238,7 +237,7 @@
 (defn place-link-to
   "Connect grid cells."
   [g c c2]
-  (let [link (link-from-coordinates  [(p/x c) (p/y c)] [(p/x c2) (p/y c2)] (:grid-type g))]
+  (let [link (link-from-coordinates  [(:x c) (:y c)] [(:x c2) (:y c2)] (:grid-type g))]
     [(update-cell g c  #(assoc % :links (conj (:links %) link)))
      (update-cell g c2 #(assoc % :links (conj (:links %) (reverse-link link))))]))
 
@@ -264,7 +263,7 @@
 (defn masked?
   "Check if a cells should be masked."
   [mask c]
-  (= \X (nth (nth mask (p/y c) " ") (p/x c) " ")))
+  (= \X (nth (nth mask (:y c) " ") (:x c) " ")))
 
 (defn make-mask-walker
   "Create a walker that marks cells as masked based on a text.
@@ -279,15 +278,15 @@
   [g c]
   (case (:grid-type g)
     :rect (cond
-            (= (p/y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
-            (= (p/y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
-            (= (p/x c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :west)))
-            (= (p/x c) (dec (:width g)))  (update-cell g c #(assoc % :links (conj (:links %) :east))))
+            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
+            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
+            (= (:x c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :west)))
+            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (conj (:links %) :east))))
     :hex (cond
-            (= (p/y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
-            (= (p/y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
-            (= (p/x c) 0)                 (update-cell g c #(assoc % :links (concat (:links %) (list :south-west :north-west))))
-            (= (p/x c) (dec (:width g)))  (update-cell g c #(assoc % :links (concat (:links %) (list :south-east :north-east)))))))
+            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
+            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
+            (= (:x c) 0)                 (update-cell g c #(assoc % :links (concat (:links %) (list :south-west :north-west))))
+            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (concat (:links %) (list :south-east :north-east)))))))
 
 (defn sparse
   "Make a grid sparse by eliminating dead ends until the factor of rock cells to path cells reaches the given factor."
@@ -345,7 +344,7 @@
   [g [x y] visited]
   (into #{}
     (filter #(not (commons/in? % visited))
-            (map #(vector (p/x (:cell %)) (p/y (:cell %)))
+            (map #(vector (:x (:cell %)) (:y (:cell %)))
                  (neighbor-cells g (get-from g x y))))))
 
 (defn frontier-rect-in-bounds
@@ -360,7 +359,7 @@
   [g [x y] visited]
   (into #{}
     (filter #(not (commons/in? % visited))
-            (map #(vector (p/x (:cell %)) (p/y (:cell %)))
+            (map #(vector (:x (:cell %)) (:y (:cell %)))
                  (filter
                    #(commons/in? (:direction %) (:links (get-from g x y)))
                    (neighbor-cells g (get-from g x y)))))))

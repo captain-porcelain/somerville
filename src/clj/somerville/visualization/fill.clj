@@ -19,7 +19,7 @@
 
 (defn decider-fn
   [p1 p2]
-  (let [vfn (fn [p] (c/rgba (.getRGB image (p/x p) (p/y p))))
+  (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
     (< cie @threshold-cie)))
 
@@ -28,11 +28,11 @@
   (dorun
     (for [l cluster]
       (let [p (:p1 (first cluster))
-            dc (c/rgba (.getRGB image (p/x p) (p/y p)))
+            dc (c/rgba (.getRGB image (:x p) (:y p)))
             dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (c/rgba 255 255 255) dc)]
         (quil/stroke-float (:r dc) (:g dc) (:b dc))
         (quil/fill-float (:r dc) (:g dc) (:b dc))
-        (quil/line (p/x (:p1 l)) (p/y (:p1 l)) (p/x (:p2 l)) (p/y (:p2 l)))))))
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn do-filter
   []
