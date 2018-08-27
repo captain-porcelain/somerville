@@ -12,7 +12,7 @@
   (dorun
     (for [x (range (:width g))
           y (range (:height g))]
-        (grid/update-cell g x y #(assoc % :z (min x y (- (:width g) (inc x)) (- (:height g) (inc y))))))))
+        (grid/update-cell g x y #(assoc % p/z (min x y (- (:width g) (inc x)) (- (:height g) (inc y))))))))
 
 (defn sample-grid
   [size]
@@ -27,8 +27,8 @@
         tmp (dorun
               (for [x (range (:width g))
                     y (range (:height g))]
-                (grid/update-cell g x y #(assoc % :z 0))))
-        tmp (grid/update-cell g 2 2 #(assoc % :z 5))]
+                (grid/update-cell g x y #(assoc % p/z 0))))
+        tmp (grid/update-cell g 2 2 #(assoc % p/z 5))]
     g))
 
 (deftest triangulation

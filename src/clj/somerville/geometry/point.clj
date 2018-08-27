@@ -6,10 +6,7 @@
 (defprotocol IPoint
   (x [this] "Get x coordinate")
   (y [this] "Get y coordinate")
-  (z [this] "Get z coordinate")
-  (x! [this v] "Set x coordinate")
-  (y! [this v] "Set y coordinate")
-  (z! [this v] "Set z coordinate"))
+  (z [this] "Get z coordinate"))
 
 ;; define a general point in three dimensions.
 (defrecord Point [v]
@@ -17,9 +14,6 @@
   (x [this] (nth (:v this) 0))
   (y [this] (nth (:v this) 1))
   (z [this] (nth (:v this) 2))
-  (x! [this v] (Point. [v (y this) (z this)]))
-  (y! [this v] (Point. [(x this) v (z this)]))
-  (z! [this v] (Point. [(x this) (y this) v]))
   java.lang.Comparable
   (java.lang.Comparable/compareTo
     [this other]
@@ -83,7 +77,8 @@
 (defn normalize
   "Normalize point (as vector) to length 1 if possible."
   [p]
-  (let [d (distance p (point 0 0 0))]
+  (let [z (point 0 0 0)
+        d (distance p z)]
     (if (c/close-to 0 d)
       p
       (point (/ (x p) d) (/ (y p) d) (/ (z p) d)))))

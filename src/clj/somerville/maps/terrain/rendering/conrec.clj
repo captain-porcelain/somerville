@@ -25,10 +25,10 @@
   "For a point the the 3 neighboring points with increasing x and y and create 4 triangles.
   The center point receives the average height value."
   [g x y]
-  (let [z1 (:z (grid/get-from g x y))
-        z2 (:z (grid/get-from g (inc x) y))
-        z3 (:z (grid/get-from g (inc x) (inc y)))
-        z4 (:z (grid/get-from g x (inc y)))
+  (let [z1 (p/z (grid/get-from g x y))
+        z2 (p/z (grid/get-from g (inc x) y))
+        z3 (p/z (grid/get-from g (inc x) (inc y)))
+        z4 (p/z (grid/get-from g x (inc y)))
         z0 (/ (+ z1 z2 z3 z4) 4)
         p0 (p/point (+ x 0.5) (+ y 0.5) z0)
         p1 (p/point x y z1)
@@ -214,7 +214,7 @@
   (let [size (:width g)]
     (for [y (range size)
           x (range size)]
-      (:z (grid/get-from g x y)))))
+      (p/z (grid/get-from g x y)))))
 
 (defn line-heights
   [g min-distance max-lines]
