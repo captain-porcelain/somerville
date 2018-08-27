@@ -215,14 +215,3 @@
         ll (point mx my)]
     (first (sort-by #(distance ll %) ps))))
 
-(defn performance
-  [size repeats]
-  (let [test-fn #(average (take size (repeatedly (fn [] (point (rand-int 10) (rand-int 10) (rand-int 10))))))
-        measure-fn #(let [start (System/currentTimeMillis)
-                          avg (do (test-fn))
-                          stop (System/currentTimeMillis)
-                          dur (- stop start)
-                          tmp (dorun (println dur))]
-                      dur)]
-    (reduce + (take repeats (repeatedly measure-fn)))))
-
