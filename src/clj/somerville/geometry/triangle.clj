@@ -40,3 +40,8 @@
         m2 (point/slerp (:p2 t) (:p3 t) 0.5)
         m3 (point/slerp (:p3 t) (:p1 t) 0.5)]
     (list (triangle (:p1 t) m1 m3) (triangle (:p2 t) m2 m1) (triangle (:p3 t) m3 m2) (triangle m1 m2 m3))))
+
+(defn circumcircle
+  ""
+  [t]
+  )
