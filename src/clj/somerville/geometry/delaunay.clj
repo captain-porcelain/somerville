@@ -1,3 +1,5 @@
+;; Create Delaunay triangulation.
+;; See https://leatherbee.org/index.php/2018/10/06/terrain-generation-3-voronoi-diagrams/
 (ns somerville.geometry.delaunay
   (:require
     [somerville.geometry.commons :as sgc]
@@ -33,7 +35,7 @@
   [t p]
   (circle/point-in? (:c t) p))
 
-(defn to-lines
+(defn to-counted-lines
   "Create a map from the lines that make up a triangle, setting value to count, i.e. 1."
   [t]
   (hash-map
@@ -44,7 +46,7 @@
 (defn hole
   "Create the hole left be invalidated triangles."
   [triangles]
-  (map key (filter #(= 1 (val %)) (reduce + (map to-lines triangles)))))
+  (map key (filter #(= 1 (val %)) (reduce + (map to-counted-lines triangles)))))
 
 (defn triangulate-hole
   "Create a list of triangles that fills hole."
@@ -67,4 +69,17 @@
     (if (= 0 (count ps))
       bt
       (recur (add-point bt (first ps)) (rest ps)))))
+
+(defn to-lines
+  "Create a map from the lines that make up a triangle, setting value to keep pointer to triangle."
+  [t]
+  (hash-map
+    (l/sorted-line (:p1 (:t t)) (:p2 (:t t))) [t]
+    (l/sorted-line (:p2 (:t t)) (:p3 (:t t))) [t]
+    (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) [t]))
+
+(defn all-to-lines
+  "Convert all triangles to list of unique edges that link to the triangles they touch."
+  [triangles]
+  (reduce concat (map to-lines triangles)))
 
