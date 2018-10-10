@@ -7,7 +7,7 @@
   (:use clojure.test))
 
 (def p1 (p/point 1 1))
-(def p2 (p/point 7 9))
+(def p2 (p/point 3 7))
 (def p3 (p/point 4 5))
 (def p4 (p/point 10 9))
 (def p5 (p/point 2 11))
@@ -19,4 +19,15 @@
   (is (= 11 (d/max-val points :y))))
 
 (deftest bounds
-  (dorun (println (d/bounding-triangle points))))
+  (let [bp1 (p/point 0   0)
+        bp2 (p/point 0  22)
+        bp3 (p/point 20  0)
+        bt (d/bounding-triangle points)]
+    (is (= bp1 (:p1 (:t bt))))
+    (is (= bp2 (:p2 (:t bt))))
+    (is (= bp3 (:p3 (:t bt))))))
+
+(deftest adding
+  (let [bt (d/bounding-triangle points)
+        added (d/add-point (list bt) p1)]
+    (dorun (println added))))

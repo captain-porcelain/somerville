@@ -23,6 +23,13 @@
   ;(when (or (nil? p1) (nil? p2)) (throw (Exception. "Can't create line with null as point.")))
   (Line2. p1 p2))
 
+(defn sorted-line
+  "Get a line from two points and sort points by x."
+  [p1 p2]
+  (if (< (:x p1) (:x p2))
+    (Line2. p1 p2)
+    (Line2. p2 p1)))
+
 (defn line-from-slope
   "Get a line from the slope intercept form a * x + b."
   [a b]
@@ -84,11 +91,11 @@
       (<= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
       (>= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
       (c/close-to (:y point) (solve-line-at line (:x point))))))
-  ;(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
-        ;ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
-    ;(and
-      ;(<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p))
-      ;(<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))
+;(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
+;ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
+;(and
+;(<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p))
+;(<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))
 
 (defn vertical?
   "Check if a line is vertical."
@@ -111,7 +118,7 @@
           (c/close-to s1 s2))))
     (catch Exception e
       (dorun (println "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
-      ;(log/info (str "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
+;(log/info (str "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
 
 (defn normal
   "Create a line for the normal of a line on the first point of the line."
@@ -146,14 +153,16 @@
 
 (defn bisector
   "Get the line that bisects two points."
-  [p1 p2]
-  (if (= (:x p1) (:x p2))
-    (if (= (:y p1) (:y p2))
-      nil
-      (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2))))
-    (if (= (:y p1) (:y p2))
-      (Line2. (p/point (/ (+ (:x p1) (:x p2)) 2) (:y p1)) (p/point (/ (+ (:x p1) (:x p2)) 2) (+ 1 (:y p1))))
-      (bisector-internal p1 p2))))
+  ([p1 p2]
+   (if (= (:x p1) (:x p2))
+     (if (= (:y p1) (:y p2))
+       nil
+       (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2))))
+     (if (= (:y p1) (:y p2))
+       (Line2. (p/point (/ (+ (:x p1) (:x p2)) 2) (:y p1)) (p/point (/ (+ (:x p1) (:x p2)) 2) (+ 1 (:y p1))))
+       (bisector-internal p1 p2))))
+  ([l]
+   (bisector (:p1 l) (:p2 l))))
 
 (defn intersect-sloped
   "Get intersection point of two lines."

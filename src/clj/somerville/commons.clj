@@ -2,6 +2,11 @@
   (:import
     [java.io InputStreamReader BufferedReader]))
 
+(defn abs
+  "Calculate absolute value."
+  [n]
+  (if (< n 0) (* -1 n) n))
+
 (defn in?
   "Check that itm is not in itms."
   [itm itms]

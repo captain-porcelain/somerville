@@ -70,8 +70,9 @@
   "Calculate distance between two points."
   [p1 p2]
   (if (or (nil? p1) (nil? p2))
-    ;(throw (Exception. (str "point is nil")))
-    Long/MAX_VALUE
+    (do
+      (dorun (println (str "point is nil " p1 ", " p2)))
+      Long/MAX_VALUE)
     (let [dx (- (:x p1) (:x p2))
           dy (- (:y p1) (:y p2))
           dz (- (get p1 :z 0) (get p2 :z 0))]

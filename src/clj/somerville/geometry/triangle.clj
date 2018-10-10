@@ -1,7 +1,10 @@
 (ns somerville.geometry.triangle
   (:require
+    [somerville.commons :as sc]
     [somerville.geometry.commons :as c]
     [somerville.geometry.point :as point]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.circle :as circle]
     [taoensso.timbre :as log]))
 
 
@@ -41,7 +44,18 @@
         m3 (point/slerp (:p3 t) (:p1 t) 0.5)]
     (list (triangle (:p1 t) m1 m3) (triangle (:p2 t) m2 m1) (triangle (:p3 t) m3 m2) (triangle m1 m2 m3))))
 
-(defn circumcircle
-  ""
+(defn circumcenter
+  "Calculate the circumcenter of a triangle "
   [t]
-  )
+  (line/intersect (line/bisector (:p1 t) (:p2 t)) (line/bisector (:p2 t) (:p3 t))))
+
+(defn circumcircle
+  "Calculate the circumcircle of a triangle "
+  [t]
+  (circle/circle
+    (circumcenter t)
+    (let [a (sc/abs (point/distance (:p1 t) (:p2 t)))
+          b (sc/abs (point/distance (:p2 t) (:p3 t)))
+          c (sc/abs (point/distance (:p3 t) (:p1 t)))]
+      (/ (* a b c) (Math/sqrt (/ (* (+ a b c) (- (+ b c) a)) (* (- (+ c a) b) (- (+ a b) c))))))))
+
