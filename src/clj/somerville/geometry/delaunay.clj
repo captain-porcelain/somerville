@@ -83,3 +83,12 @@
   [triangles]
   (reduce concat (map to-lines triangles)))
 
+(defn voronoi-line
+  [t]
+  (l/line (:p (:c (first (val t)))) (:p (:c (second (val t))))))
+
+(defn voronoi
+  "Convert Delaunay triangles to voronoi diagram."
+  [triangles]
+  (let [lines (all-to-lines triangles)]
+    (map voronoi-line (filter #(= 2 (count (val %))) lines))))
