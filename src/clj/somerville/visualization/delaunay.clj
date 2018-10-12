@@ -9,13 +9,11 @@
 
 (def width 600)
 (def height 600)
-(def p1 (p/point 200 250))
-(def p2 (p/point 500 450))
-(def p3 (p/point 100 500))
-(def p4 (p/point 250 50))
-(def points (atom (list p1 p2 p3 p4)))
-(def delaunay-triangles (atom (delaunay/delaunay @points)))
+(def points (atom (list)))
+(def delaunay-triangles (atom (delaunay/delaunay @points (delaunay/bounding-triangle (list (p/point width height))))))
 (def voronoi-lines (atom (delaunay/voronoi @delaunay-triangles)))
+(def draw-delaunay (atom true))
+(def draw-voronoi (atom true))
 
 (defn draw-point
   [p]
@@ -26,6 +24,8 @@
 (defn draw-triangle
   [t]
   (quil/stroke-float 222 128 128)
+  ;(quil/no-fill)
+  ;(quil/ellipse (:x (:p (:c t))) (:y (:p (:c t))) (:r (:c t)) (:r (:c t)))
   (quil/fill-float 222 128 128)
   (quil/rect (:x (:p (:c t))) (:y (:p (:c t))) 4 4)
   (quil/line (:x (:p1 (:t t))) (:y (:p1 (:t t))) (:x (:p2 (:t t))) (:y (:p2 (:t t))))
@@ -47,12 +47,14 @@
   (dorun
     (for [p @points]
       (draw-point p)))
-  (dorun
-    (for [t @delaunay-triangles]
-      (draw-triangle t)))
-  (dorun
-    (for [l @voronoi-lines]
-      (draw-line l))))
+  (when @draw-delaunay
+    (dorun
+      (for [t @delaunay-triangles]
+        (draw-triangle t))))
+  (when @draw-voronoi
+    (dorun
+      (for [l @voronoi-lines]
+        (draw-line l)))))
 
 (defn setup
   "This function is called by quil once before drawing"
@@ -64,19 +66,23 @@
 (defn mouse-pressed [])
 (defn mouse-released []
   (let [mx (quil/mouse-x)
-        my (quil/mouse-y)]
-    (reset! points (cons (p/point mx my) @points))
-    (reset! delaunay-triangles (delaunay/delaunay @points))
+        my (quil/mouse-y)
+        pm (p/point mx my)]
+    (reset! points (cons pm @points))
+    (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles pm))
     (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))))
 
 (defn key-pressed []
   "Trigger actions on key presses."
     ;(dorun (println (str "pressed code " (quil/key-code))))
-    (if (= (quil/key-code) 67) ; c
-      (let []
-        (reset! points (list))
-        (reset! delaunay-triangles (list))
-        (reset! voronoi-lines (list)))))
+    (case (quil/key-as-keyword)
+      :c (let []
+           (reset! points (list))
+           (reset! delaunay-triangles (delaunay/delaunay @points (delaunay/bounding-triangle (list (p/point width height)))))
+           (reset! voronoi-lines (list)))
+      :d (reset! draw-delaunay (not @draw-delaunay))
+      :v (reset! draw-voronoi (not @draw-voronoi))
+      (dorun (println (str "pressed key " (quil/key-as-keyword))))))
 
 (defn show []
   (quil/sketch

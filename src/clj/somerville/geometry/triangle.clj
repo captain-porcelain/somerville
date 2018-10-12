@@ -52,10 +52,6 @@
 (defn circumcircle
   "Calculate the circumcircle of a triangle "
   [t]
-  (circle/circle
-    (circumcenter t)
-    (let [a (sc/abs (point/distance (:p1 t) (:p2 t)))
-          b (sc/abs (point/distance (:p2 t) (:p3 t)))
-          c (sc/abs (point/distance (:p3 t) (:p1 t)))]
-      (/ (* a b c) (Math/sqrt (/ (* (+ a b c) (- (+ b c) a)) (* (- (+ c a) b) (- (+ a b) c))))))))
+  (let [center (circumcenter t)]
+    (circle/circle center (point/distance center (:p1 t)))))
 

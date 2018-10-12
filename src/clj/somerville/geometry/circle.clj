@@ -72,6 +72,11 @@
   [circle point]
   (< (p/distance (:p circle) point) (:r circle)))
 
+(defn point-on?
+  "Check if a point is on a circle."
+  [circle point]
+  (c/close-to 0 (- (p/distance (:p circle) point) (:r circle))))
+
 (defn angles
   "Get angles dividing circle in steps."
   [steps]

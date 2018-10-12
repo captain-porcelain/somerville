@@ -32,4 +32,4 @@
         ccc (t/circumcircle tr)]
     (is (= cp ccp))
     (is (= cp (:p ccc)))
-    (is (c/close-to 0.58578 (:r ccc)))))
+    (is (c/close-to 0.7071 (:r ccc)))))

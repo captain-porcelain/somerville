@@ -28,12 +28,16 @@
 (defn bounding-triangle
   "Find a triangle that contains all points."
   [points]
-  (delaunay-triangle (triangle/triangle (p/point 0 0) (p/point 0 (* 2 (+ 1 (max-val points :y)))) (p/point (* 2 (+ 1 (max-val points :x))) 0))))
+  (delaunay-triangle
+    (triangle/triangle
+      (p/point 0 0)
+      (p/point 0 (* 2 (+ 1 (max-val points :y))))
+      (p/point (* 2 (+ 1 (max-val points :x))) 0))))
 
 (defn invalidates?
   "Check if point invalidates triangle."
-  [t p]
-  (circle/point-in? (:c t) p))
+  [dt p]
+  (or (circle/point-in? (:c dt) p) (circle/point-on? (:c dt) p)))
 
 (defn to-counted-lines
   "Create a map from the lines that make up a triangle, setting value to count, i.e. 1."
@@ -57,27 +61,31 @@
   "Add a new point to the triangulation."
   [triangles p]
   (let [classified (map (fn [t] [(invalidates? t p) t]) triangles)
+        ;tmp (dorun (println (str "adding " (sgc/out p))))
         nok (map second (filter first classified))
-        tmp (dorun (println (str "invalidated: " (count nok))))
+        ;tmp (dorun (println (str "invalidated: " (count nok))))
         ok (map second (filter #(not (first %)) classified))
-        tmp (dorun (println (str "not validated: " (count ok))))
+        ;tmp (dorun (println (str "not invalidated: " (count ok))))
         h (hole nok)
-        tmp (dorun (println (str "hole: " (clojure.string/join "\n" (map sgc/out h)))))
+        ;tmp (dorun (println (str "hole: " (clojure.string/join "\n" (map sgc/out h)))))
         th (triangulate-hole h p)
-        tmp (dorun (println (str "triangulation: " th)))
+        ;tmp (dorun (println (str "triangulation: " (clojure.string/join "\n" (map sgc/out th)))))
         ]
     (concat ok th)))
 
 (defn delaunay
   "Create Delaunay triangulation."
-  [points]
-  (if (= 0 (count points))
-    (list)
-    (loop [bt (list (bounding-triangle points))
-           ps points]
-      (if (= 0 (count ps))
-        bt
-        (recur (add-point bt (first ps)) (rest ps))))))
+  ([points bounds]
+   (if (= 0 (count points))
+     (list bounds)
+     (loop [bt (list bounds)
+            ps points]
+       (if (= 0 (count ps))
+         bt
+         (recur (add-point bt (first ps)) (rest ps))))))
+  ([points]
+   (delaunay points (bounding-triangle points))))
+
 
 (defn to-lines
   "Create a map from the lines that make up a triangle, setting value to keep pointer to triangle."
