@@ -42,6 +42,9 @@
   "This function is called by quil repeatedly."
   []
   (quil/background-float 0)
+  (quil/stroke-float 222 222 128)
+  (quil/no-fill)
+  (quil/rect 0 0 width height)
   (quil/stroke-float 0 255 0)
   (quil/fill-float 0 255 0)
   (dorun
@@ -49,7 +52,7 @@
       (draw-point p)))
   (when @draw-delaunay
     (dorun
-      (for [t @delaunay-triangles]
+      (for [t (delaunay/remove-bounds @delaunay-triangles)]
         (draw-triangle t))))
   (when @draw-voronoi
     (dorun
@@ -89,7 +92,7 @@
     :title "voronoi"
     :setup setup
     :draw draw
-    :size [width height]
+    :size [(* 2 width) (* 2 height)]
     :mouse-pressed mouse-pressed
     :mouse-released mouse-released
     :key-pressed key-pressed))

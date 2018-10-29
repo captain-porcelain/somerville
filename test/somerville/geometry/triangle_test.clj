@@ -33,3 +33,13 @@
     (is (= cp ccp))
     (is (= cp (:p ccc)))
     (is (c/close-to 0.7071 (:r ccc)))))
+
+(deftest inside
+  (let [p1 (p/point 0 0)
+        p2 (p/point 1 0)
+        p3 (p/point 0 1)
+        tr (t/triangle p1 p2 p3)
+        p4 (p/point 1 1)
+        p5 (p/point 0.25 0.25)]
+    (is (false? (t/inside? tr p4)))
+    (is (true? (t/inside? tr p5)))))

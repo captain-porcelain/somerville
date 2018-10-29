@@ -55,3 +55,18 @@
   (let [center (circumcenter t)]
     (circle/circle center (point/distance center (:p1 t)))))
 
+(defn sign
+  "Helper for check if point is inside triangle."
+  [p1 p2 p3]
+  (- (* (- (:x p1) (:x p3)) (- (:y p2) (:y p3))) (* (- (:x p2) (:x p3)) (- (:y p1) (:y p3)))))
+
+(defn inside?
+  "Check if point is inside triangle.
+  See https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle"
+  [t p]
+  (let [d1 (sign p (:p1 t) (:p2 t))
+        d2 (sign p (:p2 t) (:p3 t))
+        d3 (sign p (:p3 t) (:p1 t))
+        has-neg (or (< d1 0) (< d2 0) (< d3 0))
+        has-pos (or (> d1 0) (> d2 0) (> d3 0))]
+    (not (and has-pos has-neg))))
