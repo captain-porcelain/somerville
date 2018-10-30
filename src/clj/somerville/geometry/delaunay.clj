@@ -72,16 +72,9 @@
   [triangulation p]
   (let [triangles (:triangles triangulation)
         classified (map (fn [t] [(invalidates? t p) t]) triangles)
-        ;tmp (dorun (println (str "adding " (sgc/out p))))
         nok (map second (filter first classified))
-        ;tmp (dorun (println (str "invalidated: " (count nok))))
         ok (map second (filter #(not (first %)) classified))
-        ;tmp (dorun (println (str "not invalidated: " (count ok))))
-        h (hole nok)
-        ;tmp (dorun (println (str "hole: " (clojure.string/join "\n" (map sgc/out h)))))
-        th (triangulate-hole h p)
-        ;tmp (dorun (println (str "triangulation: " (clojure.string/join "\n" (map sgc/out th)))))
-        ]
+        th (triangulate-hole (hole nok) p)]
     (Delaunay-triangulation. (cons (:points triangulation) p) (concat ok th) (:bounds triangulation) (:max-point triangulation))))
 
 (defn delaunay
@@ -103,7 +96,7 @@
   [triangulation]
   (filter #(not (shares-point % (:bounds triangulation))) (:triangles triangulation)))
 
-(defn to-lines
+(defn triangle-lines
   "Create a map from the lines that make up a triangle, setting value to keep pointer to triangle."
   [t]
   (hash-map
@@ -111,10 +104,12 @@
     (l/sorted-line (:p2 (:t t)) (:p3 (:t t))) [t]
     (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) [t]))
 
-(defn all-to-lines
+(defn all-to-triangle-lines
   "Convert all triangles to list of unique edges that link to the triangles they touch."
   [triangles]
-  (apply merge-with concat (map to-lines triangles)))
+  (apply merge-with concat (map triangle-lines triangles)))
+
+(defrecord VoronoiLine [line points])
 
 (defn center-to-center-line
   "Create a line between the center points on both sides of a delaunay triangle line."
@@ -133,13 +128,24 @@
   "Create an appropriate line for a voronoi cell."
   [tl bounds]
   (let [inner (filter #(not (shares-point % bounds)) (val tl))
-        border (filter #(shares-point % bounds) (val tl))]
+        border (filter #(shares-point % bounds) (val tl))
+        ps (list (:p1 (key tl)) (:p2 (key tl)))]
     (cond
-      (= 2 (count inner)) (center-to-center-line tl)
-      (and (= 1 (count inner)) (= 1 (count border))) (center-to-border-line (first inner) (first border))
+      (= 2 (count inner)) (VoronoiLine. (center-to-center-line tl) ps)
+      (and (= 1 (count inner)) (= 1 (count border))) (VoronoiLine. (center-to-border-line (first inner) (first border)) ps)
       :else nil)))
 
-(defn voronoi
+(defn voronoi-lines
+  "Convert Delaunay triangles to lines of a voronoi diagram."
+  [triangulation]
+  (filter
+    #(not (nil? %))
+    (map
+      #(voronoi-line % (:bounds triangulation))
+      (all-to-triangle-lines (:triangles triangulation)))))
+
+(defn voronoi-lines
   "Convert Delaunay triangles to voronoi diagram."
   [triangulation]
-  (filter #(not (nil? %)) (map #(voronoi-line % (:bounds triangulation)) (all-to-lines (:triangles triangulation)))))
+  (voronoi-lines triangulation))
+

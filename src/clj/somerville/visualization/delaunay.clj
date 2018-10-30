@@ -26,8 +26,9 @@
   (quil/stroke-float 222 128 128)
   ;(quil/no-fill)
   ;(quil/ellipse (:x (:p (:c t))) (:y (:p (:c t))) (:r (:c t)) (:r (:c t)))
-  (quil/fill-float 222 128 128)
+  (quil/fill-float 22 18 108)
   (quil/rect (:x (:p (:c t))) (:y (:p (:c t))) 4 4)
+  (quil/stroke-float 222 128 128)
   (quil/line (:x (:p1 (:t t))) (:y (:p1 (:t t))) (:x (:p2 (:t t))) (:y (:p2 (:t t))))
   (quil/line (:x (:p2 (:t t))) (:y (:p2 (:t t))) (:x (:p3 (:t t))) (:y (:p3 (:t t))))
   (quil/line (:x (:p3 (:t t))) (:y (:p3 (:t t))) (:x (:p1 (:t t))) (:y (:p1 (:t t)))))
@@ -57,7 +58,7 @@
   (when @draw-voronoi
     (dorun
       (for [l @voronoi-lines]
-        (draw-line l)))))
+        (draw-line (:line l))))))
 
 (defn setup
   "This function is called by quil once before drawing"
