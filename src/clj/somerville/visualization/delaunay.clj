@@ -10,7 +10,7 @@
 (def width 600)
 (def height 600)
 (def points (atom (list)))
-(def delaunay-triangles (atom (delaunay/delaunay @points (delaunay/bounding-triangle (list (p/point width height))))))
+(def delaunay-triangles (atom (delaunay/delaunay @points (p/point width height))))
 (def voronoi-lines (atom (delaunay/voronoi @delaunay-triangles)))
 (def draw-delaunay (atom true))
 (def draw-voronoi (atom true))
@@ -81,7 +81,7 @@
     (case (quil/key-as-keyword)
       :c (let []
            (reset! points (list))
-           (reset! delaunay-triangles (delaunay/delaunay @points (delaunay/bounding-triangle (list (p/point width height)))))
+           (reset! delaunay-triangles (delaunay/delaunay @points (p/point width height)))
            (reset! voronoi-lines (list)))
       :d (reset! draw-delaunay (not @draw-delaunay))
       :v (reset! draw-voronoi (not @draw-voronoi))

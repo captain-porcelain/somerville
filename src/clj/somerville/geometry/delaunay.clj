@@ -15,7 +15,7 @@
   (sgc/out [this i] (str (sgc/indent i) "Delaunay triangle\n" (sgc/out t) "\nwith circumcircle\n" (sgc/out c)))
   (sgc/out [this] (sgc/out this 0)))
 
-(defrecord Delaunay-triangulation [points triangles bounds])
+(defrecord Delaunay-triangulation [points triangles bounds max-point])
 
 (defn delaunay-triangle
   ([t c]
@@ -23,8 +23,8 @@
   ([t]
    (Delaunay-triangle. t (triangle/circumcircle t))))
 
-(defn shares-edge
-  "Test if two delaunay triangles share at least one edge."
+(defn shares-point
+  "Test if two delaunay triangles share at least one point."
   [t1 t2]
   (let [ps1 #{(:p1 (:t t1)) (:p2 (:t t1)) (:p3 (:t t1))}
         ps2 #{(:p1 (:t t2)) (:p2 (:t t2)) (:p3 (:t t2))}]
@@ -82,24 +82,26 @@
         th (triangulate-hole h p)
         ;tmp (dorun (println (str "triangulation: " (clojure.string/join "\n" (map sgc/out th)))))
         ]
-    (Delaunay-triangulation. (cons (:points triangulation) p) (concat ok th) (:bounds triangulation))))
+    (Delaunay-triangulation. (cons (:points triangulation) p) (concat ok th) (:bounds triangulation) (:max-point triangulation))))
 
 (defn delaunay
   "Create Delaunay triangulation."
-  ([points bounds]
-   (if (= 0 (count points))
-     (Delaunay-triangulation. (list) (list bounds) bounds)
-     (loop [bt (Delaunay-triangulation. (list) (list bounds) bounds)
-            ps points]
-       (if (= 0 (count ps))
-         bt
-         (recur (add-point bt (first ps)) (rest ps))))))
+  ([points max-point]
+   (let [bounds (bounding-triangle (list max-point))]
+     (if (= 0 (count points))
+       (Delaunay-triangulation. (list) (list bounds) bounds max-point)
+       (loop [bt (Delaunay-triangulation. (list) (list bounds) bounds max-point)
+              ps points]
+         (if (= 0 (count ps))
+           bt
+           (recur (add-point bt (first ps)) (rest ps)))))))
   ([points]
-   (delaunay points (bounding-triangle points))))
+   (delaunay points (p/point (max-val points :x) (max-val points :y)))))
 
 (defn remove-bounds
+  "Remove the triangles that share a point"
   [triangulation]
-  (filter #(not (shares-edge % (:bounds triangulation))) (:triangles triangulation)))
+  (filter #(not (shares-point % (:bounds triangulation))) (:triangles triangulation)))
 
 (defn to-lines
   "Create a map from the lines that make up a triangle, setting value to keep pointer to triangle."
@@ -121,21 +123,23 @@
 
 (defn center-to-border-line
   "Create a line from the center on one side of the delaunay triangle line to the border."
-  [tl]
-  (let [cp (:p (:c (first (val tl))))
-        mp (p/midpoint (:p1 (key tl)) (:p2 (key tl)))
-        sf (if (triangle/inside? (:t (first (val tl))) cp) 1000 -1000)
-        op (p/add (p/scale (p/subtract mp cp) sf) cp)]
+  [ti tb]
+  (let [cp (:p (:c ti))
+        mp (:p (:c tb))
+        op (p/add (p/scale (p/subtract mp cp) 1000) cp)]
     (l/line cp op)))
 
 (defn voronoi-line
   "Create an appropriate line for a voronoi cell."
-  [tl]
-  (case (count (val tl))
-    1 (center-to-border-line tl)
-    2 (center-to-center-line tl)))
+  [tl bounds]
+  (let [inner (filter #(not (shares-point % bounds)) (val tl))
+        border (filter #(shares-point % bounds) (val tl))]
+    (cond
+      (= 2 (count inner)) (center-to-center-line tl)
+      (and (= 1 (count inner)) (= 1 (count border))) (center-to-border-line (first inner) (first border))
+      :else nil)))
 
 (defn voronoi
   "Convert Delaunay triangles to voronoi diagram."
   [triangulation]
-  (map voronoi-line (all-to-lines (remove-bounds triangulation))))
+  (filter #(not (nil? %)) (map #(voronoi-line % (:bounds triangulation)) (all-to-lines (:triangles triangulation)))))
