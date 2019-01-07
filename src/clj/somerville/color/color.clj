@@ -96,10 +96,10 @@
   "Interpolate between two colors in RGBA space."
   [c1 c2 t]
   (rgba
-    (+ (:r c1) (* t (- (:r c2) (:r c1))))
-    (+ (:g c1) (* t (- (:g c2) (:g c1))))
-    (+ (:b c1) (* t (- (:b c2) (:b c1))))
-    (+ (:a c1) (* t (- (:a c2) (:a c1))))))
+    (int (+ (:r c1) (* t (- (:r c2) (:r c1)))))
+    (int (+ (:g c1) (* t (- (:g c2) (:g c1)))))
+    (int (+ (:b c1) (* t (- (:b c2) (:b c1)))))
+    (int (+ (:a c1) (* t (- (:a c2) (:a c1)))))))
 
 (defn color-steps
   "Create interpolated colors between c1 and c2."
@@ -113,3 +113,9 @@
     (= (:g c1) (:g c2))
     (= (:b c1) (:b c2))
     (= (:a c1) (:a c2))))
+
+(defn rgba->hex
+  "Convert an rgba color to hex string."
+  [c]
+  (str "#" (format "%02x" (:r c)) (format "%02x" (:g c)) (format "%02x" (:b c)) (format "%02x" (:a c))))
+
