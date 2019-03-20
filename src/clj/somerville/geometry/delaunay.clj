@@ -144,7 +144,7 @@
       #(voronoi-line % (:bounds triangulation))
       (all-to-triangle-lines (:triangles triangulation)))))
 
-(defn voronoi-lines
+(defn voronoi
   "Convert Delaunay triangles to voronoi diagram."
   [triangulation]
   (voronoi-lines triangulation))
