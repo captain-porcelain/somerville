@@ -52,6 +52,6 @@
         bt (d/bounding-triangle (list (p/point 3 3)))
         d1 (d/add-point (list bt) p1)
         d2 (d/add-point d1 p2)]
-    (dorun (println (str "triangulation 2: " (clojure.string/join \n (map sgc/out d2)))))
+    (dorun (println (str "triangulation 2: " (clojure.string/join "\n" (map str (:points d2))))))
     ;(dorun (println d1))
     ))

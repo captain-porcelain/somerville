@@ -1,9 +1,9 @@
-(ns somerville.geometry.projection-test
+(ns somerville.geometry.projection.projection-test
   (:require
     [somerville.geometry.line :as l]
     [somerville.geometry.point :as p]
     [somerville.geometry.plane :as pl]
-    [somerville.geometry.projection :as projection]
+    [somerville.geometry.projection.projection :as projection]
     [somerville.geometry.commons :as c])
   (:use clojure.test))
 

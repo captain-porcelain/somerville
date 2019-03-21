@@ -1,17 +1,15 @@
-;; Various projection algorithms but none do a very good job.
-(ns somerville.geometry.projection
-  (:require
-    [somerville.geometry.line :as l]
-    [somerville.geometry.point :as p]
-    [somerville.geometry.plane :as pl]
-    [somerville.geometry.commons :as c]))
-
-;;=======================================================================================================================
 ;; My own projection
 ;; First set up the camera at a point and a projection plane.
 ;; Then intersect the line from the camera to the point that is to be projected onto the plane.
 ;; Lastly transform the point from the plane into a 2d view by calculating a linear combination of the vector from the center
 ;; to that point that is then retransformed to a vector with the corresponding vectors in the 2d plane.
+
+(ns somerville.geometry.projection.projection
+  (:require
+    [somerville.geometry.line :as l]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.plane :as pl]
+    [somerville.geometry.commons :as c]))
 
 (defrecord Projector [camera focus up projection-plane screen-center width height horizontal-base vertical-base]
   c/Printable

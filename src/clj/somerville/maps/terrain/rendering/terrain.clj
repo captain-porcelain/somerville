@@ -4,7 +4,7 @@
     [java.awt.image BufferedImage])
   (:require
     [somerville.maps.terrain.rendering.conrec :as conrec]
-    [somerville.geometry.projection :as projection]
+    [somerville.geometry.projection.projection :as projection]
     [somerville.geometry.polygon :as polygon]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
