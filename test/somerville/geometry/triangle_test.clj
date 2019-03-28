@@ -1,6 +1,7 @@
 (ns somerville.geometry.triangle-test
   (:require
     [somerville.geometry.point :as p]
+    [somerville.geometry.line :as line]
     [somerville.geometry.triangle :as t]
     [somerville.geometry.commons :as c])
   (:use clojure.test))
@@ -20,6 +21,16 @@
         tr (t/triangle p1 p2 p3)
         h (t/height tr)]
     (is (= 1.0 h))))
+
+(deftest circumcenter
+  (let [p1 (p/point 0 0)
+        p2 (p/point 0 182.0)
+        p3 (p/point -0.5132987748671406 0.3502333183590249)
+        cp (p/point 61.71486085094635 91.0)
+
+        tr (t/triangle p1 p2 p3)
+        ccp (t/circumcenter tr)]
+    (is (= cp ccp))))
 
 (deftest circumcircle
   (let [p1 (p/point 1 1)

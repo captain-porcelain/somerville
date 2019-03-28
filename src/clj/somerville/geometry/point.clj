@@ -71,7 +71,7 @@
   [p1 p2]
   (if (or (nil? p1) (nil? p2))
     (do
-      (dorun (println (str "point is nil " p1 ", " p2)))
+      (dorun (println (str "distance: one point is nil: " (if (nil? p1) "nil" (c/out p1)) " <-> " (if (nil? p2) "nil" (c/out p2)))))
       Long/MAX_VALUE)
     (let [dx (- (:x p1) (:x p2))
           dy (- (:y p1) (:y p2))

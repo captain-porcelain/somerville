@@ -4,19 +4,46 @@
             [somerville.geometry.line :as line]
             [somerville.geometry.point :as point]
             [somerville.geometry.sphere :as sphere]
+            [somerville.geometry.projection.stereographic :as proj]
+            [somerville.geometry.delaunay :as delaunay]
             [quil.core :as quil])
   (:gen-class))
+
+;;============================================================================================================
+;; Helpers
+
+(defn line-to-sphere
+  "Map the points of a line onto a sphere."
+  [l]
+  (line/line (proj/to-sphere (:p1 (:line l))) (proj/to-sphere (:p2 (:line l)))))
+
+(defn to-voronoi
+  "Create voronoi for points on a sphere."
+  [points]
+  (map line-to-sphere (delaunay/voronoi (delaunay/delaunay (map proj/to-plane points)))))
+
+;;============================================================================================================
+;; Rendering
 
 (def width 600)
 (def height 600)
 (def points (atom (map #(point/scale % 100) (sphere/fibonacci 100))))
+(def lines (atom (to-voronoi @points)))
 
 (defn draw-point
   [p]
   (quil/stroke-float 0 128 255)
   (quil/fill-float 0 128 255)
+  (quil/stroke-weight 1)
   (quil/with-translation [(:x p) (:y p) (:z p)]
     (quil/sphere 1)))
+
+(defn draw-line
+  [l]
+  (quil/stroke-float 255 128 0)
+  (quil/fill-float 255 128 0)
+  (quil/stroke-weight 10)
+  (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -30,7 +57,10 @@
   (quil/fill-float 0 255 0)
   (dorun
     (for [p @points]
-      (draw-point p))))
+      (draw-point p)))
+  (dorun
+    (for [l @lines]
+      (draw-line l))))
 
 (defn setup
   "This function is called by quil once before drawing"

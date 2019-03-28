@@ -31,3 +31,4 @@
   (let [offset (/ 2 samples)
         increment (* Math/PI (- 3 (Math/sqrt 5)))]
     (map #(fibonacci-point % samples offset increment) (range samples))))
+

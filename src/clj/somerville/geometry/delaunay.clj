@@ -75,7 +75,7 @@
         nok (map second (filter first classified))
         ok (map second (filter #(not (first %)) classified))
         th (triangulate-hole (hole nok) p)]
-    (Delaunay-triangulation. (cons (:points triangulation) p) (concat ok th) (:bounds triangulation) (:max-point triangulation))))
+    (Delaunay-triangulation. (conj (:points triangulation) p) (concat ok th) (:bounds triangulation) (:max-point triangulation))))
 
 (defn delaunay
   "Create Delaunay triangulation."

@@ -47,12 +47,16 @@
 (defn circumcenter
   "Calculate the circumcenter of a triangle "
   [t]
-  (line/intersect (line/bisector (:p1 t) (:p2 t)) (line/bisector (:p2 t) (:p3 t))))
+  (let [i1 (line/intersect (line/bisector (:p1 t) (:p2 t)) (line/bisector (:p2 t) (:p3 t)))
+        i2 (line/intersect (line/bisector (:p1 t) (:p2 t)) (line/bisector (:p3 t) (:p1 t)))
+        i3 (line/intersect (line/bisector (:p2 t) (:p3 t)) (line/bisector (:p3 t) (:p1 t)))]
+    (if (nil? i1) (if (nil? i2) i3 i2) i1)))
 
 (defn circumcircle
   "Calculate the circumcircle of a triangle "
   [t]
   (let [center (circumcenter t)]
+    (do (when (nil? center) (println (str "Can't calculate circumcenter for " (c/out t)))))
     (circle/circle center (point/distance center (:p1 t)))))
 
 (defn sign
