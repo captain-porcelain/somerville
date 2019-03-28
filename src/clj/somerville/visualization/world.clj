@@ -27,7 +27,7 @@
 
 (def width 600)
 (def height 600)
-(def points (atom (map #(point/scale % 100) (sphere/fibonacci 100))))
+(def points (atom (sphere/fibonacci 100)))
 (def lines (atom (to-voronoi @points)))
 
 (defn draw-point
@@ -35,15 +35,18 @@
   (quil/stroke-float 0 128 255)
   (quil/fill-float 0 128 255)
   (quil/stroke-weight 1)
-  (quil/with-translation [(:x p) (:y p) (:z p)]
-    (quil/sphere 1)))
+  (let [sp (point/scale p 100)]
+    (quil/with-translation [(:x sp) (:y sp) (:z sp)]
+      (quil/sphere 1))))
 
 (defn draw-line
   [l]
   (quil/stroke-float 255 128 0)
   (quil/fill-float 255 128 0)
-  (quil/stroke-weight 10)
-  (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))
+  (quil/stroke-weight 1)
+  (let [p1 (point/scale (:p1 l) 100)
+        p2 (point/scale (:p2 l) 100)]
+    (quil/line (:x p1) (:y p1) (:z p1) (:x p2) (:y p2) (:z p2))))
 
 (defn draw
   "This function is called by quil repeatedly."
