@@ -2,7 +2,7 @@
   (:require
     [somerville.geometry.line :as line]
     [somerville.geometry.point :as point]
-    [somerville.geometry.plane :as plane]
+    [somerville.geometry.sphere :as sphere]
     [somerville.geometry.projection.stereographic :as stereographic]
     [somerville.geometry.commons :as commons])
   (:use clojure.test))
@@ -13,3 +13,8 @@
     (is (point/close? pp1 (stereographic/to-plane sp1)))
     (is (point/close? sp1 (stereographic/to-sphere pp1)))))
 
+(deftest sphere-projection
+  (let [sp (sphere/fibonacci 100)
+        pp (map stereographic/to-plane sp)
+        rp (map stereographic/to-sphere pp)]
+    (map #(is (point/close? %1 %2)) sp rp)))
