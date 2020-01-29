@@ -66,8 +66,8 @@
 (defn draw-triangle
   "Draws one polygon representing an area of the world."
   [t fc lc]
-  (quil/fill-float (:r fc) (:g fc) (:b fc) (:a fc))
-  (quil/stroke-float (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/begin-shape :triangles)
   (quil/vertex (:x (:p1 t)) (:y (:p1 t)) (:z (:p1 t)))
   (quil/vertex (:x (:p2 t)) (:y (:p2 t)) (:z (:p2 t)))
@@ -77,7 +77,7 @@
 (defn draw
   "This function is called by processing repeatedly."
   []
-  (quil/background-float 0)
+  (quil/background 0)
   (quil/with-translation [(/ 800 2) (/ 800 2)]
     (quil/with-rotation [(get-mouse-angle-y 800) 1 0 0]
       (quil/with-rotation [(get-mouse-angle-x 800) 0 1 0]

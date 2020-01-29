@@ -3,10 +3,10 @@
   :dependencies
   [[org.clojure/clojure "1.10.1"]
    [org.clojure/clojurescript "1.10.597"]
-   [dali "0.7.4"]
-   [quil "2.6.0"]
+   [dali "0.7.5"]
+   [quil "3.1.0"]
    [fs "1.3.3"]
-   [ubergraph "0.5.0"]
+   [ubergraph "0.8.2"]
    [com.taoensso/timbre "4.10.0"]]
 
   :plugins
