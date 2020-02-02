@@ -10,3 +10,4 @@ target
 .cpcache
 out
 .lsp
+resources/js

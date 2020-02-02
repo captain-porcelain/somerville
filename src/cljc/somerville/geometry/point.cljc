@@ -3,33 +3,64 @@
     [somerville.geometry.commons :as c]))
 
 ;; define a two dimensional point
-(defrecord Point2 [x y]
-  java.lang.Comparable
-  (java.lang.Comparable/compareTo
-    [this other]
-    (if
-      (= (:x this) (:x other))
-      (c/compareTo (:y this) (:y other))
-      (c/compareTo (:x this) (:x other))))
-  c/Printable
-  (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
-  (c/out [this] (c/out this 0)))
+#?(:clj
+   (defrecord Point2 [x y]
+     java.lang.Comparable
+     (java.lang.Comparable/compareTo
+       [this other]
+       (if
+         (= (:x this) (:x other))
+         (c/compareTo (:y this) (:y other))
+         (c/compareTo (:x this) (:x other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
+     (c/out [this] (c/out this 0))))
+
+#?(:cljs
+   (defrecord Point2 [x y]
+     IComparable
+     (-compare
+       [this other]
+       (if
+         (= (:x this) (:x other))
+         (c/compareTo (:y this) (:y other))
+         (c/compareTo (:x this) (:x other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
+     (c/out [this] (c/out this 0))))
 
 ;; define a three dimensional point
-(defrecord Point3 [x y z]
-  java.lang.Comparable
-  (java.lang.Comparable/compareTo
-    [this other]
-    (if
-      (= (:x this) (:x other))
-      (if
-        (= (:y this) (:y other))
-        (c/compareTo (:z this) (:z other))
-        (c/compareTo (:y this) (:y other)))
-      (c/compareTo (:x this) (:x other))))
-  c/Printable
-  (c/out [this i] (str (c/indent i) "Point (" x "," y "," z ")"))
-  (c/out [this] (c/out this 0)))
+#?(:clj
+   (defrecord Point3 [x y z]
+     java.lang.Comparable
+     (java.lang.Comparable/compareTo
+       [this other]
+       (if
+         (= (:x this) (:x other))
+         (if
+           (= (:y this) (:y other))
+           (c/compareTo (:z this) (:z other))
+           (c/compareTo (:y this) (:y other)))
+         (c/compareTo (:x this) (:x other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) "Point (" x "," y "," z ")"))
+     (c/out [this] (c/out this 0))))
+
+#?(:cljs
+   (defrecord Point3 [x y z]
+     IComparable
+     (-compare
+       [this other]
+       (if
+         (= (:x this) (:x other))
+         (if
+           (= (:y this) (:y other))
+           (c/compareTo (:z this) (:z other))
+           (c/compareTo (:y this) (:y other)))
+         (c/compareTo (:x this) (:x other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) "Point (" x "," y "," z ")"))
+     (c/out [this] (c/out this 0))))
 
 (defn point
   "Create a point in either 2 or 3 dimensions."
@@ -72,7 +103,7 @@
   (if (or (nil? p1) (nil? p2))
     (do
       (dorun (println (str "distance: one point is nil: " (if (nil? p1) "nil" (c/out p1)) " <-> " (if (nil? p2) "nil" (c/out p2)))))
-      Long/MAX_VALUE)
+      #?(:clj Long/MAX_VALUE :cljs (.-MAX_VALUE js/Number)))
     (let [dx (- (:x p1) (:x p2))
           dy (- (:y p1) (:y p2))
           dz (- (get p1 :z 0) (get p2 :z 0))]
@@ -139,7 +170,7 @@
   (try
     (let [a (angle p1 p2 p3)]
       (if (< a 0) (+ (* 2 Math/PI) a) a))
-    (catch Exception e (dorun (println (str "Error calculating angle between:\n" (c/out p1 1) "\n" (c/out p2 1) "\n" (c/out p3 1)))))))
+    (catch #?(:clj Exception :cljs js/Object) e (dorun (println (str "Error calculating angle between:\n" (c/out p1 1) "\n" (c/out p2 1) "\n" (c/out p3 1)))))))
 
 (defn angle-dot
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3 using dot product. No negative results."
@@ -213,16 +244,4 @@
         my (apply min (map :y ps))
         ll (point mx my)]
     (first (sort-by #(distance ll %) ps))))
-
-(defn performance
-  "Run repeated calculations with new points and measure the time."
-  [size repeats]
-  (let [test-fn #(average (take size (repeatedly (fn [] (point (rand-int 10) (rand-int 10) (rand-int 10))))))
-        measure-fn #(let [start (System/currentTimeMillis)
-                          avg (do (test-fn))
-                          stop (System/currentTimeMillis)
-                          dur (- stop start)
-                          tmp (dorun (println dur))]
-                      dur)]
-    (reduce + (take repeats (repeatedly measure-fn)))))
 
