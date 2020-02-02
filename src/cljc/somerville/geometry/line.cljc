@@ -5,17 +5,31 @@
     [taoensso.timbre :as log]))
 
 
-(defrecord Line2 [p1 p2]
-  java.lang.Comparable
-  (java.lang.Comparable/compareTo
-    [this other]
-    (if
-      (= 0 (.compareTo (:p1 this) (:p1 other)))
-      (.compareTo (:p2 this) (:p2 other))
-      (.compareTo (:p1 this) (:p1 other))))
-  c/Printable
-  (c/out [this i] (str (c/indent i) "Line from " (if (nil? p1) "NIL" (c/out p1)) " to " (if (nil? p2) "NIL" (c/out p2))))
-  (c/out [this] (c/out this 0)))
+#?(:clj
+   (defrecord Line2 [p1 p2]
+     java.lang.Comparable
+     (java.lang.Comparable/compareTo
+       [this other]
+       (if
+         (= 0 (.compareTo (:p1 this) (:p1 other)))
+         (.compareTo (:p2 this) (:p2 other))
+         (.compareTo (:p1 this) (:p1 other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) "Line from " (if (nil? p1) "NIL" (c/out p1)) " to " (if (nil? p2) "NIL" (c/out p2))))
+     (c/out [this] (c/out this 0))))
+
+#?(:cljs
+   (defrecord Line2 [p1 p2]
+     IComparable
+     (-compare
+       [this other]
+       (if
+         (= 0 (.compareTo (:p1 this) (:p1 other)))
+         (.compareTo (:p2 this) (:p2 other))
+         (.compareTo (:p1 this) (:p1 other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) "Line from " (if (nil? p1) "NIL" (c/out p1)) " to " (if (nil? p2) "NIL" (c/out p2))))
+     (c/out [this] (c/out this 0))))
 
 (defn line
   "Get a line from two points."
@@ -116,7 +130,7 @@
           (or (nil? s1) (nil? s2))
           (= s1 s2)
           (c/close-to s1 s2))))
-    (catch Exception e
+    (catch #?(:clj Exception :cljs js/Object) e
       (dorun (println "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
 ;(log/info (str "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
 
@@ -124,13 +138,13 @@
   "Create a line for the normal of a line on the first point of the line."
   [line]
   (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
-    (Line2. (:p1 line) (p/point-at (:p1 line) (+ angle (/ java.lang.Math/PI 2)) 1.0))))
+    (Line2. (:p1 line) (p/point-at (:p1 line) (+ angle (/ Math/PI 2)) 1.0))))
 
 (defn normal2
   "Create a line for the normal of a line on the second point of the line."
   [line]
   (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
-    (Line2. (:p2 line) (p/point-at (:p2 line) (+ angle (/ java.lang.Math/PI 2)) 1.0))))
+    (Line2. (:p2 line) (p/point-at (:p2 line) (+ angle (/ Math/PI 2)) 1.0))))
 
 (defn parallel
   "Create a line parallel to the given one dist away."
