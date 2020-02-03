@@ -3,7 +3,7 @@
             [somerville.geometry.point :as p]
             [somerville.geometry.line :as line]
             [somerville.geometry.voronoi :as voronoi]
-            [somerville.image :as i]
+            [somerville.rendering.image :as i]
             [somerville.color.color :as c]
             [quil.core :as quil])
   (:gen-class))

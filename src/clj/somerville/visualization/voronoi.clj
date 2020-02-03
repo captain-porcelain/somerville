@@ -3,7 +3,7 @@
             [somerville.geometry.commons :as c]
             [somerville.geometry.point :as p]
             [somerville.geometry.voronoi :as voronoi]
-            [somerville.geometry.rendering.svg :as svg]
+            [somerville.rendering.svg :as svg]
             [quil.core :as quil])
   (:gen-class))
 

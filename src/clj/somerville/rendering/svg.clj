@@ -1,4 +1,4 @@
-(ns somerville.geometry.rendering.svg
+(ns somerville.rendering.svg
   (:require
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]

@@ -1,4 +1,4 @@
-(ns somerville.resources
+(ns somerville.rendering.resources
   (:import
     [java.io InputStreamReader BufferedReader]))
 

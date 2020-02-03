@@ -9,7 +9,7 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.color.color :as color]
-    [somerville.image :as image]))
+    [somerville.rendering.image :as image]))
 
 
 ;;=======================================================================================================================

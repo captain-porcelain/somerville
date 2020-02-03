@@ -1,7 +1,7 @@
 (ns somerville.visualization.fill
   (:require [somerville.fills.line-fill :as lf]
             [somerville.geometry.point :as p]
-            [somerville.image :as i]
+            [somerville.rendering.image :as i]
             [somerville.color.color :as c]
             [quil.core :as quil])
   (:gen-class))

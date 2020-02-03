@@ -4,7 +4,7 @@
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
-    [somerville.image :as image]
+    [somerville.rendering.image :as image]
     [somerville.geometry.commons :as gcommons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]

@@ -5,7 +5,7 @@
     [java.awt.image BufferedImage])
   (:require
     [somerville.color.color :as color]
-    [somerville.image :as image]
+    [somerville.rendering.image :as image]
     [somerville.maps.grid :as grid]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]

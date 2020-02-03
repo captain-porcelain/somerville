@@ -4,7 +4,7 @@
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])
   (:require
-    [somerville.image :as image]
+    [somerville.rendering.image :as image]
     [somerville.maps.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]

@@ -1,6 +1,6 @@
-(ns somerville.image-test
+(ns somerville.rendering.image-test
   (:require
-    [somerville.image :as i]
+    [somerville.rendering.image :as i]
     [somerville.fills.flood-fill :as ff]
     [somerville.fills.line-fill :as lf]
     [somerville.geometry.point :as p]

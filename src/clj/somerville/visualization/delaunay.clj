@@ -3,7 +3,6 @@
             [somerville.geometry.commons :as c]
             [somerville.geometry.point :as p]
             [somerville.geometry.delaunay :as delaunay]
-            [somerville.geometry.rendering.svg :as svg]
             [quil.core :as quil])
   (:gen-class))
 

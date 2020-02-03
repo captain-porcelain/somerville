@@ -2,7 +2,7 @@
   (:import
     [java.awt.image BufferedImage])
   (:require
-    [somerville.image :as image]
+    [somerville.rendering.image :as image]
     [somerville.color.color :as color]))
 
 (defn find-edges

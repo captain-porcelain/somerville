@@ -1,15 +1,15 @@
-(ns somerville.artsy.image-triangulation
+(ns somerville.rendering.image-triangulation
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite]
     [java.awt.image BufferedImage])
   (:require
     [somerville.fills.flood-fill :as ff]
-    [somerville.image :as i]
+    [somerville.rendering.image :as i]
     [somerville.geometry.point :as p]
     [somerville.fills.convex-hull :as cxh]
     [somerville.fills.concave-hull :as cvh]
     [somerville.color.color :as c]
-    [somerville.geometry.rendering.svg :as svg]
+    [somerville.rendering.svg :as svg]
     [clojure.string :as s]))
 
 ;;==================================================================================================================

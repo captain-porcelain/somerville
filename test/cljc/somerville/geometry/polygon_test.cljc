@@ -1,18 +1,13 @@
 (ns somerville.geometry.polygon-test
-  (:import
-    [java.awt Color Graphics2D Rectangle AlphaComposite Polygon]
-    [java.awt.image BufferedImage])
   (:require
     [taoensso.timbre :as log]
     [taoensso.timbre.appenders.core :as appenders]
-    [somerville.image :as image]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
     [somerville.geometry.circle :as c]
     [somerville.geometry.polygon :as poly])
   (:use clojure.test))
-
 
 (log/set-config!
   {:level :debug

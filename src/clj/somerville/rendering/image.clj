@@ -1,5 +1,5 @@
 ;; Provides the facilities to manipulate images
-(ns somerville.image
+(ns somerville.rendering.image
   (:import
     [java.awt Color]
     [java.awt.image BufferedImage]

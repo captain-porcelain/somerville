@@ -5,8 +5,8 @@
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
-    [somerville.resources :as resources]
-    [somerville.image :as image]
+    [somerville.rendering.resources :as resources]
+    [somerville.rendering.image :as image]
     [somerville.maps.grid :as grid]))
 
 (defn image-size-rect

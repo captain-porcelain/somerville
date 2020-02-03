@@ -3,7 +3,7 @@
     [java.awt Color Graphics2D Rectangle AlphaComposite RenderingHints Polygon BasicStroke]
     [java.awt.image BufferedImage])
   (:require
-    [somerville.image :as image]
+    [somerville.rendering.image :as image]
     [somerville.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.polygon :as poly]
