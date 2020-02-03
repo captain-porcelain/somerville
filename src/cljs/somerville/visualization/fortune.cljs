@@ -5,8 +5,7 @@
             [somerville.geometry.parabola :as parabola]
             [somerville.geometry.fortune :as fortune]
             [somerville.geometry.voronoi :as voronoi]
-            [quil.core :as quil])
-  (:gen-class))
+            [quil.core :as quil :include-macros true]))
 
 (def width 600)
 (def height 600)
@@ -20,65 +19,65 @@
 
 (defn draw-intersection
   [i]
-  (quil/stroke-float 0 0 255)
-  (quil/fill-float 0 0 255)
+  (quil/stroke 0 0 255)
+  (quil/fill 0 0 255)
   (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))
 
 (defn draw-bisector
   [bisector]
   (let [y0 (line/solve-line-at (:line bisector) 0)
         y1 (line/solve-line-at (:line bisector) width)]
-    (quil/stroke-float 0 255 0)
-    (quil/fill-float 0 255 0)
+    (quil/stroke 0 255 0)
+    (quil/fill 0 255 0)
     (quil/line 0 y0 width y1)))
 
 (defn draw-parabola
   [parabola]
   (let [xs (range (quil/width))]
-    (quil/stroke-float 237 237 177)
-    (quil/fill-float 237 237 177)
+    (quil/stroke 237 237 177)
+    (quil/fill 237 237 177)
     (dorun
       (for [x xs]
         (quil/line x (parabola/solve-parabola-at parabola x) (+ x 1) (parabola/solve-parabola-at parabola (+ x 1)))))))
 
 (defn draw-sweepline
   [y]
-  (quil/stroke-float 211 248 226)
-  (quil/fill-float 211 248 226)
+  (quil/stroke 211 248 226)
+  (quil/fill 211 248 226)
   (quil/line 0 y width y))
 
 (defn draw-site
   [site]
-  (quil/stroke-float 246 148 193)
-  (quil/fill-float 246 148 193)
+  (quil/stroke 246 148 193)
+  (quil/fill 246 148 193)
   (quil/rect (- (:x site) 2) (- (:y site) 2) 4 4))
 
 (defn draw-event
   [site]
-  (quil/stroke-float 211 248 226)
-  (quil/fill-float 211 248 226)
+  (quil/stroke 211 248 226)
+  (quil/fill 211 248 226)
   (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4))
 
 (defn draw-edge
   [edge]
-  (quil/stroke-float 169 222 249)
-  (quil/fill-float 169 222 249)
+  (quil/stroke 169 222 249)
+  (quil/fill 169 222 249)
   (when (and (not (nil? (:left edge))) (not (nil? (:right edge))))
     (let [m (p/midpoint (:left edge) (:right edge))]
       (quil/line (:x (:start edge)) (:y (:start edge)) (:x m) (:y m)))))
 
 (defn draw-cell
   [cell]
-  (quil/stroke-float 200 200 200)
-  (quil/fill-float 200 200 200)
+  (quil/stroke 200 200 200)
+  (quil/fill 200 200 200)
   (dorun (map #(quil/line (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines cell))))
 
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (quil/background-float 0)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
   (dorun
 	(for [site (:cells @vsites)]
 	  (draw-cell site)))
@@ -134,9 +133,9 @@
 	  (reset! vsites (voronoi/voronoi @points 0 0 width height))
       (reset! sites (fortune/voronoi @points)))))
 
-(defn show []
-  (quil/sketch
-    :title "voronoi"
+(defn^:export  show []
+  (quil/defsketch fortune
+    :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]
