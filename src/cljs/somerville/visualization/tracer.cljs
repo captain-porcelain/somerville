@@ -1,10 +1,8 @@
-(ns somerville.visualization.fill
+(ns somerville.visualization.tracer
   (:require [somerville.fills.line-fill :as lf]
             [somerville.geometry.point :as p]
-            [somerville.rendering.image :as i]
             [somerville.color.color :as c]
-            [quil.core :as quil])
-  (:gen-class))
+            [quil.core :as quil :include-macros true]))
 
 (def width 320)
 (def height 320)
@@ -14,12 +12,12 @@
 (def draw-fill (atom true))
 (def threshold-cie (atom 10))
 (def threshold-cluster (atom 100))
-(def image (i/load-image "./resources/test-image.jpg"))
+(def image (atom nil))
 (def alt (atom false))
 
 (defn decider-fn
   [p1 p2]
-  (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
+  (let [vfn (fn [p] (c/rgba (quil/get-pixel @image (:x p) (:y p))))
         cie (c/cie76 (vfn p1) (vfn p2))]
     (< cie @threshold-cie)))
 
@@ -28,10 +26,10 @@
   (dorun
     (for [l cluster]
       (let [p (:p1 (first cluster))
-            dc (c/rgba (.getRGB image (:x p) (:y p)))
+            dc (c/rgba (quil/get-pixel @image (:x p) (:y p)))
             dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (c/rgba 255 255 255) dc)]
-        (quil/stroke-float (:r dc) (:g dc) (:b dc))
-        (quil/fill-float (:r dc) (:g dc) (:b dc))
+        (quil/stroke (:r dc) (:g dc) (:b dc))
+        (quil/fill (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn do-filter
@@ -59,11 +57,12 @@
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (quil/background-float 0)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
   (when (not @draw-fill) (quil/image @test-image 0 0))
-  (when @draw-fill (dorun (for [cl @partitions] (draw-cluster cl)))))
+  ;(when @draw-fill (dorun (for [cl @partitions] (draw-cluster cl)))))
+  )
 
 (defn setup
   "This function is called by quil once before drawing"
@@ -71,8 +70,10 @@
   (quil/smooth)
   (quil/fill 226)
   (quil/frame-rate 1)
-  (reset! test-image (quil/load-image  "./resources/test-image.jpg"))
-  (dopartition))
+  (reset! test-image (quil/load-image  "../test-image.jpg"))
+  (reset! image (quil/load-image "../test-image.jpg"))
+  ;(do-partition)
+  )
 
 (defn mouse-pressed [])
 (defn mouse-released [])
@@ -82,7 +83,7 @@
     (reset! alt false)))
 
 (defn key-pressed []
-  ;;(dorun (println (str "pressed code " (quil/key-code))))
+  ;(dorun (println (str "pressed code " (quil/key-code))))
   (if (= (quil/key-code) 18) ; alt
     (reset! alt true))
   (if (= (quil/key-code) 521) ; +
@@ -108,9 +109,9 @@
   (if (= (quil/key-code) 68) ; d
     (reset! draw-fill (not @draw-fill))))
 
-(defn show []
-  (quil/sketch
-    :title "line fill"
+(defn ^:export show []
+  (quil/defsketch tracer
+    :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]

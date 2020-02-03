@@ -6,6 +6,7 @@
     [javax.imageio ImageIO]
     [java.io File])
   (:require
+    [somerville.color.color :as color]
     [clojure.java.io :as io]))
 
 ;; try to improve performance by having hints when reflection is needed.
@@ -63,6 +64,11 @@
   (if (in-bounds-raw? img [x y])
     (= Color/WHITE (Color. (.getRGB img x y)))
     false))
+
+(defn convert-awt
+  [^Integer c]
+  (let [col (java.awt.Color. c)]
+    (color/ColorRGBA. (.getRed col) (.getGreen col) (.getBlue col) (.getAlpha col))))
 
 (defn to-awt
   "Convert rgba color into java awt Color."

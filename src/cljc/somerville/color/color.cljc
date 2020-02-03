@@ -9,11 +9,6 @@
   []
   (ColorRGBA. (rand-int 255) (rand-int 255) (rand-int 255) 255))
 
-(defn convert-awt
-  [^Integer c]
-  (let [col (java.awt.Color. c)]
-    (ColorRGBA. (.getRed col) (.getGreen col) (.getBlue col) (.getAlpha col))))
-
 (defn convert-bit
   [^Integer c]
   (ColorRGBA. (bit-shift-right (bit-and c 0xff0000) 16) (bit-shift-right (bit-and c 0xff00) 8) (bit-and c 0xff)  (bit-shift-right (bit-and c 0xff000000) 24)))
@@ -31,13 +26,13 @@
 
 (defn- xyzconv1
   [c]
-  (if (<= c 0.040) (/ c 12) (java.lang.Math/pow (/ (+ c 0.055) 1.055) 2.4)))
+  (if (<= c 0.040) (/ c 12) (Math/pow (/ (+ c 0.055) 1.055) 2.4)))
 
 (defn- xyzconv2
   [c]
   (let [eps (/ 216.0 24389.0)
         k (/ 24389.0 27.0)]
-    (if (> c eps) (java.lang.Math/pow c (/ 1 3)) (/ (+ (* k c) 16.0) 116.0))))
+    (if (> c eps) (Math/pow c (/ 1 3)) (/ (+ (* k c) 16.0) 116.0))))
 
 (defn xyz
   "Convert RGBA to XYZ. Found at http://stackoverflow.com/questions/4593469/java-how-to-convert-rgb-color-to-cie-lab"
@@ -78,7 +73,7 @@
         ld (- (:l lab2) (:l lab1))
         ad (- (:a lab2) (:a lab1))
         bd (- (:b lab2) (:b lab1))]
-    (java.lang.Math/sqrt (+ (* ld ld) (+ ad ad) (* bd bd)))))
+    (Math/sqrt (+ (* ld ld) (+ ad ad) (* bd bd)))))
 
 (defn to-vector
   "Convert record to vector"
