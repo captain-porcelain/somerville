@@ -21,7 +21,7 @@
   (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
-        tmp (.setPaint graphics (color/to-awt (apply color/rgba (:background-color config))))
+        tmp (.setPaint graphics (image/to-awt (apply color/rgba (:background-color config))))
         tmp (.fill graphics (Rectangle. 0 0 width height))]
     [img graphics]))
 
@@ -31,16 +31,16 @@
   (let [xs (into-array Integer/TYPE (map :x (polygon/to-points polygon)))
         ys (into-array Integer/TYPE (map :y (polygon/to-points polygon)))
         p (Polygon. xs ys (count xs))
-        ;tmp (.setPaint graphics (color/to-awt (apply color/rgba fill-color)))
+        ;tmp (.setPaint graphics (image/to-awt (apply color/rgba fill-color)))
         ;tmp (.fillPolygon graphics p)
-        tmp (.setPaint graphics (color/to-awt (apply color/rgba line-color)))
+        tmp (.setPaint graphics (image/to-awt (apply color/rgba line-color)))
         tmp (.drawPolygon graphics p)]))
 
 (defn render-line
   [graphics line line-color]
   ;(.fillOval graphics (- (:x (:p1 line)) 2) (- (:y (:p1 line)) 4) 4 4)
   ;(.fillOval graphics (- (:x (:p2 line)) 2) (- (:y (:p2 line)) 2) 4 4)
-  (.setPaint graphics (color/to-awt (apply color/rgba line-color)))
+  (.setPaint graphics (image/to-awt (apply color/rgba line-color)))
   (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))
 
 (def default-config

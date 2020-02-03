@@ -5,6 +5,7 @@
     [java.awt.image BufferedImage])
   (:require
     [somerville.commons :as commons]
+    [somerville.resources :as resources]
     [somerville.image :as image]
     [somerville.maps.grid :as grid]))
 
@@ -25,7 +26,7 @@
 (defn tilesets
   "List available tilesets."
   [grid-type]
-  (commons/list-resources (str "tiles/" grid-type)))
+  (resources/list-resources (str "tiles/" grid-type)))
 
 (defn tile-type
   [filename]
@@ -34,7 +35,7 @@
 (defn load-tile-types
   "Load all tiles in a tileset."
   [tileset grid-type]
-  (map #(vector (tile-type %) (str "tiles/" grid-type "/" tileset "/" %)) (sort (commons/list-resources (str "tiles/" grid-type "/" tileset)))))
+  (map #(vector (tile-type %) (str "tiles/" grid-type "/" tileset "/" %)) (sort (resources/list-resources (str "tiles/" grid-type "/" tileset)))))
 
 (defn load-tiles-map
   "Load all tiles in a tileset."

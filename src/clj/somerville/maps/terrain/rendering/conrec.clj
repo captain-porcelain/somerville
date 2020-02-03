@@ -250,13 +250,13 @@
   (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         graphics ^Graphics2D (.createGraphics img)
         tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
-        tmp (.setPaint graphics (color/to-awt (apply color/rgba (:background-color config))))
+        tmp (.setPaint graphics (image/to-awt (apply color/rgba (:background-color config))))
         tmp (.fill graphics (Rectangle. 0 0 width height))]
     [img graphics]))
 
 (defn render-line
   [graphics line line-color width height]
-  (.setPaint graphics (color/to-awt (apply color/rgba line-color)))
+  (.setPaint graphics (image/to-awt (apply color/rgba line-color)))
   (.drawLine graphics (- width (:x (:p1 line))) (- height (:y (:p1 line))) (- width (:x (:p2 line))) (- height (:y (:p2 line)))))
 
 (defn draw-height-lines

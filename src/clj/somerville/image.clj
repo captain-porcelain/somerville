@@ -64,3 +64,7 @@
     (= Color/WHITE (Color. (.getRGB img x y)))
     false))
 
+(defn to-awt
+  "Convert rgba color into java awt Color."
+  [c]
+  (Color. ^Integer (int (:r c)) ^Integer (int (:g c)) ^Integer (int (:b c)) ^Integer (int (:a c))))

@@ -72,3 +72,4 @@
   "Given an L system create lines that visualizes it."
   [lsystem start-point length renderer]
   (connect-points (render-points lsystem start-point length renderer)))
+

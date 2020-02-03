@@ -1,6 +1,4 @@
-(ns somerville.color.color
-  (:import
-    [java.awt Color]))
+(ns somerville.color.color)
 
 (defrecord ColorRGBA [r g b a])
 (defrecord ColorLab [l a b])
@@ -81,11 +79,6 @@
         ad (- (:a lab2) (:a lab1))
         bd (- (:b lab2) (:b lab1))]
     (java.lang.Math/sqrt (+ (* ld ld) (+ ad ad) (* bd bd)))))
-
-(defn to-awt
-  "Convert rgba color into java awt Color."
-  [c]
-  (Color. ^Integer (int (:r c)) ^Integer (int (:g c)) ^Integer (int (:b c)) ^Integer (int (:a c))))
 
 (defn to-vector
   "Convert record to vector"

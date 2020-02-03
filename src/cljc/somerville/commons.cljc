@@ -1,6 +1,4 @@
-(ns somerville.commons
-  (:import
-    [java.io InputStreamReader BufferedReader]))
+(ns somerville.commons)
 
 (defn abs
   "Calculate absolute value."
@@ -20,24 +18,18 @@
       nil
       (nth elements (rand-int c)))))
 
-(defn resource-stream
-  "Get an InputStream from a resource"
-  [resource-name]
-  (let [thr (Thread/currentThread)
-        ldr (if (nil? thr) nil (.getContextClassLoader thr))]
-    (if (nil? ldr) nil (.getResourceAsStream ldr resource-name))))
-
-(defn list-resources
-  "List resources available at path."
-  [path]
-  (line-seq (BufferedReader. (InputStreamReader. (resource-stream path)))))
-
 (defn parse-int
   "Try to parse a string as a integer."
   ([^String n default]
-   (try
-     (Integer/parseInt n)
-     (catch Exception e default)))
+   #?(:clj
+      (try
+        (Integer/parseInt n)
+        (catch Exception e default))
+      :cljs
+      (try
+        (js/parseInt n)
+        (catch js/Object e default))
+      ))
   ([^String n]
    (parse-int n 0)))
 
