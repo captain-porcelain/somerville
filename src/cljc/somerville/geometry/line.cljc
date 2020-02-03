@@ -24,9 +24,9 @@
      (-compare
        [this other]
        (if
-         (= 0 (.compareTo (:p1 this) (:p1 other)))
-         (.compareTo (:p2 this) (:p2 other))
-         (.compareTo (:p1 this) (:p1 other))))
+         (= 0 (compare (:p1 this) (:p1 other)))
+         (compare (:p2 this) (:p2 other))
+         (compare (:p1 this) (:p1 other))))
      c/Printable
      (c/out [this i] (str (c/indent i) "Line from " (if (nil? p1) "NIL" (c/out p1)) " to " (if (nil? p2) "NIL" (c/out p2))))
      (c/out [this] (c/out this 0))))

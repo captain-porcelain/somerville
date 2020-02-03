@@ -2,11 +2,10 @@
   (:require [somerville.color.color :as color]
             [somerville.geometry.polygon :as polygon]
             [somerville.maps.gaia.core :as gaia]
-            [quil.core :as quil])
-  (:gen-class))
+            [quil.core :as quil :include-macros true]))
 
-(def width 600)
-(def height 600)
+(def width 400)
+(def height 400)
 (def line-color (color/rgba 128 40 20))
 (def fill-color (color/rgba 40 40 40 128))
 (def focus-line-color (color/rgba 128 200 20))
@@ -78,9 +77,9 @@
   "This function is called by processing repeatedly."
   []
   (quil/background 0)
-  (quil/with-translation [(/ 800 2) (/ 800 2)]
-    (quil/with-rotation [(get-mouse-angle-y 800) 1 0 0]
-      (quil/with-rotation [(get-mouse-angle-x 800) 0 1 0]
+  (quil/with-translation [(/ width 2) (/ height 2)]
+    (quil/with-rotation [(get-mouse-angle-y width) 1 0 0]
+      (quil/with-rotation [(get-mouse-angle-x height) 0 1 0]
         (quil/with-rotation [(/ 0 tau) 0 0 1]
           (dorun
             (for [l @world]
@@ -98,12 +97,12 @@
     83 (do (reset! index 0) (reset! world (gaia/subdivide @world))) ;; s
     nil))
 
-(defn show []
-  (quil/sketch
-    :title "voronoi"
+(defn ^:export show []
+  (quil/defsketch gaia
+    :host "hostelement"
     :setup setup
     :draw draw
-    :size [width height]
+    :size [(* 3 width) (* 3 height)]
     :renderer :p3d
     :mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed
