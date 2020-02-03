@@ -3,8 +3,8 @@
   :dependencies
   [[org.clojure/clojure "1.10.1"]
    [org.clojure/clojurescript "1.10.597"]
+   [quil "2.6.0"]
    [dali "0.7.5"]
-   [quil "3.1.0"]
    [fs "1.3.3"]
    [ubergraph "0.8.2"]
    [com.taoensso/timbre "4.10.0"]]
@@ -14,6 +14,7 @@
    [lein-marginalia "0.9.1"]]
   ;:main somerville.core
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
+  :test-paths ["src/clj" "src/cljc" "src/cljs"]
   :repl-options
   {:timeout 120000}
   :hooks [leiningen.cljsbuild]
