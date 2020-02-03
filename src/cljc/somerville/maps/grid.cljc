@@ -15,7 +15,7 @@
      (< x (:width g))
      (<= 0 x)
      (<= 0 y))
-     (not (:masked (try (aget (:array g) x y) (catch Exception e {:masked true})))))
+     (not (:masked (try (aget (:array g) x y) (catch #?(:clj Exception :cljs js/Object) e {:masked true})))))
   ([g c]
    (in-bounds? g (:x c) (:y c))))
 
