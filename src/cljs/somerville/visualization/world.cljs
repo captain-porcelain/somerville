@@ -6,8 +6,7 @@
             [somerville.geometry.sphere :as sphere]
             [somerville.geometry.projection.stereographic :as proj]
             [somerville.geometry.delaunay :as delaunay]
-            [quil.core :as quil])
-  (:gen-class))
+            [quil.core :as quil :include-macros true]))
 
 ;;============================================================================================================
 ;; Helpers
@@ -32,8 +31,8 @@
 
 (defn draw-point
   [p]
-  (quil/stroke-float 0 128 255)
-  (quil/fill-float 0 128 255)
+  (quil/stroke 0 128 255)
+  (quil/fill 0 128 255)
   (quil/stroke-weight 1)
   (let [sp (point/scale p 100)]
     (quil/with-translation [(:x sp) (:y sp) (:z sp)]
@@ -41,8 +40,8 @@
 
 (defn draw-line
   [l]
-  (quil/stroke-float 255 128 0)
-  (quil/fill-float 255 128 0)
+  (quil/stroke 255 128 0)
+  (quil/fill 255 128 0)
   (quil/stroke-weight 1)
   (let [p1 (point/scale (:p1 l) 100)
         p2 (point/scale (:p2 l) 100)]
@@ -52,12 +51,12 @@
   "This function is called by quil repeatedly."
   []
   (quil/camera 300 300 0 0 0 0 0 0 -1)
-  (quil/background-float 0)
-  (quil/stroke-float 222 0 128)
+  (quil/background 0)
+  (quil/stroke 222 0 128)
   (quil/no-fill)
   (quil/rect 0 0 width height)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
   (dorun
     (for [p @points]
       (draw-point p)))
@@ -72,9 +71,9 @@
   (quil/fill 226)
   (quil/frame-rate 10))
 
-(defn show []
-  (quil/sketch
-    :title "voronoi"
+(defn ^:export show []
+  (quil/defsketch world
+    :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]
