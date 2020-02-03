@@ -2,8 +2,7 @@
   (:require [somerville.grammar.l-system :as ls]
             [somerville.geometry.point :as p]
             [somerville.geometry.line :as line]
-            [quil.core :as quil])
-  (:gen-class))
+            [quil.core :as quil :include-macros true]))
 
 (def width 320)
 (def height 320)
@@ -20,8 +19,8 @@
 (defn update-angle
   [render-state sym]
   (cond
-    (= :+ sym) (+ (:angle render-state) (/ java.lang.Math/PI 4))
-    (= :- sym) (- (:angle render-state) (/ java.lang.Math/PI 4))
+    (= :+ sym) (+ (:angle render-state) (/ Math/PI 4))
+    (= :- sym) (- (:angle render-state) (/ Math/PI 4))
     :else (:angle render-state)))
 
 (defn update-points
@@ -39,16 +38,16 @@
   (dorun
     (for [l @rendering]
       (let []
-        (quil/stroke-float 255 255 0)
-        (quil/fill-float 255 255 0)
+        (quil/stroke 255 255 0)
+        (quil/fill 255 255 0)
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (quil/background-float 0)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
   (dorun (draw-koch)))
 
 (defn setup
@@ -83,9 +82,9 @@
       (dorun (println (:state @current)))
       (render))))
 
-(defn show []
-  (quil/sketch
-    :title "koch curve"
+(defn ^:export show []
+  (quil/defsketch lsystem
+    :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]

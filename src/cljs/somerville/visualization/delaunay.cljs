@@ -88,7 +88,7 @@
 
 (defn ^:export show []
   (quil/defsketch delaunay
-    :host "delaunay"
+    :host "hostelement"
     :setup setup
     :draw draw
     :size [(* 2 width) (* 2 height)]
