@@ -1,7 +1,7 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
 (ns somerville.maps.discovery-test
   (:require
-    [somerville.maps.discovery :as rcwt]
+    [somerville.rendering.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l])

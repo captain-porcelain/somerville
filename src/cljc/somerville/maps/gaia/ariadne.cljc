@@ -1,13 +1,11 @@
 (ns somerville.maps.gaia.ariadne
   (:require
     [somerville.geometry.polygon :as polygon]
-    [somerville.geometry.point :as point])
-  (:import java.util.Random))
+    [somerville.geometry.point :as point]))
 
 ;;=================================================================================================================
 ;; Taken from Ariadne
 
-(def rnd (new Random))
 (def tau (* 2 Math/PI))
 
 (defn- fractions
@@ -35,7 +33,7 @@
 (defn- randomize
   "Randomize an angle such that it won't conflict with it's neighbours."
   [angle n]
-  (let [random (/ (* (/ tau n) (- (.nextFloat rnd) 1)) 1.5)]
+  (let [random (/ (* (/ tau n) (- (rand) 1)) 1.5)]
     (+ angle random)))
 
 (defn- randomize-angles

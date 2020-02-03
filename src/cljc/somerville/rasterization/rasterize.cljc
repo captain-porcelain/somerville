@@ -1,5 +1,5 @@
 ;; Provides functions for handling geometric objects.
-(ns somerville.geometry.rasterize)
+(ns somerville.rasterization.rasterize)
 
 (defn circlefn
   "Build a function that calculates the positive y values at x for a circle with a radius of r."

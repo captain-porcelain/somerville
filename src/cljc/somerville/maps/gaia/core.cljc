@@ -3,7 +3,7 @@
 (ns somerville.maps.gaia.core
   (:require
     [clojure.set :as s]
-    [ubergraph.core :as uber]
+    ;[ubergraph.core :as uber]
     [somerville.geometry.commons :as gcommons]
     [somerville.geometry.triangle :as triangle]
     [somerville.geometry.point :as point]
@@ -79,7 +79,7 @@
 (defn polygonate
   [p ts]
   (let [affected (filter #(or (= (:p1 %) p (= (:p2 %) p)) (= (:p3 %) p)) ts)
-        centers (map #(point/scale (point/add (:p1 %) (point/add (:p2 %) (:p3 %))) 1/3) affected)]
+        centers (map #(point/scale (point/add (:p1 %) (point/add (:p2 %) (:p3 %))) 0.3333) affected)]
     (polygon/from-points centers)))
 
 (defn triangle-points
@@ -110,7 +110,7 @@
   [ts]
   (into '() (apply s/union (map #(neighbours % ts) ts))))
 
-(defn create-graph
-  [ts]
-  (apply uber/add-edges (apply uber/add-nodes (uber/graph) ts) (create-edges ts)))
+;(defn create-graph
+  ;[ts]
+  ;(apply uber/add-edges (apply uber/add-nodes (uber/graph) ts) (create-edges ts)))
 

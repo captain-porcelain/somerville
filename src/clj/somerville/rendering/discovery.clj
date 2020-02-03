@@ -1,4 +1,4 @@
-(ns somerville.maps.discovery
+(ns somerville.rendering.discovery
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])

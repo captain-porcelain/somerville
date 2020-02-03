@@ -1,4 +1,4 @@
-(ns somerville.maps.gaia.gui
+(ns somerville.visualization.gaia
   (:require [somerville.color.color :as color]
             [somerville.geometry.polygon :as polygon]
             [somerville.maps.gaia.core :as gaia]

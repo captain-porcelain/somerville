@@ -1,8 +1,8 @@
-(ns somerville.maps.terrain.rendering.povray
+(ns somerville.rendering.terrain.povray
   (:require
     [clojure.string :as s]
     [clojure.java.shell :as shell]
-    [somerville.maps.terrain.rendering.conrec :as conrec]
+    [somerville.rasterization.conrec :as conrec]
     [somerville.geometry.point :as p]
     [somerville.geometry.polygon :as polygon]
     [somerville.maps.grid :as grid]))

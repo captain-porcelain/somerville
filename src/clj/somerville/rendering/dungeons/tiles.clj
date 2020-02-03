@@ -1,5 +1,5 @@
 ;; Provides the facilities to manipulate images
-(ns somerville.maps.dungeons.rendering.tiles
+(ns somerville.rendering.dungeons.tiles
   (:import
     [java.awt Graphics2D]
     [java.awt.image BufferedImage])

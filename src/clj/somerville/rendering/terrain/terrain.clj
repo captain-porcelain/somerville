@@ -1,9 +1,9 @@
-(ns somerville.maps.terrain.rendering.terrain
+(ns somerville.rendering.terrain.terrain
   (:import
     [java.awt Color Graphics2D Rectangle RenderingHints Polygon]
     [java.awt.image BufferedImage])
   (:require
-    [somerville.maps.terrain.rendering.conrec :as conrec]
+    [somerville.rasterization.conrec :as conrec]
     [somerville.geometry.projection.projection :as projection]
     [somerville.geometry.polygon :as polygon]
     [somerville.geometry.point :as p]

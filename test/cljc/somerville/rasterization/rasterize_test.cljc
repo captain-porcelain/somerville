@@ -1,5 +1,5 @@
 ;; Test the geometry functions.
-(ns somerville.geometry.rasterize-test
+(ns somerville.rasterization.rasterize-test
   (:use clojure.test)
   (:use somerville.geometry.rasterize))
 

@@ -5,7 +5,7 @@
     [java.awt.image BufferedImage])
   (:require
     [somerville.rendering.image :as image]
-    [somerville.maps.discovery :as rcwt]
+    [somerville.rendering.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]
