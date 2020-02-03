@@ -3,9 +3,8 @@
             [somerville.geometry.commons :as c]
             [somerville.geometry.point :as p]
             [somerville.geometry.voronoi :as voronoi]
-            [somerville.rendering.svg :as svg]
-            [quil.core :as quil])
-  (:gen-class))
+            ;[somerville.rendering.svg :as svg]
+            [quil.core :as quil :include-macros true]))
 
 (def width 600)
 (def height 600)
@@ -18,22 +17,22 @@
 
 (defn draw-intersection
   [i]
-  (quil/stroke-float 0 0 255)
-  (quil/fill-float 0 0 255)
+  (quil/stroke 0 0 255)
+  (quil/fill 0 0 255)
   (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))
 
 (defn draw-bisector
   [bisector]
   (let [y0 (line/solve-line-at (:line bisector) 0)
         y1 (line/solve-line-at (:line bisector) width)]
-    (quil/stroke-float 0 255 0)
-    (quil/fill-float 0 255 0)
+    (quil/stroke 0 255 0)
+    (quil/fill 0 255 0)
     (quil/line 0 y0 width y1)))
 
 (defn draw-site
   [site]
-  (quil/stroke-float 255 0 0)
-  (quil/fill-float 255 0 0)
+  (quil/stroke 255 0 0)
+  (quil/fill 255 0 0)
   (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4)
   ;(dorun
   ;  (for [b (:bisectors site)]
@@ -52,24 +51,24 @@
   (dorun
     (for [l (:lines cell)]
       (let []
-        (quil/stroke-float 255 255 0)
-        (quil/fill-float 255 255 0)
+        (quil/stroke 255 255 0)
+        (quil/fill 255 255 0)
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))
   (dorun
     (when (not (nil? @highlighted))
      (for [l (:lines @highlighted)]
         (let []
-          (quil/stroke-float 255 255 255)
-          (quil/fill-float 255 255 255)
+          (quil/stroke 255 255 255)
+          (quil/fill 255 255 255)
           (quil/rect (- (:x (:point @highlighted)) 2) (- (:y (:point @highlighted)) 2) 4 4)
           (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))))
 
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (quil/background-float 0)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
   (dorun
     (for [site (:points @sites)]
       (draw-site site)))
@@ -100,12 +99,13 @@
 		(reset! sites (voronoi/voronoi @points 0 0 width height))))
     (if (= (quil/key-code) 68) ; d
       (dorun (println (c/out @sites))))
-    (if (= (quil/key-code) 80) ; p
-      (svg/voronoi @sites "/tmp/voronoi.svg")))
+    ;(if (= (quil/key-code) 80) ; p
+      ;(svg/voronoi @sites "/tmp/voronoi.svg"))
+    )
 
-(defn show []
-  (quil/sketch
-    :title "voronoi"
+(defn ^:export show []
+  (quil/defsketch voronoi
+    :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]
