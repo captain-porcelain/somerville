@@ -3,8 +3,7 @@
             [somerville.geometry.commons :as c]
             [somerville.geometry.point :as p]
             [somerville.geometry.delaunay :as delaunay]
-            [quil.core :as quil])
-  (:gen-class))
+            [quil.core :as quil :include-macros true]))
 
 (def width 600)
 (def height 600)
@@ -16,37 +15,37 @@
 
 (defn draw-point
   [p]
-  (quil/stroke-float 0 128 255)
-  (quil/fill-float 0 128 255)
+  (quil/stroke 0 128 255)
+  (quil/fill 0 128 255)
   (quil/rect (:x p) (:y p) 4 4))
 
 (defn draw-triangle
   [t]
-  (quil/stroke-float 222 128 128)
+  (quil/stroke 222 128 128)
   ;(quil/no-fill)
   ;(quil/ellipse (:x (:p (:c t))) (:y (:p (:c t))) (:r (:c t)) (:r (:c t)))
-  (quil/fill-float 22 18 108)
+  (quil/fill 22 18 108)
   (quil/rect (:x (:p (:c t))) (:y (:p (:c t))) 4 4)
-  (quil/stroke-float 222 128 128)
+  (quil/stroke 222 128 128)
   (quil/line (:x (:p1 (:t t))) (:y (:p1 (:t t))) (:x (:p2 (:t t))) (:y (:p2 (:t t))))
   (quil/line (:x (:p2 (:t t))) (:y (:p2 (:t t))) (:x (:p3 (:t t))) (:y (:p3 (:t t))))
   (quil/line (:x (:p3 (:t t))) (:y (:p3 (:t t))) (:x (:p1 (:t t))) (:y (:p1 (:t t)))))
 
 (defn draw-line
   [l]
-  (quil/stroke-float 22 255 50)
-  (quil/fill-float 22 255 50)
+  (quil/stroke 22 255 50)
+  (quil/fill 22 255 50)
   (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))
 
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (quil/background-float 0)
-  (quil/stroke-float 222 222 128)
+  (quil/background 0)
+  (quil/stroke 222 222 128)
   (quil/no-fill)
   (quil/rect 0 0 width height)
-  (quil/stroke-float 0 255 0)
-  (quil/fill-float 0 255 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
   (dorun
     (for [p @points]
       (draw-point p)))
@@ -87,9 +86,9 @@
       :v (reset! draw-voronoi (not @draw-voronoi))
       (dorun (println (str "pressed key " (quil/key-as-keyword))))))
 
-(defn show []
-  (quil/sketch
-    :title "voronoi"
+(defn ^:export show []
+  (quil/defsketch delaunay
+    :host "delaunay"
     :setup setup
     :draw draw
     :size [(* 2 width) (* 2 height)]

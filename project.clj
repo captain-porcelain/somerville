@@ -3,7 +3,7 @@
   :dependencies
   [[org.clojure/clojure "1.10.1"]
    [org.clojure/clojurescript "1.10.597"]
-   [quil "2.6.0"]
+   [quil "3.1.0"]
    [dali "0.7.5"]
    [fs "1.3.3"]
    [ubergraph "0.8.2"]
