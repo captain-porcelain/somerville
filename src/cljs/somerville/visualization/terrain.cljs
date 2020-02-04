@@ -17,18 +17,14 @@
    :line         [128 20 128 255]
    :colors       [[0 161 228 255] [204 88 3 255] [137 252 0 255] [160 160 160 255] [240 240 240 255]]})
 
-(def heights
-  {:heights      [-1000 10 20 28 32]
-   :height-steps 4})
-
 ;;====================================================================================================
 ;; Data Handling
 
-(def loki-detail (atom 3))
+(def loki-detail (reagent/atom 3))
 (def loki-config (atom (loki/default-config @loki-detail)))
 (def world (atom nil))
 
-(def contour-steps (atom 5))
+(def contour-steps (reagent/atom 5))
 (def contours (atom nil))
 
 (defn recreate-world!
@@ -40,19 +36,40 @@
   (reset! contours (conrec/contour @world @contour-steps))
   (log/info "Done"))
 
-(defn increase-detail
+(defn recreate-contour!
+  "Recreate the contouring."
+  []
+  (log/info "Create contour")
+  (reset! contours (conrec/contour @world @contour-steps))
+  (log/info "Done"))
+
+(defn increase-detail!
   "Increase the detail settings for loki."
   []
   (swap! loki-detail inc)
   (log/info "Loki details set to" @loki-detail))
 
-(defn decrease-detail
+(defn decrease-detail!
   "Decrease the detail settings for loki."
   []
   (when (> @loki-detail 1)
     (do
       (swap! loki-detail dec)
       (log/info "Loki details set to" @loki-detail))))
+
+(defn increase-steps!
+  "Increase the step settings for conrec."
+  []
+  (swap! contour-steps inc)
+  (log/info "Conrec steps set to" @contour-steps))
+
+(defn decrease-steps!
+  "Decrease the detail settings for loki."
+  []
+  (when (> @contour-steps 1)
+    (do
+      (swap! contour-steps dec)
+      (log/info "Conrec steps set to" @contour-steps))))
 
 ;;====================================================================================================
 ;; Drawing Functionality
@@ -101,8 +118,11 @@
   "Trigger actions on key presses."
   []
   (case (quil/key-code)
-    171 (increase-detail) ;; +
-    173 (decrease-detail) ;; -
+    171 (increase-detail!) ;; +
+    173 (decrease-detail!) ;; -
+    76  (decrease-steps!) ;; l
+    77  (increase-steps!) ;; m
+    67  (recreate-contour!) ;; c
     84  (recreate-world!) ;; s
     (log/info "Pressed unhandled key with code" (quil/key-code))))
 
@@ -136,12 +156,23 @@
    [:h3 "Usage"]
    [:span
     "Press"
-    [:br]
-    "t to create a new terrain"
-    [:br]
-    "+ to increase terrain detail level"
-    [:br]
-    "- to decrease terrain detail level"]])
+    [:ul
+     [:li "t to create a new terrain"]
+     [:li "c to recreate contours"]
+     [:li "+ to increase terrain detail level"]
+     [:li "- to decrease terrain detail level"]
+     [:li "m to increase contour steps"]
+     [:li "p to decrease contour steps"]]]])
+
+(defn settings
+  "Show information current settings."
+  [props]
+  [:div
+   [:h3 "Settings"]
+   [:span
+    [:ul
+     [:li (str "Loki detail: " @loki-detail)]
+     [:li (str "Contour steps: " @contour-steps)]]]])
 
 (defn ui
   "Draw the basic ui for this visualization."
@@ -149,7 +180,8 @@
   [:div {:class "row"}
    [:div {:id "hostelement" :class "column left" :on-load init}]
    [:div {:class "column right"}
-    [usage]]])
+    [usage]
+    [settings]]])
 
 (defn terrain
   "Render html and canvas for terrain visualization."
