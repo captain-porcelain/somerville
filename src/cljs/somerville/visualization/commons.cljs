@@ -2,6 +2,7 @@
   (:require
     [somerville.visualization.terrain :as terrain]
     [somerville.visualization.l-system :as l-system]
+    [somerville.visualization.gaia :as gaia]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))
@@ -14,6 +15,7 @@
   [:div
    [:h2 "Visualization Index"]
    [:ul
+    [:li {:on-click #(reset! current-view "gaia")} "Gaia World Generation"]
     [:li {:on-click #(reset! current-view "terrain")} "Terrain Heightlines"]
     [:li {:on-click #(reset! current-view "l-system")} "L-System Koch Curve"]]])
 
@@ -23,6 +25,7 @@
   (case @current-view
     "terrain" [terrain/visualize]
     "l-system" [l-system/visualize]
+    "gaia" [gaia/visualize]
     [index]))
 
 (defn framing
