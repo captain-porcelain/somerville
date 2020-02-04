@@ -1,10 +1,10 @@
 ;; See http://paulbourke.net/papers/conrec/
 (ns somerville.rasterization.conrec
-  (:require
-    [somerville.maps.grid :as grid]
-    [somerville.geometry.point :as p]
-    [somerville.geometry.line :as l]
-    [somerville.geometry.commons :as c]))
+  (:require [somerville.maps.grid :as grid]
+            [somerville.geometry.point :as p]
+            [somerville.geometry.line :as l]
+            [somerville.geometry.commons :as c]
+            [taoensso.timbre :as log]))
 
 (defrecord TriangleHeights [p0 p1 p2 p3 p4]
   c/Printable
@@ -217,11 +217,11 @@
         min-value (apply min hs)
         max-value (apply max hs)
         distance (- max-value min-value)
-        tmp (dorun (println (str "Distance: " distance)))
-        tmp (dorun (println (str "Max Lines: " max-lines)))
+        tmp (log/info (str "Distance: " distance))
+        tmp (log/info (str "Max Lines: " max-lines))
         step (int (/ distance max-lines))
         step (if (< step min-distance) min-distance step)
-        tmp (dorun (println (str "Step: " step)))]
+        tmp (log/info (str "Step: " step))]
     (for [i (range max-lines)]
       (+ min-value (* (inc i) step)))))
 

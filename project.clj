@@ -3,11 +3,13 @@
   :dependencies
   [[org.clojure/clojure "1.10.1"]
    [org.clojure/clojurescript "1.10.597"]
+   [com.taoensso/timbre "4.10.0"]
    [quil "3.1.0"]
+   [reagent "0.9.1"]
+
    [dali "0.7.5"]
    [fs "1.3.3"]
-   [ubergraph "0.8.2"]
-   [com.taoensso/timbre "4.10.0"]]
+   [ubergraph "0.8.2"]]
 
   :plugins
   [[lein-cljsbuild "1.1.7"]
