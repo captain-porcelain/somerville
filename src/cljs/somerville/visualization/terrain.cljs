@@ -18,6 +18,7 @@
    :line-low    (color/rgba 241 196  15)
    :line-high   (color/rgba 217  60 110)})
 
+
 ;;====================================================================================================
 ;; Data Handling
 
@@ -80,6 +81,7 @@
       (swap! contour-steps dec)
       (log/info "Conrec steps set to" @contour-steps))))
 
+
 ;;====================================================================================================
 ;; Drawing Functionality
 
@@ -108,6 +110,7 @@
   (let [scale (/ width (:width @world))]
     (dorun
       (map #(draw-height-lines (:lines %1) scale width height %2) @contours @line-colors))))
+
 
 ;;====================================================================================================
 ;; Event Handling
@@ -196,7 +199,7 @@
     [usage]
     [settings]]])
 
-(defn terrain
+(defn visualize
   "Render html and canvas for terrain visualization."
   [props]
   (reagent/create-class

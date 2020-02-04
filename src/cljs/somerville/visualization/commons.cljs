@@ -1,6 +1,7 @@
 (ns somerville.visualization.commons
   (:require
     [somerville.visualization.terrain :as terrain]
+    [somerville.visualization.l-system :as l-system]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))
@@ -13,13 +14,15 @@
   [:div
    [:h2 "Visualization Index"]
    [:ul
-    [:li {:on-click #(reset! current-view "terrain")} "Terrain Heightlines"]]])
+    [:li {:on-click #(reset! current-view "terrain")} "Terrain Heightlines"]
+    [:li {:on-click #(reset! current-view "l-system")} "L-System Koch Curve"]]])
 
 (defn switch
   "Switch the shown view."
   [props]
   (case @current-view
-    "terrain" [terrain/terrain]
+    "terrain" [terrain/visualize]
+    "l-system" [l-system/visualize]
     [index]))
 
 (defn framing
