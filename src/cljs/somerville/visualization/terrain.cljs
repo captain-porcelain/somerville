@@ -3,6 +3,7 @@
     [somerville.geometry.commons :as c]
     [somerville.geometry.line :as line]
     [somerville.geometry.point :as point]
+    [somerville.color.color :as color]
     [somerville.maps.terrain.loki :as loki]
     [somerville.rasterization.conrec :as conrec]
     [taoensso.timbre :as log]
@@ -13,9 +14,9 @@
 (def height 800)
 
 (def colors
-  {:background   [32 32 32 255]
-   :line         [128 20 128 255]
-   :colors       [[0 161 228 255] [204 88 3 255] [137 252 0 255] [160 160 160 255] [240 240 240 255]]})
+  {:background  (color/rgba  10  10  10)
+   :line-low    (color/rgba 241 196  15)
+   :line-high   (color/rgba 217  60 110)})
 
 ;;====================================================================================================
 ;; Data Handling
@@ -26,6 +27,12 @@
 
 (def contour-steps (reagent/atom 5))
 (def contours (atom nil))
+(def line-colors (reagent/atom (list (:line-low colors) (:line-high colors))))
+
+(defn recreate-line-colors!
+  "Recreate list of line colors fitting to contour lines."
+  []
+  (reset! line-colors (color/color-steps (:line-low colors) (:line-high colors) (count @contours))))
 
 (defn recreate-world!
   "Recreate the world."
@@ -34,6 +41,7 @@
   (reset! loki-config (loki/default-config @loki-detail))
   (reset! world (loki/world @loki-config))
   (reset! contours (conrec/contour @world @contour-steps))
+  (recreate-line-colors!)
   (log/info "Done"))
 
 (defn recreate-contour!
@@ -41,6 +49,7 @@
   []
   (log/info "Create contour")
   (reset! contours (conrec/contour @world @contour-steps))
+  (recreate-line-colors!)
   (log/info "Done"))
 
 (defn increase-detail!
@@ -77,8 +86,8 @@
 (defn draw-line
   "Draw one line in the given color."
   [line width height line-color]
-  (apply quil/stroke line-color)
-  (apply quil/fill line-color)
+  (quil/stroke (:r line-color) (:g line-color) (:b line-color) (:a line-color))
+  (quil/fill (:r line-color) (:g line-color) (:b line-color) (:a line-color))
   (quil/line
     (- width  (:x (:p1 line)))
     (- height (:y (:p1 line)))
@@ -93,11 +102,12 @@
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (apply quil/background (:background colors))
+  (let [bg (:background colors)]
+    (quil/background (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/stroke-weight 2)
   (let [scale (/ width (:width @world))]
     (dorun
-      (map #(draw-height-lines (:lines %) scale width height (:line colors)) @contours))))
+      (map #(draw-height-lines (:lines %1) scale width height %2) @contours @line-colors))))
 
 ;;====================================================================================================
 ;; Event Handling
@@ -133,7 +143,8 @@
   "This function is called by quil once before drawing"
   []
   (quil/smooth)
-  (apply quil/fill (:background colors))
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))
 
 (defn init
@@ -172,7 +183,9 @@
    [:span
     [:ul
      [:li (str "Loki detail: " @loki-detail)]
-     [:li (str "Contour steps: " @contour-steps)]]]])
+     [:li (str "Contour steps: " @contour-steps)]
+     [:li (str "Contour lines: " (count @contours))]
+     [:li (str "Line colors: " (count @line-colors))]]]])
 
 (defn ui
   "Draw the basic ui for this visualization."
