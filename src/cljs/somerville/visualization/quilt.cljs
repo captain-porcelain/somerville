@@ -15,7 +15,7 @@
 (def draw-mode (atom 0))
 (def threshold-cie (atom 10))
 (def threshold-cluster (atom 0))
-(def filename  "../test-image2.jpg")
+(def filename  "/img/test-image2.jpg")
 (def image (atom nil))
 (def width 679)
 (def height 452)

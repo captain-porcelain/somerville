@@ -3,7 +3,6 @@
 (ns somerville.maps.gaia.core
   (:require
     [clojure.set :as s]
-    ;[ubergraph.core :as uber]
     [somerville.geometry.commons :as gcommons]
     [somerville.geometry.triangle :as triangle]
     [somerville.geometry.point :as point]
@@ -109,8 +108,4 @@
   "Create edges of triangles."
   [ts]
   (into '() (apply s/union (map #(neighbours % ts) ts))))
-
-;(defn create-graph
-  ;[ts]
-  ;(apply uber/add-edges (apply uber/add-nodes (uber/graph) ts) (create-edges ts)))
 

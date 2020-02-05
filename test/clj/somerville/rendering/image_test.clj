@@ -6,7 +6,7 @@
     [somerville.geometry.point :as p]
     [somerville.color.color :as c]))
 
-(def image (i/load-image "./resources/test-image.jpg"))
+(def image (i/load-image "./resources/images/test-image.jpg"))
 
 (defn decider-fn
   [p1 p2]

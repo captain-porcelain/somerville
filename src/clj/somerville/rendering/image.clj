@@ -68,7 +68,7 @@
 (defn convert-awt
   [^Integer c]
   (let [col (java.awt.Color. c)]
-    (color/ColorRGBA. (.getRed col) (.getGreen col) (.getBlue col) (.getAlpha col))))
+    (color/rgba (.getRed col) (.getGreen col) (.getBlue col) (.getAlpha col))))
 
 (defn to-awt
   "Convert rgba color into java awt Color."

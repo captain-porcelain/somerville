@@ -6,15 +6,19 @@
    [com.taoensso/timbre "4.10.0"]
    [quil "3.1.0"]
    [reagent "0.9.1"]
-
    [dali "0.7.5"]
-   [fs "1.3.3"]
-   [ubergraph "0.8.2"]]
+
+   ;; web interface for local testing
+   [compojure "1.6.1"]
+   [ring/ring-core "1.8.0"]
+   [ring/ring-servlet "1.8.0"]
+   [ring/ring-jetty-adapter "1.8.0"]
+   [ring/ring-codec "1.1.2"]
+   [http-kit "2.3.0"]]
 
   :plugins
   [[lein-cljsbuild "1.1.7"]
    [lein-marginalia "0.9.1"]]
-  ;:main somerville.core
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :test-paths ["src/clj" "src/cljc" "src/cljs"]
   :repl-options
