@@ -125,7 +125,7 @@
   (case (quil/key-as-keyword)
     :c (clear!)
     :d (debug!)
-    (dorun (println (str "pressed key " (quil/key-as-keyword))))))
+    (log/info (str "pressed key " (quil/key-as-keyword)))))
 
 
 ;;====================================================================================================

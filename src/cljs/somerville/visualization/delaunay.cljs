@@ -123,7 +123,7 @@
     :c (clear!)
     :d (toggle-drawing-delaunay!)
     :v (toggle-drawing-voronoi!)
-    (dorun (println (str "pressed key " (quil/key-as-keyword))))))
+    (log/info (str "pressed key " (quil/key-as-keyword)))))
 
 
 ;;====================================================================================================

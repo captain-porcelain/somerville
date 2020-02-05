@@ -1,5 +1,6 @@
 (ns somerville.geometry.point
   (:require
+    [taoensso.timbre :as log]
     [somerville.geometry.commons :as c]))
 
 ;; define a two dimensional point
@@ -102,7 +103,7 @@
   [p1 p2]
   (if (or (nil? p1) (nil? p2))
     (do
-      (dorun (println (str "distance: one point is nil: " (if (nil? p1) "nil" (c/out p1)) " <-> " (if (nil? p2) "nil" (c/out p2)))))
+      (log/info (str "distance: one point is nil: " (if (nil? p1) "nil" (c/out p1)) " <-> " (if (nil? p2) "nil" (c/out p2))))
       #?(:clj Long/MAX_VALUE :cljs (.-MAX_VALUE js/Number)))
     (let [dx (- (:x p1) (:x p2))
           dy (- (:y p1) (:y p2))
@@ -170,7 +171,7 @@
   (try
     (let [a (angle p1 p2 p3)]
       (if (< a 0) (+ (* 2 Math/PI) a) a))
-    (catch #?(:clj Exception :cljs js/Object) e (dorun (println (str "Error calculating angle between:\n" (c/out p1 1) "\n" (c/out p2 1) "\n" (c/out p3 1)))))))
+    (catch #?(:clj Exception :cljs js/Object) e (log/info (str "Error calculating angle between:\n" (c/out p1 1) "\n" (c/out p2 1) "\n" (c/out p3 1))))))
 
 (defn angle-dot
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3 using dot product. No negative results."

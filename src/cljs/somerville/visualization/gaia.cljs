@@ -119,7 +119,6 @@
   []
   (let [x (quil/mouse-x)
         y (quil/mouse-y)]
-    ;(dorun (println (str "mouse pressed at " x " - " y)))
     (reset! mouse-position [x y])))
 
 (defn key-pressed []
