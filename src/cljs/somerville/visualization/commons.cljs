@@ -7,6 +7,8 @@
     [somerville.visualization.fortune :as fortune]
     [somerville.visualization.voronoi :as voronoi]
     [somerville.visualization.world :as world]
+    [somerville.visualization.quilt :as quilt]
+    [somerville.visualization.tracer :as tracer]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))
@@ -22,21 +24,25 @@
     [:li {:on-click #(reset! current-view "gaia")} "Gaia World Generation"]
     [:li {:on-click #(reset! current-view "l-system")} "L-System Koch Curve"]
     [:li {:on-click #(reset! current-view "terrain")} "Terrain Heightlines"]
+    [:li {:on-click #(reset! current-view "tracer")} "Tracer"]
     [:li {:on-click #(reset! current-view "delaunay")} "Voronoi by Delaunay"]
     [:li {:on-click #(reset! current-view "fortune")} "Voronoi by Fortune"]
     [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]
-    [:li {:on-click #(reset! current-view "world")} "World Generation"]]])
+    [:li {:on-click #(reset! current-view "quilt")} "Voronoi Quilt Generator"]
+    [:li {:on-click #(reset! current-view "world")} "Voronoi World Generation"]]])
 
 (defn switch
   "Switch the shown view."
   [props]
   (case @current-view
-    "terrain" [terrain/visualize]
-    "l-system" [l-system/visualize]
     "gaia" [gaia/visualize]
+    "l-system" [l-system/visualize]
+    "terrain" [terrain/visualize]
+    "tracer" [tracer/visualize]
     "delaunay" [delaunay/visualize]
     "fortune" [fortune/visualize]
     "voronoi" [voronoi/visualize]
+    "quilt" [quilt/visualize]
     "world" [world/visualize]
     [index]))
 

@@ -1,10 +1,13 @@
 (ns somerville.visualization.quilt
-  (:require [somerville.fills.line-fill :as lf]
-            [somerville.geometry.point :as p]
-            [somerville.geometry.line :as line]
-            [somerville.geometry.voronoi :as voronoi]
-            [somerville.color.color :as c]
-            [quil.core :as quil :include-macros true]))
+  (:require
+    [somerville.fills.line-fill :as lf]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.voronoi :as voronoi]
+    [somerville.color.color :as color]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]))
 
 (def test-image (atom nil))
 (def partitions-all (atom nil))
@@ -20,10 +23,17 @@
 (def points (atom (list)))
 (def sites (atom nil))
 
+(def colors
+  {:background     (color/rgba  10  10  10)
+   :point-voronoi  (color/rgba   0 204 102)
+   :point-delaunay (color/rgba 247  92   3)
+   :line-voronoi   (color/rgba 241 196  15)
+   :line-delaunay  (color/rgba 217  60 110)})
+
 (defn decider-fn
   [p1 p2]
-  (let [vfn (fn [p] (c/rgba (quil/get-pixel @image (:x p) (:y p))))
-        cie (c/cie76 (vfn p1) (vfn p2))]
+  (let [vfn (fn [p] (color/rgba (quil/get-pixel @image (:x p) (:y p))))
+        cie (color/cie76 (vfn p1) (vfn p2))]
     (< cie @threshold-cie)))
 
 (defn draw-cluster
@@ -31,8 +41,8 @@
   (dorun
     (for [l cluster]
       (let [p (:p1 (first cluster))
-            dc (c/rgba (quil/get-pixel @image (:x p) (:y p)))
-            dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (c/rgba 255 255 255) dc)]
+            dc (color/rgba (quil/get-pixel @image (:x p) (:y p)))
+            dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (color/rgba 255 255 255) dc)]
         (quil/stroke (:r dc) (:g dc) (:b dc))
         (quil/fill (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
@@ -125,18 +135,6 @@
   (when (= 2 @draw-mode) (dorun (for [site (:points @sites)] (draw-site site))))
   (when (= 2 @draw-mode) (dorun (for [site (:cells @sites)] (draw-cell site)))))
 
-(defn setup
-  "This function is called by quil once before drawing"
-  []
-  (quil/smooth)
-  (quil/fill 226)
-  (quil/frame-rate 1)
-  (reset! test-image (quil/load-image filename))
-  (reset! image (quil/load-image filename))
-  ;(dopartition)
-  ;(dovoronoi)
-  )
-
 (defn mouse-pressed [])
 (defn mouse-released [])
 
@@ -175,16 +173,71 @@
           dm (if (= 3 dm) 0 dm)]
       (reset! draw-mode dm))))
 
-(defn ^:export show []
-  (quil/defsketch quilt
+
+;;====================================================================================================
+;; App Setup
+
+(defn setup
+  "This function is called by quil once before drawing"
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 1)
+  (reset! test-image (quil/load-image filename))
+  (reset! image (quil/load-image filename)))
+
+(defn init
+  "Initialize Quil sketch."
+  [canvas-id]
+  (quil/defsketch quilt-sketch
     :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]
-    ;:mouse-moved mouse-moved
-    ;:mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed
     :mouse-released mouse-released
     :key-released key-released
     :key-pressed key-pressed))
+
+(defn usage
+  "Show information about usage."
+  [props]
+  [:div
+   [:h2 "Voronoi Quilt Generator"]
+   [:h3 "Usage"]
+   [:span
+    "Press"
+    [:ul
+     [:li "left mouse button to add point"]
+     [:li "c to clear diagram"]
+     [:li "d to toggle drawing delaunay"]
+     [:li "v to toggle drawing voronoi"]]]])
+
+(defn settings
+  "Show information current settings."
+  [props]
+  [:div
+   [:h3 "Settings"]
+   [:span
+    [:ul
+     [:li (str "Count points: " (count @points))]]]])
+
+(defn ui
+  "Draw the basic ui for this visualization."
+  [props]
+  [:div {:class "row"}
+   [:div {:id "hostelement" :class "column left" :on-load init}]
+   [:div {:class "column right"}
+    [usage]
+    [settings]]])
+
+(defn visualize
+  "Render html and canvas for terrain visualization."
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init "hostelement")}))
+
+
 
