@@ -9,8 +9,8 @@
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))
 
-(def width 600)
-(def height 600)
+(def width 1200)
+(def height 800)
 
 (def colors
   {:background     (color/rgba  10  10  10)
@@ -53,8 +53,6 @@
   []
   (reset! draw-voronoi (not @draw-voronoi)))
 
-;;====================================================================================================
-;; Event Handling
 ;;====================================================================================================
 ;; Drawing Functionality
 
@@ -156,7 +154,7 @@
   "Show information about usage."
   [props]
   [:div
-   [:h2 "Terrain Visualization"]
+   [:h2 "Voronoi by Delaunay"]
    [:h3 "Usage"]
    [:span
     "Press"
