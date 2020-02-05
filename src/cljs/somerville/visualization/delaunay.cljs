@@ -111,8 +111,6 @@
 ;;====================================================================================================
 ;; Event Handling
 
-(defn mouse-pressed [])
-
 (defn mouse-released
   "Handle releasing mouse buttons."
   []
@@ -146,7 +144,6 @@
     :setup setup
     :draw draw
     :size [width height]
-    :mouse-pressed mouse-pressed
     :mouse-released mouse-released
     :key-pressed key-pressed))
 

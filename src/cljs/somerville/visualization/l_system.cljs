@@ -88,11 +88,6 @@
 ;;====================================================================================================
 ;; Event Handling
 
-(defn mouse-pressed [])
-(defn mouse-released [])
-
-(defn key-released [])
-
 (defn key-pressed []
   (case (quil/key-code)
     171 (lengthen!) ;; +
@@ -121,9 +116,6 @@
     :setup setup
     :draw draw
     :size [width height]
-    :mouse-pressed mouse-pressed
-    :mouse-released mouse-released
-    :key-released key-released
     :key-pressed key-pressed))
 
 (defn usage

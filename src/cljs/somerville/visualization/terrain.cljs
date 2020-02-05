@@ -115,18 +115,6 @@
 ;;====================================================================================================
 ;; Event Handling
 
-(defn mouse-pressed
-  "Triggered whenever a mouse button is pressed."
-  [])
-
-(defn mouse-released
-  "Triggered whenever a mouse button is released."
-  []
-  (let [mx (quil/mouse-x)
-        my (quil/mouse-y)
-        pm (point/point mx my)]
-    ))
-
 (defn key-pressed
   "Trigger actions on key presses."
   []
@@ -158,8 +146,6 @@
     :setup setup
     :draw draw
     :size [width height]
-    :mouse-pressed mouse-pressed
-    :mouse-released mouse-released
     :key-pressed key-pressed))
 
 (defn usage

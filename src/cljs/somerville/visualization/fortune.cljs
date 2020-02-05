@@ -20,6 +20,9 @@
    :line-high   (color/rgba 217  60 110)})
 
 
+;;====================================================================================================
+;; Data Handling
+
 (def p1 (p/point 200 250))
 (def p2 (p/point 500 450))
 (def p3 (p/point 100 500))
@@ -27,6 +30,39 @@
 (def points (reagent/atom (list p1 p2 p3 p4)))
 (def sites (atom (fortune/voronoi @points)))
 (def vsites (atom (voronoi/voronoi @points 0 0 width height)))
+
+(defn add-point!
+  "Add another point to the diagram."
+  [point]
+  (reset! points (cons point @points))
+  (reset! vsites (voronoi/voronoi @points 0 0 width height))
+  (reset! sites (fortune/voronoi @points)))
+
+(defn clear!
+  "Clear the diagram."
+  []
+  (reset! points (list))
+  (reset! vsites (voronoi/voronoi @points 0 0 width height))
+  (reset! sites (fortune/voronoi @points)))
+
+(defn debug!
+  "Print debugging informantion"
+  []
+  (log/info (c/out @sites)))
+
+(defn step!
+  "Make a step in fortunes algorithm"
+  []
+  (reset! sites (fortune/step @sites)))
+
+(defn reset-steps!
+  "Reset fortunes algorithm."
+  []
+  (reset! vsites (voronoi/voronoi @points 0 0 width height))
+  (reset! sites (fortune/voronoi @points)))
+
+;;====================================================================================================
+;; Drawing Functionality
 
 (defn draw-intersection
   [i]
@@ -111,30 +147,23 @@
             (draw-parabola (parabola/parabola-from-focuspoint-and-directrix-y site (+ 1 sweep-y)))))
         (draw-sweepline sweep-y)))))
 
-(defn mouse-pressed [])
-(defn mouse-released []
-  (let [mx (quil/mouse-x)
-        my (quil/mouse-y)]
-    (reset! points (cons (p/point mx my) @points))
-	(reset! vsites (voronoi/voronoi @points 0 0 width height))
-    (reset! sites (fortune/voronoi @points))))
+
+;;====================================================================================================
+;; Event Handling
+
+(defn mouse-released
+  "Handle releasing mouse buttons."
+  []
+  (add-point! (p/point (quil/mouse-x) (quil/mouse-y))))
 
 (defn key-pressed []
   "Trigger actions on key presses."
-  ;(dorun (println (str "pressed code " (quil/key-code))))
-  (if (= (quil/key-code) 32) ; space for progressing a step
-    (reset! sites (fortune/step @sites)))
-  (if (= (quil/key-code) 67) ; c for clearing
-    (do
-      (reset! points (list))
-	  (reset! vsites (voronoi/voronoi @points 0 0 width height))
-      (reset! sites (fortune/voronoi @points))))
-  (if (= (quil/key-code) 68) ; d for debugging
-    (dorun (println (c/out @sites))))
-  (if (= (quil/key-code) 82) ; r for resetting to step 0
-    (do
-	  (reset! vsites (voronoi/voronoi @points 0 0 width height))
-      (reset! sites (fortune/voronoi @points)))))
+  (case (quil/key-code)
+    32 (step!)  ;; space
+    67 (clear!) ;; c
+    68 (debug!) ;; d
+    82 (reset-steps!) ;; r
+    (log/info "Pressed unhandled key with code" (quil/key-code))))
 
 
 ;;====================================================================================================
@@ -156,7 +185,6 @@
     :setup setup
     :draw draw
     :size [width height]
-    :mouse-pressed mouse-pressed
     :mouse-released mouse-released
     :key-pressed key-pressed))
 

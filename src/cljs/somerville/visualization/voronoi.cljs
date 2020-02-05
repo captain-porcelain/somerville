@@ -1,19 +1,56 @@
 (ns somerville.visualization.voronoi
-  (:require [somerville.geometry.line :as line]
-            [somerville.geometry.commons :as c]
-            [somerville.geometry.point :as p]
-            [somerville.geometry.voronoi :as voronoi]
-            ;[somerville.rendering.svg :as svg]
-            [quil.core :as quil :include-macros true]))
+  (:require
+    [somerville.geometry.line :as line]
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.voronoi :as voronoi]
+    [somerville.color.color :as color]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]))
 
-(def width 600)
-(def height 600)
+(def width 1200)
+(def height 800)
+
+(def colors
+  {:background     (color/rgba  10  10  10)
+   :point-voronoi  (color/rgba   0 204 102)
+   :point-delaunay (color/rgba 247  92   3)
+   :line-voronoi   (color/rgba 241 196  15)
+   :line-delaunay  (color/rgba 217  60 110)})
+
+
+;;====================================================================================================
+;; Data Handling
+
 (def p1 (p/point 200 250))
 (def p2 (p/point 500 450))
 (def p3 (p/point 100 500))
 (def p4 (p/point 250 50))
-(def points (atom (list p1 p2 p3 p4)))
+(def points (reagent/atom (list p1 p2 p3 p4)))
 (def sites (atom (voronoi/voronoi @points 0 0 width height)))
+(def highlighted (atom nil))
+
+(defn add-point!
+  "Add another point to the diagram."
+  [point]
+  (reset! points (cons point @points))
+  (reset! sites (voronoi/voronoi @points 0 0 width height)))
+
+(defn clear!
+  "Clear the diagram."
+  []
+  (reset! points (list))
+  (reset! sites (voronoi/voronoi @points 0 0 width height)))
+
+(defn debug!
+  "Print debugging informantion"
+  []
+  (log/info (c/out @sites)))
+
+
+;;====================================================================================================
+;; Drawing Functionality
 
 (defn draw-intersection
   [i]
@@ -40,8 +77,6 @@
   (dorun
       (for [i (:intersections site)]
         (draw-intersection i))))
-
-(def highlighted (atom nil))
 
 (defn draw-cell
   [cell]
@@ -76,42 +111,81 @@
     (for [site (:cells @sites)]
       (draw-cell site))))
 
+
+;;====================================================================================================
+;; Event Handling
+
+(defn mouse-released
+  "Handle releasing mouse buttons."
+  []
+  (add-point! (p/point (quil/mouse-x) (quil/mouse-y))))
+
+(defn key-pressed []
+  "Trigger actions on key presses."
+  (case (quil/key-as-keyword)
+    :c (clear!)
+    :d (debug!)
+    (dorun (println (str "pressed key " (quil/key-as-keyword))))))
+
+
+;;====================================================================================================
+;; App Setup
+
 (defn setup
   "This function is called by quil once before drawing"
   []
   (quil/smooth)
-  (quil/fill 226)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))
 
-(defn mouse-pressed [])
-(defn mouse-released []
-  (let [mx (quil/mouse-x)
-        my (quil/mouse-y)]
-    (reset! points (cons (p/point mx my) @points))
-    (reset! sites (voronoi/voronoi @points 0 0 width height))))
-
-(defn key-pressed []
-  "Trigger actions on key presses."
-    ;(dorun (println (str "pressed code " (quil/key-code))))
-    (if (= (quil/key-code) 67) ; c
-      (let []
-		(reset! points (list))
-		(reset! sites (voronoi/voronoi @points 0 0 width height))))
-    (if (= (quil/key-code) 68) ; d
-      (dorun (println (c/out @sites))))
-    ;(if (= (quil/key-code) 80) ; p
-      ;(svg/voronoi @sites "/tmp/voronoi.svg"))
-    )
-
-(defn ^:export show []
-  (quil/defsketch voronoi
+(defn init
+  "Initialize Quil sketch."
+  [canvas-id]
+  (quil/defsketch voronoi-sketch
     :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]
-    ;:mouse-moved mouse-moved
-    ;:mouse-dragged mouse-dragged
-    :mouse-pressed mouse-pressed
     :mouse-released mouse-released
     :key-pressed key-pressed))
+
+(defn usage
+  "Show information about usage."
+  [props]
+  [:div
+   [:h2 "Voronoi by intersecting"]
+   [:h3 "Usage"]
+   [:span
+    "Press"
+    [:ul
+     [:li "left mouse button to add point"]
+     [:li "c to clear diagram"]
+     [:li "d to print debugging info"]]]])
+
+(defn settings
+  "Show information current settings."
+  [props]
+  [:div
+   [:h3 "Settings"]
+   [:span
+    [:ul
+     [:li (str "Count points: " (count @points))]]]])
+
+(defn ui
+  "Draw the basic ui for this visualization."
+  [props]
+  [:div {:class "row"}
+   [:div {:id "hostelement" :class "column left" :on-load init}]
+   [:div {:class "column right"}
+    [usage]
+    [settings]]])
+
+(defn visualize
+  "Render html and canvas for terrain visualization."
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init "hostelement")}))
+
 

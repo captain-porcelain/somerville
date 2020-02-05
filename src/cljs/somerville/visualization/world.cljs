@@ -1,15 +1,30 @@
 ;; See https://www.redblobgames.com/x/1842-delaunay-voronoi-sphere/
 (ns somerville.visualization.world
-  (:require [somerville.geometry.commons :as commons]
-            [somerville.geometry.line :as line]
-            [somerville.geometry.point :as point]
-            [somerville.geometry.sphere :as sphere]
-            [somerville.geometry.projection.stereographic :as proj]
-            [somerville.geometry.delaunay :as delaunay]
-            [quil.core :as quil :include-macros true]))
+  (:require
+    [somerville.geometry.commons :as commons]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.point :as point]
+    [somerville.geometry.sphere :as sphere]
+    [somerville.geometry.projection.stereographic :as proj]
+    [somerville.geometry.delaunay :as delaunay]
+    [somerville.color.color :as color]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]))
 
-;;============================================================================================================
-;; Helpers
+(def width 1200)
+(def height 800)
+
+(def colors
+  {:background     (color/rgba  10  10  10)
+   :point-voronoi  (color/rgba   0 204 102)
+   :point-delaunay (color/rgba 247  92   3)
+   :line-voronoi   (color/rgba 241 196  15)
+   :line-delaunay  (color/rgba 217  60 110)})
+
+
+;;====================================================================================================
+;; Data Handling
 
 (defn line-to-sphere
   "Map the points of a line onto a sphere."
@@ -21,13 +36,12 @@
   [points]
   (map line-to-sphere (delaunay/voronoi (delaunay/delaunay (map proj/to-plane points)))))
 
-;;============================================================================================================
-;; Rendering
+(def points (reagent/atom (sphere/fibonacci 100)))
+(def lines (reagent/atom (to-voronoi @points)))
 
-(def width 600)
-(def height 600)
-(def points (atom (sphere/fibonacci 100)))
-(def lines (atom (to-voronoi @points)))
+
+;;====================================================================================================
+;; Drawing Functionality
 
 (defn draw-point
   [p]
@@ -64,22 +78,60 @@
     (for [l @lines]
       (draw-line l))))
 
+
+;;====================================================================================================
+;; App Setup
+
 (defn setup
   "This function is called by quil once before drawing"
   []
   (quil/smooth)
-  (quil/fill 226)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))
 
-(defn ^:export show []
-  (quil/defsketch world
+(defn init
+  "Initialize Quil sketch."
+  [canvas-id]
+  (quil/defsketch world-sketch
     :host "hostelement"
     :setup setup
     :draw draw
     :size [width height]
-    :renderer :p3d
-    ;:mouse-pressed mouse-pressed
-    ;:mouse-released mouse-released
-    ;:key-pressed key-pressed
-    ))
+    :renderer :p3d))
+
+(defn usage
+  "Show information about usage."
+  [props]
+  [:div
+   [:h2 "Voronoi World Generation"]
+   [:h3 "Usage"]
+   [:span
+    "No interactions at this stage"]])
+
+(defn settings
+  "Show information current settings."
+  [props]
+  [:div
+   [:h3 "Settings"]
+   [:span
+    [:ul
+     [:li (str "Count points: " (count @points))]
+     [:li (str "Count lines: " (count @lines))]]]])
+
+(defn ui
+  "Draw the basic ui for this visualization."
+  [props]
+  [:div {:class "row"}
+   [:div {:id "hostelement" :class "column left" :on-load init}]
+   [:div {:class "column right"}
+    [usage]
+    [settings]]])
+
+(defn visualize
+  "Render html and canvas for terrain visualization."
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init "hostelement")}))
 

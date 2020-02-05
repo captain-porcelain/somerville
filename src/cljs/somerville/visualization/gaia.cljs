@@ -122,12 +122,6 @@
     ;(dorun (println (str "mouse pressed at " x " - " y)))
     (reset! mouse-position [x y])))
 
-(defn mouse-released
-  "for now we just print a status message"
-  []
-  ;(dorun (println "mouse released"))
-  )
-
 (defn key-pressed []
   "Trigger actions on key presses."
   (case (quil/key-code)
@@ -161,7 +155,6 @@
     :renderer :p3d
     :mouse-dragged mouse-dragged
     :mouse-pressed mouse-pressed
-    :mouse-released mouse-released
     :key-pressed key-pressed))
 
 (defn usage
