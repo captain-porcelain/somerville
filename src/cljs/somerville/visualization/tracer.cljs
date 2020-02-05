@@ -2,21 +2,17 @@
   (:require
     [somerville.fills.line-fill :as lf]
     [somerville.geometry.point :as p]
+    [somerville.geometry.commons :as c]
     [somerville.color.color :as color]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
-    [reagent.core :as reagent]))
+    [cljs.core.async :refer [chan <! >!]]
+    [reagent.core :as reagent])
+  (:require-macros
+    [cljs.core.async.macros :refer [go]]))
 
 (def width 320)
 (def height 320)
-(def test-image (atom nil))
-(def partitions-all (atom nil))
-(def partitions (reagent/atom nil))
-(def draw-fill (atom true))
-(def threshold-cie (atom 10))
-(def threshold-cluster (atom 100))
-(def image (atom nil))
-(def alt (atom false))
 
 (def colors
   {:background     (color/rgba  10  10  10)
@@ -25,44 +21,108 @@
    :line-voronoi   (color/rgba 241 196  15)
    :line-delaunay  (color/rgba 217  60 110)})
 
+
+;;====================================================================================================
+;; Data Handling
+
+(def test-image (atom nil))
+(def image (atom nil))
+
+(def partitions-all (reagent/atom nil))
+(def partitions (reagent/atom nil))
+
+(def threshold-cie (reagent/atom 10))
+(def threshold-cluster (reagent/atom 100))
+
+(def alt (atom false))
+(def draw-image (reagent/atom true))
+(def debug (reagent/atom nil))
+
 (defn decider-fn
+  "Check if the colors of two pixels are to be considered the same."
   [p1 p2]
-  (let [vfn (fn [p] (color/rgba (quil/get-pixel @image (:x p) (:y p))))
+  (let [vfn (fn [p] (apply color/rgba (quil/get-pixel @image (:x p) (:y p))))
         cie (color/cie76 (vfn p1) (vfn p2))]
     (< cie @threshold-cie)))
 
-(defn draw-cluster
-  [cluster]
-  (dorun
-    (for [l cluster]
-      (let [p (:p1 (first cluster))
-            dc (color/rgba (quil/get-pixel @image (:x p) (:y p)))
-            dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (color/rgba 255 255 255) dc)]
-        (quil/stroke (:r dc) (:g dc) (:b dc))
-        (quil/fill (:r dc) (:g dc) (:b dc))
-        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
-
 (defn do-filter
+  "Filter partitions that are too small."
   []
   (let [sizes (map lf/cluster-size @partitions-all)
         avg1 (float (/ (reduce + sizes) (count sizes)))
         parts2 (filter #(< @threshold-cluster (lf/cluster-size %)) @partitions-all)
-        tmp (dorun (println (str "filtered to " (count parts2))))]
+        tmp (log/info (str "filtered to " (count parts2)))]
     (reset! partitions parts2)))
 
 (defn do-partition
+  "Find partitions of pixels with a given sameness."
   []
-  (let [tmp (dorun (println "partitionning ..."))
+  (let [tmp (log/info "partitionning ...")
         parts1 (lf/clusters (p/point 0 0) 319 319 decider-fn)
         sizes (map lf/cluster-size parts1)
         avg1 (float (/ (reduce + sizes) (count sizes)))
-        tmp (dorun (println (str "... done. found " (count parts1) " partitions with avg " avg1)))]
+        tmp (log/info (str "... done. found " (count parts1) " partitions with avg " avg1))]
     (reset! partitions-all parts1)))
 
 (defn dopartition
+  "Find partions and filter them."
   []
-  (do-partition)
+  (go
+    (do-partition)
+    (do-filter)))
+
+(defn debug-point!
+  "Print color of a point."
+  [point]
+  (reset!
+    debug
+    (str "Color at " (c/out point) ": "
+         (c/out (apply color/rgba (quil/get-pixel @image (:x point) (:y point)))))))
+
+(defn increase-cluster-threshold!
+  "Increase the size a cluster must have to not be filtered out."
+  []
+  (reset! threshold-cluster (+ @threshold-cluster 100))
   (do-filter))
+
+(defn decrease-cluster-threshold!
+  "Decrease the size a cluster must have to not be filtered out."
+  []
+  (when (< 100 @threshold-cluster) (reset! threshold-cluster (- @threshold-cluster 100)))
+  (do-filter))
+
+(defn increase-cie-threshold!
+  "Increase the threshold by which cie colors are considered the same."
+  []
+  (reset! threshold-cie (+ @threshold-cie 1))
+  (do-filter))
+
+(defn decrease-cie-threshold!
+  "Decrease the threshold by which cie colors are considered the same."
+  []
+  (when (< 100 @threshold-cie) (reset! threshold-cie (- @threshold-cie 1)))
+  (do-filter))
+
+(defn toggle-drawing-image!
+  "Toggle between drawing the image and the partitions."
+  []
+  (reset! draw-image (not @draw-image)))
+
+
+;;====================================================================================================
+;; Drawing Functionality
+
+(defn draw-cluster
+  "Draw found cluster."
+  [cluster]
+  (dorun
+    (for [l cluster]
+      (let [p (:p1 (first cluster))
+            dc (apply color/rgba (quil/get-pixel @image (:x p) (:y p)))
+            dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (color/rgba 255 255 255) dc)]
+        (quil/stroke (:r dc) (:g dc) (:b dc))
+        (quil/fill (:r dc) (:g dc) (:b dc))
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -70,43 +130,31 @@
   (quil/background 0)
   (quil/stroke 0 255 0)
   (quil/fill 0 255 0)
-  (when (not @draw-fill) (quil/image @test-image 0 0))
-  ;(when @draw-fill (dorun (for [cl @partitions] (draw-cluster cl)))))
-  )
+  (when @draw-image (quil/image @test-image 0 0))
+  (when (not @draw-image) (dorun (for [cl @partitions] (draw-cluster cl)))))
 
-(defn mouse-pressed [])
-(defn mouse-released [])
+
+;;====================================================================================================
+;; Event Handling
+
+(defn mouse-pressed
+  "Handle pressing mouse buttons."
+  []
+  (debug-point! (p/point (quil/mouse-x) (quil/mouse-y))))
 
 (defn key-released []
-  (if (= (quil/key-code) 18) ; alt
-    (reset! alt false)))
+  (case (quil/key-code)
+     18 (reset! alt false)
+     nil))
 
 (defn key-pressed []
-  ;(dorun (println (str "pressed code " (quil/key-code))))
-  (if (= (quil/key-code) 18) ; alt
-    (reset! alt true))
-  (if (= (quil/key-code) 521) ; +
-    (if @alt
-      (let []
-        (reset! threshold-cluster (+ @threshold-cluster 100))
-        (dorun (println (str "threshold for cluster size is " @threshold-cluster)))
-        (do-filter))
-      (let []
-        (reset! threshold-cie (+ @threshold-cie 1))
-        (dorun (println (str "threshold for color difference is " @threshold-cie))))))
-  (if (= (quil/key-code) 45) ; -
-    (if @alt
-      (let []
-        (reset! threshold-cluster (- @threshold-cluster 100))
-        (dorun (println (str "threshold for cluster size is " @threshold-cluster)))
-        (do-filter))
-      (let []
-        (reset! threshold-cie (- @threshold-cie 1))
-        (dorun (println (str "threshold for color difference is " @threshold-cie))))))
-  (if (= (quil/key-code) 80) ; p
-    (dopartition))
-  (if (= (quil/key-code) 68) ; d
-    (reset! draw-fill (not @draw-fill))))
+  (case (quil/key-code)
+     18 (reset! alt true) ;; alt
+    171 (if @alt (increase-cluster-threshold!) (increase-cie-threshold!)) ;; +
+    173 (if @alt (decrease-cluster-threshold!) (decrease-cie-threshold!)) ;; +
+     68 (toggle-drawing-image!) ;; d
+     80 (dopartition) ;; p
+    (log/info "Pressed unhandled key with code" (quil/key-code))))
 
 
 ;;====================================================================================================
@@ -131,7 +179,6 @@
     :draw draw
     :size [width height]
     :mouse-pressed mouse-pressed
-    :mouse-released mouse-released
     :key-released key-released
     :key-pressed key-pressed))
 
@@ -144,10 +191,13 @@
    [:span
     "Press"
     [:ul
-     [:li "left mouse button to add point"]
-     [:li "c to clear diagram"]
-     [:li "d to toggle drawing delaunay"]
-     [:li "v to toggle drawing voronoi"]]]])
+     [:li "p to partition"]
+     [:li "d to toggle drawing image"]
+     [:li "alt + to increase cluster threshold"]
+     [:li "alt - to decrease cluster threshold"]
+     [:li "+ to increase cie threshold"]
+     [:li "- to decrease cie threshold"]
+     [:li "left mouse click to find color at cursor"]]]])
 
 (defn settings
   "Show information current settings."
@@ -156,7 +206,14 @@
    [:h3 "Settings"]
    [:span
     [:ul
-     [:li (str "Count partitions: " (count @partitions))]]]])
+     [:li (str "Draw image: " @draw-image)]
+     [:li (str "Threshold CIE: " @threshold-cie)]
+     [:li (str "Threshold Cluster: " @threshold-cluster)]
+     [:li (str "Count partitions: " (count @partitions))]]]
+   (when (not (nil? @debug))
+     [:div
+      [:h3 "Debug"]
+      [:div @debug]])])
 
 (defn ui
   "Draw the basic ui for this visualization."

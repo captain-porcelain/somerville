@@ -1,6 +1,11 @@
-(ns somerville.color.color)
+(ns somerville.color.color
+  (:require
+    [somerville.geometry.commons :as c]))
 
-(defrecord ColorRGBA [r g b a])
+(defrecord ColorRGBA [r g b a]
+  c/Printable
+  (c/out [this i] (str (c/indent i) "ColorRGBA (" r "," g "," b "," a")"))
+  (c/out [this] (c/out this 0)))
 (defrecord ColorLab [l a b])
 (defrecord ColorXYZ [x y z])
 

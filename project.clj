@@ -3,6 +3,7 @@
   :dependencies
   [[org.clojure/clojure "1.10.1"]
    [org.clojure/clojurescript "1.10.597"]
+   [org.clojure/core.async "0.7.559"]
    [com.taoensso/timbre "4.10.0"]
    [quil "3.1.0"]
    [reagent "0.9.1"]
