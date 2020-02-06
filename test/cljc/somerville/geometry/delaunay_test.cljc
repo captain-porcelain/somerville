@@ -46,12 +46,12 @@
   (is (d/invalidates? dt pn2))
   (is (d/invalidates? dt pn3))))
 
-(deftest adding
-  (let [p1 (p/point 6 1)
-        p2 (p/point 1 1)
-        bt (d/bounding-triangle (list (p/point 3 3)))
-        d1 (d/add-point (list bt) p1)
-        d2 (d/add-point d1 p2)]
-    (dorun (println (str "triangulation 2: " (clojure.string/join "\n" (map str (:points d2))))))
-    ;(dorun (println d1))
-    ))
+;(deftest adding
+  ;(let [p1 (p/point 6 1)
+        ;p2 (p/point 1 1)
+        ;bt (d/bounding-triangle (list (p/point 3 3)))
+        ;d1 (d/add-point (list bt) p1)
+        ;d2 (d/add-point d1 p2)]
+    ;;(dorun (println (str "triangulation 2: " (clojure.string/join "\n" (map str (:points d2))))))
+    ;;(dorun (println d1))
+    ;))

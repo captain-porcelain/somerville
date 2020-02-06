@@ -1,5 +1,5 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
-(ns somerville.maps.manual-discovery-test
+(ns somerville.rendering.manual-discovery-test
   (:import
     [java.awt Color Graphics2D Rectangle AlphaComposite Polygon BasicStroke RenderingHints]
     [java.awt.image BufferedImage])

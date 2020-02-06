@@ -1,7 +1,7 @@
 ;; Test the geometry functions.
 (ns somerville.rasterization.rasterize-test
   (:use clojure.test)
-  (:use somerville.geometry.rasterize))
+  (:use somerville.rasterization.rasterize))
 
 (deftest basic-circle
   (def c1 (circle 9))

@@ -1,4 +1,6 @@
-(ns somerville.commons)
+(ns somerville.commons
+  (:require
+    [clojure.string :as string]))
 
 (defn abs
   "Calculate absolute value."

@@ -57,3 +57,4 @@
     (when-not (nil? app-elem)
       (log/info "Starting visualizations...")
       (reagent/render framing app-elem))))
+

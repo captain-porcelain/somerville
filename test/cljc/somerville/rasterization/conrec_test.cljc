@@ -1,5 +1,5 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
-(ns somerville.maps.conrec-test
+(ns somerville.rasterization.conrec-test
   (:require
     [somerville.maps.grid :as grid]
     [somerville.rasterization.conrec :as conrec]

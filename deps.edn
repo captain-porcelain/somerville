@@ -1,31 +1,28 @@
 {:deps
- {org.clojure/clojure              {:mvn/version "1.10.1"}
-  org.clojure/clojurescript        {:mvn/version "1.10.597"}
-  com.bhauman/figwheel-main        {:mvn/version "0.2.3"}
-  com.bhauman/rebel-readline-cljs  {:mvn/version "0.1.4"}
-  quil                             {:mvn/version "2.6.0"
-                                    :exclusions [bouncycastle/bctsp-jdk14]}
-  org.apache.commons/commons-math3 {:mvn/version "3.6.1"}
-  dali                             {:mvn/version "0.7.4"}
-  fs                               {:mvn/version "1.3.3"}
-  ubergraph                        {:mvn/version "0.5.0"}
-  com.taoensso/timbre              {:mvn/version "4.10.0"}}
- :paths ["src/clj" "src/cljc"]
- :aliases {:repl {:extra-deps {com.bhauman/rebel-readline {:mvn/version "RELEASE"}
-                               com.gfredericks/user.clj {:mvn/version "RELEASE"}
-                               org.clojure/core.async {:mvn/version "RELEASE"}
-                               org.clojure/core.logic {:mvn/version "RELEASE"}
-                               org.clojure/test.check {:mvn/version "RELEASE"}
-                               com.clojure-goes-fast/clj-java-decompiler {:mvn/version "RELEASE"}
-                               com.clojure-goes-fast/clj-memory-meter {:mvn/version "RELEASE"}
-                               com.clojure-goes-fast/clj-async-profiler {:mvn/version "RELEASE"}
-                               com.clojure-goes-fast/jvm-alloc-rate-meter {:mvn/version "RELEASE"}
-                               com.clojure-goes-fast/jvm-hiccup-meter {:mvn/version "RELEASE"}
-                               io.aviso/pretty {:mvn/version "RELEASE"}
-                               mvxcvi/puget {:mvn/version "RELEASE"}
-                               com.hypirion/clj-xchart {:mvn/version "RELEASE"}
-                               org.clojure/clojure {:mvn/version "RELEASE"}
-                               generateme/fastmath {:mvn/version "RELEASE"}
-                               clj-commons/pomegranate {:mvn/version "RELEASE"}}
-                  :main-opts  ["-m" "rebel-readline.main"]}}
- }
+ {org.clojure/clojure                {:mvn/version "1.10.1"}
+  org.clojure/clojurescript          {:mvn/version "1.10.597"}
+  quil                               {:mvn/version "3.1.0"}
+  org.clojure/core.async             {:mvn/version "0.7.559"}
+  com.taoensso/timbre                {:mvn/version "4.10.0"}
+  reagent                            {:mvn/version "0.9.1"}
+  dali                               {:mvn/version "0.7.5"}}
+
+ :paths ["src/clj" "src/cljc" "src/cljs"]
+
+ :aliases
+ {:repl
+  {:extra-paths ["resources"]
+   :extra-deps
+   {com.bhauman/rebel-readline       {:mvn/version "RELEASE"}}
+   :main-opts  ["-m" "rebel-readline.main"]}
+
+  :fig
+  {:extra-paths ["target" "resources"]
+   :extra-deps
+   {com.bhauman/rebel-readline-cljs  {:mvn/version "RELEASE"}
+    com.bhauman/figwheel-main        {:mvn/version "RELEASE"}}}
+
+  :test
+  {:extra-paths ["test/clj" "test/cljc"]
+   :extra-deps
+   {lambdaisland/kaocha              {:mvn/version "RELEASE"}}}}}

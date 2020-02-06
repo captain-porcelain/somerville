@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+clojure -A:fig -m figwheel.main --build somerville --repl
+

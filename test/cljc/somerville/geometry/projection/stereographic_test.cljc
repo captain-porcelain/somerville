@@ -17,4 +17,4 @@
   (let [sp (sphere/fibonacci 100)
         pp (map stereographic/to-plane sp)
         rp (map stereographic/to-sphere pp)]
-    (map #(is (point/close? %1 %2)) sp rp)))
+    (dorun (map #(is (point/close? %1 %2)) sp rp))))

@@ -167,8 +167,8 @@
   (let [bg (:background colors)]
     (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 1)
-  (reset! test-image (quil/load-image  "/img/test-image.jpg"))
-  (reset! image (quil/load-image "/img/test-image.jpg")))
+  (reset! test-image (quil/load-image  "/images/test-image.jpg"))
+  (reset! image (quil/load-image "/images/test-image.jpg")))
 
 (defn init
   "Initialize Quil sketch."
