@@ -24,8 +24,8 @@
 (def koch-rules (list koch-rule1))
 (def koch (ls/lsystem :F koch-rules))
 
-(def current (atom koch))
-(def rendering (atom (list)))
+(def current (reagent/atom koch))
+(def rendering (reagent/atom (list)))
 (def length (reagent/atom 20))
 
 (defn update-angle
@@ -71,9 +71,9 @@
   []
   (dorun
     (for [l @rendering]
-      (let []
-        (quil/stroke 255 255 0)
-        (quil/fill 255 255 0)
+      (let [lc (:line-high colors)]
+        (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+        (quil/fill (:r lc) (:g lc) (:b lc) (:a lc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))
 
 (defn draw
@@ -127,9 +127,10 @@
    [:span
     "Press"
     [:ul
-     [:li "+ to progress l-system"]
-     [:li "- to regress l-system"]
-     [:li "v to draw l-system"]]]])
+     [:li "+ to increase line length"]
+     [:li "- to decrease line length"]
+     [:li "p to produce the l-system"]
+     [:li "d to draw l-system"]]]])
 
 (defn settings
   "Show information current settings."
@@ -138,7 +139,9 @@
    [:h3 "Settings"]
    [:span
     [:ul
-     [:li (str "Rendering Length:"  @length)]]]])
+     [:li (str "Rendering Length:" @length)]
+     [:li (str "System Length:" (count (:state @current)))]
+     [:li (str "Rendered Length:" (count @rendering))]]]])
 
 (defn ui
   "Draw the basic ui for this visualization."
