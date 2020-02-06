@@ -1,10 +1,14 @@
 (ns repl
-  (:require [clojure.tools.nrepl.server :as nrepl-server]
-            [cider.nrepl :refer [cider-nrepl-handler]]
-            [rebel-readline.main :as rebel]))
+  (:require
+    [nrepl.server :as nrepl-server]
+    [cider.nrepl :refer [cider-nrepl-handler]]
+    [rebel-readline.main :as rebel]))
+
+(defn nrepl-handler []
+  (require 'cider.nrepl)
+  (ns-resolve 'cider.nrepl 'cider-nrepl-handler))
 
 (defn -main []
-  (println "nrepl server at port 7888")
-  (nrepl-server/start-server :port 7888 :handler cider-nrepl-handler)
+  (nrepl-server/start-server :port 7888 :handler (nrepl-handler))
   (rebel/-main)
   (System/exit 0))
