@@ -9,7 +9,7 @@ clean:
 fig:
 		clojure -A:fig -m figwheel.main --build somerville --repl
 
-test:
+tests:
 		clojure -A:test -m kaocha.runner
 
 test-watch:

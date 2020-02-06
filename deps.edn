@@ -5,7 +5,10 @@
   org.clojure/core.async             {:mvn/version "0.7.559"}
   com.taoensso/timbre                {:mvn/version "4.10.0"}
   reagent                            {:mvn/version "0.9.1"}
-  dali                               {:mvn/version "0.7.5"}}
+  dali                               {:mvn/version "0.7.5"}
+  talos                              {:git/url "gitea@git.pinkbubbles.de:chris/talos.git"
+                                      :sha "4271fa4566c2c66ba49bca95140b067ad8a94980"
+                                      :deps/manifest :deps}}
 
  :paths ["src/clj" "src/cljc" "src/cljs"]
 
@@ -24,7 +27,7 @@
     com.bhauman/figwheel-main        {:mvn/version "RELEASE"}}}
 
   :uberjar
-  {:extra-deps {uberdeps {:mvn/version "RELEASE"}}}
+  {:extra-deps {uberdeps             {:mvn/version "RELEASE"}}}
 
   :test
   {:extra-paths ["test/clj" "test/cljc"]
@@ -33,5 +36,5 @@
 
   :outdated
   {:extra-deps
-   {olical/depot {:mvn/version "1.8.4"}}
+   {olical/depot                     {:mvn/version "1.8.4"}}
    :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}}}
