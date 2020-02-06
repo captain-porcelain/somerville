@@ -16,7 +16,7 @@ test-watch:
 		clojure -A:test -m kaocha.runner --watch
 
 repl:
-		clojure -A:repl
+		clojure -A:repl -m repl
 
 outdated:
 		clojure -A:outdated
