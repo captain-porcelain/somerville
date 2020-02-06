@@ -10,6 +10,7 @@
     [somerville.fills.concave-hull :as cvh]
     [somerville.color.color :as c]
     [somerville.rendering.svg :as svg]
+    [taoensso.timbre :as log]
     [clojure.string :as s]))
 
 ;;==================================================================================================================
@@ -102,10 +103,10 @@
   [image-file-name]
   (let [image (i/load-image image-file-name)
         partitions (find-partitions image 1000 15)
-        tmp (dorun (println (str "Found " (count partitions) " partitions")))
+        tmp (log/info (str "Found " (count partitions) " partitions"))
         ;approximation1 (map #(assoc % :hull (cxh/quick-hull (:points %))) partitions)
         ;approximation2 (map #(assoc % :hull (cvh/hull (:points %) 20)) partitions)
-        tmp (dorun (map #(println (count (:points %))) partitions))
+        tmp (dorun (map #(log/info (count (:points %))) partitions))
         tmp (draw-partitions-separately "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
         ;tmp (draw-partitions "/tmp/partitions.png" (.getWidth image) (.getHeight image) partitions)
         ;tmp (render-hulls "/tmp/partitions.png" (.getWidth image) (.getHeight image) approximation2)

@@ -1,5 +1,6 @@
 (ns somerville.rendering.dungeons.ascii
   (:require
+    [taoensso.timbre :as log]
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))
 
@@ -9,7 +10,7 @@
 (defn print-walker
   "Print every element in the grid."
   [g e]
-  (dorun (println (str "Element at " (:x e) ", " (:y e) ": " e))))
+  (log/info "Element at " (:x e) ", " (:y e) ": " e))
 
 ;==================================================================================================================
 ; Generate ascii representation of rectangular grids

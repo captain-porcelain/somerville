@@ -1,5 +1,7 @@
 ;; Test the geometry functions.
 (ns somerville.rasterization.rasterize-test
+  (:require
+    [taoensso.timbre :as log])
   (:use clojure.test)
   (:use somerville.rasterization.rasterize))
 
@@ -81,13 +83,13 @@
 (deftest tree-list
   (defn compare-tree-to-list
     [size]
-    (let [;tmp (dorun (println (str "pixels in square of size "size ": " (* (* 2 size) (* 2 size)))))
+    (let [;tmp (log/info (str "pixels in square of size "size ": " (* (* 2 size) (* 2 size))))
           sl (sight-lines size)
-          ;tmp (dorun (println (str "pixels in list of lines of size " size ": " (count-pixels sl))))
+          ;tmp (log/info (str "pixels in list of lines of size " size ": " (count-pixels sl)))
           t (sight-lines-tree size)
-          ;tmp (dorun (println (str "pixels in tree of size " size ": " (count-pixels-tree t))))
+          ;tmp (log/info (str "pixels in tree of size " size ": " (count-pixels-tree t)))
           tf (tree-full? t sl)
-          ;tmp (dorun (println (str "all pixels of list of lines in tree? " tf)))
+          ;tmp (log/info (str "all pixels of list of lines in tree? " tf))
           ]
       (is (= tf true))))
 

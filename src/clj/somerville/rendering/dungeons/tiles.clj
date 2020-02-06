@@ -4,6 +4,7 @@
     [java.awt Graphics2D]
     [java.awt.image BufferedImage])
   (:require
+    [taoensso.timbre :as log]
     [somerville.commons :as commons]
     [somerville.rendering.resources :as resources]
     [somerville.rendering.image :as image]
@@ -61,7 +62,7 @@
           tn (nth (nth tile-names y) x)
           t (rand-nth (get tiles tn))]
       (if (nil? t)
-        (dorun (println (str "Missing tile " tn)))
+        (log/info (str "Missing tile " tn))
         (.drawImage graphics t w h nil)))))
 
 (defn render-tiles-rect
@@ -85,7 +86,7 @@
           tn (nth (nth tile-names y) x)
           t (rand-nth (get tiles tn))]
       (if (nil? t)
-        (dorun (println (str "Missing tile " tn)))
+        (log/info (str "Missing tile " tn))
         (.drawImage graphics t w h nil)))))
 
 (defn render-tiles-hex

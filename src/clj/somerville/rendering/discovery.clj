@@ -156,8 +156,8 @@
   and not when it points away from event point."
   [point event-point candidate]
   (let [alpha (p/angle-pos point event-point candidate)]
-    ;(dorun (println (str (gcommons/out point)(gcommons/out event-point)(gcommons/out candidate))))
-    ;(dorun (println (p/angle-pos point event-point candidate)))
+    ;(log/info (str (gcommons/out point)(gcommons/out event-point)(gcommons/out candidate)))
+    ;(log/info (p/angle-pos point event-point candidate))
     (or
       (gcommons/close-to (:y point) (:y event-point) (:y candidate))
       (gcommons/close-to 0 (p/distance event-point candidate))

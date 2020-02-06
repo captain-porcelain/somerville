@@ -1,5 +1,6 @@
 (ns somerville.fills.flood-fill-test
   (:require
+    [taoensso.timbre :as log]
     [somerville.fills.flood-fill :as ff]
     [somerville.geometry.point :as p])
   (:use [clojure.test]))
@@ -54,7 +55,7 @@
         ;starttime (System/currentTimeMillis)
         ;parts (count (ff/fill (p/point x1 x1) more-points blocked-decider-fn x1 x1 x2 x2))
         ;endtime (System/currentTimeMillis)]
-    ;(dorun (println (str "filling " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
+    ;(log/info (str "filling " size "x" size " to " parts " took " (- endtime starttime) "ms"))))
 
 ;(test-fill 10)
 ;(test-fill 20)
@@ -72,7 +73,7 @@
         ;starttime (System/currentTimeMillis)
         ;parts (count (ff/partition-samples 10 blocked-decider-fn x1 x1 x2 x2))
         ;endtime (System/currentTimeMillis)]
-    ;(dorun (println (str "partitioning " size "x" size " to " parts " took " (- endtime starttime) "ms")))))
+    ;(log/info (str "partitioning " size "x" size " to " parts " took " (- endtime starttime) "ms"))))
 
 ;(test-partition 10)
 ;(test-partition 20)

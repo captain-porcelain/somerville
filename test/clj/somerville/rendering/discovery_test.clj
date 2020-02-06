@@ -1,6 +1,7 @@
 ;; Test functions that create overlay images that only show parts of an image that have been discovered.
 (ns somerville.rendering.discovery-test
   (:require
+    [taoensso.timbre :as log]
     [somerville.rendering.discovery :as rcwt]
     [somerville.geometry.commons :as commons]
     [somerville.geometry.point :as p]
@@ -33,7 +34,7 @@
         walls (list l1 l2 l3 l4)
         relevant-walls (rcwt/relevant-walls (p/point 0 0) walls 1 4)]
     (is (= 7 (count relevant-walls)))
-    ;(dorun (map #(println (commons/out %)) relevant-walls))
+    ;(dorun (map #(log/info (commons/out %)) relevant-walls))
     (is (commons/close-to 0 (p/distance cp1 (:p1 (nth relevant-walls 0)))))
     (is (commons/close-to 0 (p/distance cp2 (:p2 (nth relevant-walls 0)))))
     (is (commons/close-to 0 (p/distance cp2 (:p1 (nth relevant-walls 1)))))

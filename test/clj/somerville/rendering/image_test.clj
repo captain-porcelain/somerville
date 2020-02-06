@@ -1,5 +1,6 @@
 (ns somerville.rendering.image-test
   (:require
+    [taoensso.timbre :as log]
     [somerville.rendering.image :as i]
     [somerville.fills.flood-fill :as ff]
     [somerville.fills.line-fill :as lf]
@@ -25,7 +26,7 @@
         partitions (lf/clusters (p/point 0 0) 319 319 decider-fn)
         tmp (dorun partitions)
         endtime (System/currentTimeMillis)
-        tmp (dorun (println (str "found " (count partitions) " partitions in " (- endtime starttime) " ms.")))]
+        tmp (log/info (str "found " (count partitions) " partitions in " (- endtime starttime) " ms."))]
     partitions))
 
 ;(parts)

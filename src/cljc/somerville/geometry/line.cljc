@@ -131,8 +131,7 @@
           (= s1 s2)
           (c/close-to s1 s2))))
     (catch #?(:clj Exception :cljs js/Object) e
-      (dorun (println "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
-;(log/info (str "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2)))))
+      (log/error "Exception while checking if lines are parallel:\n\t" l1 "\n\t" l2))))
 
 (defn normal
   "Create a line for the normal of a line on the first point of the line."
@@ -201,11 +200,9 @@
         p22x (:x (:p2 l2))
         p22y (:y (:p2 l2))
         d2y (- p22y p21y)
-        ;tmp (when (or (= 0.0 d2y) (= 0 d2y)) (dorun (println (str "d2y is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
         d2y (if (or (= 0.0 d2y) (= 0 d2y)) 0.000000001 d2y)
         g (+ (- (/ (* (- p11y p21y) (- p22x p21x)) d2y) p11x) p21x)
         h (/ (- (* (- p12x p11x) (- p22y p21y)) (* (- p12y p11y) (- p22x p21x))) d2y)
-        ;tmp (when (or (= 0.0 h) (= 0 h)) (dorun (println (str "h is 0 intersecting\n " (c/out l1) "\nand\n" (c/out l2) "\n"))))
         h (if (or (= 0.0 h) (= 0 h)) 0.00000001 h)
         t (/ g h)]
     (p/point (x-by-t l1 t) (y-by-t l1 t))))

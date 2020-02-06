@@ -3,6 +3,7 @@
 ;; For comparisons with other approaches see http://blog.habrador.com/2013/02/how-to-generate-random-terrain.html
 (ns somerville.maps.terrain.loki
   (:require
+    [taoensso.timbre :as log]
     [somerville.maps.grid :as grid]))
 
 ;==========================================================================================================================
@@ -51,32 +52,32 @@
 (defn allowed-range-1
   [avg w roughness restrictions]
   (let [min-val (- avg (* w roughness))
-        tmp (dorun (println (str "min-val: " min-val)))
+        tmp (log/info (str "min-val: " min-val))
         max-val (+ avg (* w roughness))
-        tmp (dorun (println (str "max-val: " max-val)))
+        tmp (log/info (str "max-val: " max-val))
         restricted-min (get restrictions :min min-val)
-        tmp (dorun (println (str "restricted-min: " restricted-min)))
+        tmp (log/info (str "restricted-min: " restricted-min))
         restricted-max (get restrictions :max max-val)
-        tmp (dorun (println (str "restricted-max: " restricted-max)))
+        tmp (log/info (str "restricted-max: " restricted-max))
         save-min-1 (if (< min-val restricted-min) restricted-min min-val)
         save-min (if (> save-min-1 restricted-max) restricted-min save-min-1)
-        tmp (dorun (println (str "save-min: " save-min)))
+        tmp (log/info (str "save-min: " save-min))
         save-max-1 (if (> max-val restricted-max) restricted-max max-val)
         save-max (if (< save-max-1 restricted-min) restricted-max save-max-1)
-        tmp (dorun (println (str "save-max: " save-max)))
+        tmp (log/info (str "save-max: " save-max))
         ]
     [save-min save-max]))
 
 (defn allowed-range
   [avg w roughness restrictions]
   (let [min-val (- avg (* w roughness))
-        ;tmp (dorun (println (str "min-val: " min-val)))
+        ;tmp (log/info (str "min-val: " min-val))
         max-val (+ avg (* w roughness))
-        ;tmp (dorun (println (str "max-val: " max-val)))
+        ;tmp (log/info (str "max-val: " max-val))
         restricted-min (get restrictions :min min-val)
-        ;tmp (dorun (println (str "restricted-min: " restricted-min)))
+        ;tmp (log/info (str "restricted-min: " restricted-min))
         restricted-max (get restrictions :max max-val)
-        ;tmp (dorun (println (str "restricted-max: " restricted-max)))
+        ;tmp (log/info (str "restricted-max: " restricted-max))
         ]
     (cond
       (> min-val restricted-max) [restricted-min restricted-max]
@@ -109,7 +110,7 @@
 (defn diamond-step
   "Handle setting on field as part of a diamond step."
   [g [x y w] config]
-  ;(dorun (println (str "Diamond " w " - " x ", " y))))
+  ;(log/info (str "Diamond " w " - " x ", " y)))
   (set-z g x y (new-value g x y w (square-coords x y w) config)))
 
 (defn diamond-steps
@@ -124,7 +125,7 @@
 (defn square-step
   "Handle setting on field as part of a square step."
   [g [x y] w config]
-  ;(dorun (println (str "Square " x ", " y))))
+  ;(log/info (str "Square " x ", " y)))
   (set-z g x y (new-value g x y w (diamond-coords x y w) config)))
 
 (defn square-steps

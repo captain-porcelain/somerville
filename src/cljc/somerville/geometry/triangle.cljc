@@ -56,7 +56,7 @@
   "Calculate the circumcircle of a triangle "
   [t]
   (let [center (circumcenter t)]
-    (do (when (nil? center) (println (str "Can't calculate circumcenter for " (c/out t)))))
+    (do (when (nil? center) (log/error (str "Can't calculate circumcenter for " (c/out t)))))
     (circle/circle center (point/distance center (:p1 t)))))
 
 (defn sign

@@ -81,8 +81,8 @@
 
 ;(def points4 (list (p/point 5 5)))
 ;(def v3 (v/voronoi points4 0 0 10 10))
-;(dorun (println (c/out v3)))
-;(dorun (println (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v3))))))
-;(dorun (println (map #(str (p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) "\n") (:intersections (first (:points v3))))))
-;(dorun (println (map #(str (c/out (:intersection %)) "\n") (sort-by #(p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) (:intersections (first (:points v3)))))))
-;(dorun (println (map #(str (c/out %)) (v/cell-corners (first (:points v3))))))
+;(log/info (c/out v3))
+;(log/info (map #(str (c/out (:intersection %)) "\n") (:intersections (first (:points v3)))))
+;(log/info (map #(str (p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) "\n") (:intersections (first (:points v3)))))
+;(log/info (map #(str (c/out (:intersection %)) "\n") (sort-by #(p/angle (p/point 5 5) (p/point 0 0) (:intersection %)) (:intersections (first (:points v3))))))
+;(log/info (map #(str (c/out %)) (v/cell-corners (first (:points v3)))))

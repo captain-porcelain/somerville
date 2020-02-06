@@ -124,10 +124,10 @@
 ;; ==============================================================================================================
 ;; Check creation of voronois
 ;(def voronoi1-step0 (f/voronoi points1))
-;(dorun (println (c/out voronoi1-step0)))
+;(log/info (c/out voronoi1-step0))
 ;(def voronoi1-step1 (f/step voronoi1-step0))
-;(dorun (println (c/out voronoi1-step1)))
+;(log/info (c/out voronoi1-step1))
 ;(def voronoi1-step2 (f/step voronoi1-step1))
-;(dorun (println (c/out voronoi1-step2)))
+;(log/info (c/out voronoi1-step2))
 ;(def voronoi1-step3 (f/step voronoi1-step2))
-;(dorun (println (c/out voronoi1-step3)))
+;(log/info (c/out voronoi1-step3))
