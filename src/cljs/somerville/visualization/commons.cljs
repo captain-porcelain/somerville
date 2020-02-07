@@ -1,4 +1,4 @@
-(ns somerville.visualization.commons
+(ns ^:figwheel-hooks somerville.visualization.commons
   (:require
     [somerville.visualization.terrain :as terrain]
     [somerville.visualization.l-system :as l-system]
@@ -55,3 +55,5 @@
       (log/info "Starting visualizations...")
       (reagent/render framing app-elem))))
 
+(defn ^:after-load re-render []
+  (show))

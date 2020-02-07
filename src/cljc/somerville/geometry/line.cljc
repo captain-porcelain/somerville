@@ -246,3 +246,8 @@
   [l factor]
   (line (p/scale (:p1 l) factor) (p/scale (:p2 l) factor)))
 
+(defn move
+  "Move all points of line"
+  [t p]
+  (line (p/add (:p1 t) p) (p/add (:p2 t) p)))
+

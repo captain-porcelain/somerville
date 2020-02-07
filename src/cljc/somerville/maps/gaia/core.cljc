@@ -17,18 +17,18 @@
 
 (def icosahedron-corners
   (list
-    (point/point -0.26286500 0.0000000 0.42532500)
-    (point/point 0.26286500 0.0000000 0.42532500)
-    (point/point -0.26286500 0.0000000 -0.42532500)
-    (point/point 0.26286500 0.0000000 -0.42532500)
-    (point/point 0.0000000 0.42532500 0.26286500)
-    (point/point 0.0000000 0.42532500 -0.26286500)
-    (point/point 0.0000000 -0.42532500 0.26286500)
-    (point/point 0.0000000 -0.42532500 -0.26286500)
-    (point/point 0.42532500 0.26286500 0.0000000)
-    (point/point -0.42532500 0.26286500 0.0000000)
-    (point/point 0.42532500 -0.26286500 0.0000000)
-    (point/point -0.42532500 -0.26286500 0.0000000)))
+    (point/point -0.26286500  0.0000000   0.42532500)
+    (point/point  0.26286500  0.0000000   0.42532500)
+    (point/point -0.26286500  0.0000000  -0.42532500)
+    (point/point  0.26286500  0.0000000  -0.42532500)
+    (point/point  0.0000000   0.42532500  0.26286500)
+    (point/point  0.0000000   0.42532500 -0.26286500)
+    (point/point  0.0000000  -0.42532500  0.26286500)
+    (point/point  0.0000000  -0.42532500 -0.26286500)
+    (point/point  0.42532500  0.26286500  0.0000000)
+    (point/point -0.42532500  0.26286500  0.0000000)
+    (point/point  0.42532500 -0.26286500  0.0000000)
+    (point/point -0.42532500 -0.26286500  0.0000000)))
 
 (def cube-corners
   (list
@@ -85,7 +85,16 @@
 (defn to-voronoi
   "Create voronoi for points on a sphere."
   [points]
-  (map line-to-sphere (delaunay/voronoi (delaunay/delaunay (map proj/to-plane points)))))
+  (let [pfp (map proj/to-plane points)
+        mx (apply min (map :x pfp))
+        my (apply min (map :y pfp))
+        trans (point/point (+ 1 (* -1 mx)) (+ 1 (* -1 my)))
+        back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
+        moved (map #(point/add % trans) pfp)
+        d (delaunay/delaunay moved)
+        ls (delaunay/voronoi d)
+        backed (map #(line/move % back) ls)]
+    (map line-to-sphere backed)))
 
 (defn to-delaunay
   "Create delaunay for points on a sphere."
@@ -94,9 +103,9 @@
         mx (apply min (map :x pfp))
         my (apply min (map :y pfp))
         trans (point/point (+ 1 (* -1 mx)) (+ 1 (* -1 my)))
+        back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
         moved (map #(point/add % trans) pfp)
         d (delaunay/delaunay moved)
-        back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
         ts (map :t (:triangles d))
         backed (map #(triangle/move % back) ts)]
     (map triangle-to-sphere backed)))
@@ -158,6 +167,11 @@
   "Create a list of triangles for a delaunay of a fibonaccic sphere."
   [scale]
   (map #(triangle/scale % scale) (to-delaunay (sphere/fibonacci 128))))
+
+(defn voronoi
+  "Create a list of lines for a voronoi of a fibonaccic sphere."
+  [scale]
+  (map #(triangle/scale % scale) (to-voronoi (sphere/fibonacci 128))))
 
 
 ;;=================================================================================================================

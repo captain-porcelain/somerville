@@ -15,7 +15,7 @@
 (def colors
   {:background (color/rgba  10  10  10)
    :line       (color/rgba 217  60 110)
-   :fill       (color/rgba  40  40  40 128)
+   :fill       (color/rgba  40  40  40 180)
    :focus-line (color/rgba 241 196  15)
    :focus-fill (color/rgba  80  80  80 128)})
 
@@ -68,12 +68,20 @@
     (reset! world (gaia/icosahedron 400))))
 
 (defn regenerate-delaunay!
-  "Reset world to icosahedron."
+  "Reset world to delaunay of fibonacci sphere."
   []
   (do
     (reset! index 0)
     (reset! draw-mode :triangles)
     (reset! world (gaia/delaunay 200))))
+
+(defn regenerate-voronoi!
+  "Reset world to voronoi of fibonacci sphere."
+  []
+  (do
+    (reset! index 0)
+    (reset! draw-mode :lines)
+    (reset! world (gaia/voronoi 200))))
 
 (defn regenerate-fibonacci!
   "Reset world to random fibonacci sphere."
@@ -164,6 +172,7 @@
      70 (regenerate-fibonacci!) ;; f
      73 (regenerate-icosahedron!) ;; i
      83 (subdivide!) ;; s
+     86 (regenerate-voronoi!);; v
     (log/info "Pressed unhandled key with code" (quil/key-code))))
 
 
@@ -206,6 +215,7 @@
      [:li "i to recreate an icosahedron"]
      [:li "f to recreate an fibonacci sphere"]
      [:li "d to recreate a delaunay of a fibonacci sphere"]
+     [:li "v to recreate a voronoi of a fibonacci sphere"]
      [:li "s to subdivide"]]]])
 
 (defn settings
