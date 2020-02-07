@@ -34,6 +34,20 @@
     (is (= bp2 (:p2 (:t bt))))
     (is (= bp3 (:p3 (:t bt))))))
 
+(deftest negative-bounds
+  (let [bp1 (p/point 0   0)
+        bp2 (p/point 0  24)
+        bp3 (p/point 22  0)
+        p3 (p/point  4  5)
+        p4 (p/point 10  9)
+        p5 (p/point  2 11)
+        p6 (p/point  5 -1)
+        points (list p3 p4 p5 p6)
+        bt (d/bounding-triangle points)]
+    (is (= bp1 (:p1 (:t bt))))
+    (is (= bp2 (:p2 (:t bt))))
+    (is (= bp3 (:p3 (:t bt))))))
+
 (deftest invalidation
   (let [p1 (p/point 0 0)
         p2 (p/point 2 0)

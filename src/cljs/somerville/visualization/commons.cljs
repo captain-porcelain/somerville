@@ -6,7 +6,6 @@
     [somerville.visualization.delaunay :as delaunay]
     [somerville.visualization.fortune :as fortune]
     [somerville.visualization.voronoi :as voronoi]
-    [somerville.visualization.world :as world]
     [somerville.visualization.tracer :as tracer]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
@@ -26,8 +25,7 @@
     [:li {:on-click #(reset! current-view "tracer")} "Tracer"]
     [:li {:on-click #(reset! current-view "delaunay")} "Voronoi by Delaunay"]
     [:li {:on-click #(reset! current-view "fortune")} "Voronoi by Fortune"]
-    [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]
-    [:li {:on-click #(reset! current-view "world")} "Voronoi World Generation"]]])
+    [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]]])
 
 (defn switch
   "Switch the shown view."
@@ -40,7 +38,6 @@
     "delaunay" [delaunay/visualize]
     "fortune" [fortune/visualize]
     "voronoi" [voronoi/visualize]
-    "world" [world/visualize]
     [index]))
 
 (defn framing

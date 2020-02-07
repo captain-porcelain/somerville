@@ -15,6 +15,7 @@
   (point/point (/ (:x p) (- 1 (:z p))) (/ (:y p) (- 1 (:z p)))))
 
 (defn to-sphere
+  "Project a point from the plane onto a unit sphere."
   [p]
   (let [lower (+ 1 (* (:x p) (:x p)) (* (:y p) (:y p)))]
     (point/point

@@ -20,7 +20,6 @@
    :focus-fill (color/rgba  80  80  80 128)})
 
 
-
 ;;====================================================================================================
 ;; Data Handling
 
@@ -28,6 +27,7 @@
 (def world (atom (gaia/icosahedron 400)))
 (def mouse-position (atom [0 0]))
 (def position (atom [0 0]))
+(def draw-mode (reagent/atom :triangles))
 
 (defn get-mouse-angle-x
   "get mouse based angle"
@@ -56,14 +56,32 @@
   []
  (do
    (reset! index 0)
-   (reset! world (gaia/cube 200))))
+   (reset! draw-mode :triangles)
+   (reset! world (gaia/cube 150))))
 
 (defn regenerate-icosahedron!
   "Reset world to icosahedron."
   []
   (do
     (reset! index 0)
+    (reset! draw-mode :triangles)
     (reset! world (gaia/icosahedron 400))))
+
+(defn regenerate-delaunay!
+  "Reset world to icosahedron."
+  []
+  (do
+    (reset! index 0)
+    (reset! draw-mode :triangles)
+    (reset! world (gaia/delaunay 200))))
+
+(defn regenerate-fibonacci!
+  "Reset world to random fibonacci sphere."
+  []
+  (do
+    (reset! index 0)
+    (reset! draw-mode :points)
+    (reset! world (gaia/fibonacci 200))))
 
 (defn subdivide!
   "Subdivide current world."
@@ -75,6 +93,18 @@
 
 ;;====================================================================================================
 ;; Drawing Functionality
+
+(defn draw-line
+  "Draws one line of the world."
+  [l lc]
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))
+
+(defn draw-point
+  "Draws one point of the world."
+  [p lc]
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/point (:x p) (:y p) (:z p)))
 
 (defn draw-triangle
   "Draws one polygon representing an area of the world."
@@ -97,7 +127,10 @@
       (quil/with-rotation [(/ 0 tau) 0 0 1]
         (dorun
           (for [l @world]
-            (draw-triangle l (:fill colors) (:line colors))))
+            (case @draw-mode
+              :triangles (draw-triangle l (:fill colors) (:line colors))
+              :lines (draw-line l (:line colors))
+              :points (draw-point l (:line colors)))))
         (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors))))))
 
 
@@ -127,6 +160,8 @@
     171 (cycle-up!) ;; +
     173 (cycle-down!) ;; -
      67 (regenerate-cube!);; c
+     68 (regenerate-delaunay!);; d
+     70 (regenerate-fibonacci!) ;; f
      73 (regenerate-icosahedron!) ;; i
      83 (subdivide!) ;; s
     (log/info "Pressed unhandled key with code" (quil/key-code))))
@@ -169,6 +204,8 @@
      [:li "- to cycle down through the surfaces"]
      [:li "c to recreate a cube"]
      [:li "i to recreate an icosahedron"]
+     [:li "f to recreate an fibonacci sphere"]
+     [:li "d to recreate a delaunay of a fibonacci sphere"]
      [:li "s to subdivide"]]]])
 
 (defn settings
@@ -178,7 +215,8 @@
    [:h3 "Settings"]
    [:span
     [:ul
-     [:li (str "Surface Index:" @index)]]]])
+     [:li (str "Surface Index: " @index)]
+     [:li (str "Draw Mode: " @draw-mode)]]]])
 
 (defn ui
   "Draw the basic ui for this visualization."

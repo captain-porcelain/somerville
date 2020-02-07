@@ -74,3 +74,14 @@
         has-neg (or (< d1 0) (< d2 0) (< d3 0))
         has-pos (or (> d1 0) (> d2 0) (> d3 0))]
     (not (and has-pos has-neg))))
+
+(defn move
+  "Move all points of triangle"
+  [t p]
+  (triangle (point/add (:p1 t) p) (point/add (:p2 t) p) (point/add (:p3 t) p)))
+
+(defn scale
+  "Scale all points of triangle"
+  [t s]
+  (triangle (point/scale (:p1 t) s) (point/scale (:p2 t) s) (point/scale (:p3 t) s)))
+

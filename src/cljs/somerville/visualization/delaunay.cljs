@@ -4,6 +4,8 @@
     [somerville.geometry.line :as line]
     [somerville.geometry.point :as p]
     [somerville.geometry.delaunay :as delaunay]
+    [somerville.geometry.sphere :as sphere]
+    [somerville.geometry.projection.stereographic :as proj]
     [somerville.color.color :as color]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
@@ -28,11 +30,13 @@
 (def voronoi-lines (atom (delaunay/voronoi @delaunay-triangles)))
 (def draw-delaunay (reagent/atom true))
 (def draw-voronoi (reagent/atom true))
+(def last-point (reagent/atom nil))
 
 (defn add-point!
   "Add another point to the diagram."
   [point]
   (reset! points (cons point @points))
+  (reset! last-point point)
   (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles point))
   (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
 
@@ -42,6 +46,17 @@
   (reset! points (list))
   (reset! delaunay-triangles (delaunay/delaunay @points (p/point width height)))
   (reset! voronoi-lines (list)))
+
+(defn projected-fibonacci-sphere!
+  "Create points for the projected fibonacci sphere."
+  []
+  (let [pfp (map proj/to-plane (sphere/fibonacci 12))
+        mx (apply min (map :x pfp))
+        my (apply min (map :y pfp))
+        trans (p/point (+ 1 (* -1 mx)) (+ 1 (* -1 my)))]
+    (reset! points (map #(p/scale (p/add % trans) 100) pfp)))
+  (reset! delaunay-triangles (delaunay/delaunay @points (p/point width height)))
+  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
 
 (defn toggle-drawing-delaunay!
   "Toggle drawing the delaunay triangles."
@@ -101,7 +116,8 @@
       (draw-point p)))
   (when @draw-delaunay
     (dorun
-      (for [t (delaunay/remove-bounds @delaunay-triangles)]
+      (for [t (:triangles @delaunay-triangles)]
+      ;(for [t (delaunay/remove-bounds @delaunay-triangles)]
         (draw-triangle t))))
   (when @draw-voronoi
     (dorun
@@ -121,6 +137,7 @@
   "Trigger actions on key presses."
   (case (quil/key-as-keyword)
     :c (clear!)
+    :f (projected-fibonacci-sphere!)
     :d (toggle-drawing-delaunay!)
     :v (toggle-drawing-voronoi!)
     (log/info (str "pressed key " (quil/key-as-keyword)))))
@@ -159,6 +176,7 @@
     [:ul
      [:li "left mouse button to add point"]
      [:li "c to clear diagram"]
+     [:li "f to create points for projected fibonacci sphere"]
      [:li "d to toggle drawing delaunay"]
      [:li "v to toggle drawing voronoi"]]]])
 
@@ -170,6 +188,7 @@
    [:span
     [:ul
      [:li (str "Count points: " (count @points))]
+     [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
      [:li (str "Drawing delaunay: " @draw-delaunay)]
      [:li (str "Drawing voronoi: " @draw-voronoi)]]]])
 

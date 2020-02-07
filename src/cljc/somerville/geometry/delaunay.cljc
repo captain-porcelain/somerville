@@ -7,7 +7,8 @@
     [somerville.geometry.line :as l]
     [somerville.geometry.point :as p]
     [somerville.geometry.circle :as circle]
-    [somerville.geometry.triangle :as triangle]))
+    [somerville.geometry.triangle :as triangle]
+    [taoensso.timbre :as log]))
 
 
 (defrecord Delaunay-triangle [t c]
@@ -58,13 +59,16 @@
     (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) 1))
 
 (defn hole
-  "Create the hole left be invalidated triangles."
+  "Create the hole left by invalidated triangles."
   [triangles]
   (map key (filter #(= 1 (val %)) (apply merge-with + (map to-counted-lines triangles)))))
 
 (defn triangulate-hole
   "Create a list of triangles that fills hole."
   [hole p]
+  ;(log/info "HOLE")
+  ;(log/info (sgc/out p))
+  ;(dorun (map #(log/info (sgc/out %)) hole))
   (map #(delaunay-triangle (triangle/triangle (:p1 %) (:p2 %) p)) hole))
 
 (defn add-point
@@ -92,7 +96,7 @@
    (delaunay points (p/point (max-val points :x) (max-val points :y)))))
 
 (defn remove-bounds
-  "Remove the triangles that share a point"
+  "Remove the triangles that share a point with the boundary"
   [triangulation]
   (filter #(not (shares-point % (:bounds triangulation))) (:triangles triangulation)))
 

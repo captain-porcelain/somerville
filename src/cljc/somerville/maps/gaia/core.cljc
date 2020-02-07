@@ -1,13 +1,19 @@
 ;; http://experilous.com/1/blog/post/procedural-planet-generation
-;; https://github.com/Engelberg/ubergraph
 (ns somerville.maps.gaia.core
   (:require
-    [clojure.set :as s]
     [somerville.geometry.commons :as gcommons]
-    [somerville.geometry.triangle :as triangle]
     [somerville.geometry.point :as point]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.triangle :as triangle]
     [somerville.geometry.polygon :as polygon]
-    [somerville.geometry.line :as line]))
+    [somerville.geometry.sphere :as sphere]
+    [somerville.geometry.delaunay :as delaunay]
+    [somerville.geometry.projection.stereographic :as proj]
+    [clojure.set :as s]))
+
+
+;;====================================================================================================
+;; Data Sets
 
 (def icosahedron-corners
   (list
@@ -35,17 +41,65 @@
     (point/point  1  1 -1)
     (point/point  1  1  1)))
 
-(defn closest
+
+;;====================================================================================================
+;; Mesh Helpers
+
+(defn distances
+  "Get a sorted list of distances to all points in ps, excluding p itself."
+  [p ps]
+  (rest
+    (sort-by first
+             (map #(vector (point/distance p %) %)
+                  ps))))
+
+(defn all-closest
   "Find the points in ps that are closest to a point p."
   [p ps]
-  (let [distances (rest (sort-by first (map #(vector (point/distance p %) %) ps)))
-        ref-dist (first (first distances))]
-    (map #(apply line/line (sort (list p (second %)))) (take-while #(gcommons/close-to ref-dist (first %)) distances))))
+  (let [dists (distances p ps)
+        ref-dist (first (first dists))]
+    (map second (take-while #(gcommons/close-to ref-dist (first %)) dists))))
+
+(defn lines-to
+  "Create lines between p and those points in ps."
+  [p ps]
+  (map
+    #(apply line/line (sort (list p %)))
+    ps))
 
 (defn lines
   "Create lines from a set of points. Each point is connected to all those that are closest to it."
   [points]
-  (distinct (sort (reduce concat (map #(closest % points) points)))))
+  (distinct (sort (reduce concat (map #(lines-to % (all-closest % points)) points)))))
+
+(defn line-to-sphere
+  "Map the points of a line onto a sphere."
+  [l]
+  (line/line (proj/to-sphere (:p1 (:line l))) (proj/to-sphere (:p2 (:line l)))))
+
+(defn triangle-to-sphere
+  "Map the points of a triangle onto a sphere."
+  [t]
+  (triangle/triangle (proj/to-sphere (:p1 t)) (proj/to-sphere (:p2 t)) (proj/to-sphere (:p3 t))))
+
+(defn to-voronoi
+  "Create voronoi for points on a sphere."
+  [points]
+  (map line-to-sphere (delaunay/voronoi (delaunay/delaunay (map proj/to-plane points)))))
+
+(defn to-delaunay
+  "Create delaunay for points on a sphere."
+  [points]
+  (let [pfp (map proj/to-plane points)
+        mx (apply min (map :x pfp))
+        my (apply min (map :y pfp))
+        trans (point/point (+ 1 (* -1 mx)) (+ 1 (* -1 my)))
+        moved (map #(point/add % trans) pfp)
+        d (delaunay/delaunay moved)
+        back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
+        ts (map :t (:triangles d))
+        backed (map #(triangle/move % back) ts)]
+    (map triangle-to-sphere backed)))
 
 (defn triangles
   "Create a set of triangles from a set of lines. If two lines share a point create the triangle from
@@ -59,16 +113,6 @@
                 (or ignore-close (gcommons/close-to (point/distance (:p1 l1) (:p2 l1)) (point/distance (:p1 l1) (:p2 l2))))
                 (= (:p2 l1) (:p1 l2)))
           (triangle/triangle (:p1 l1) (:p2 l1) (:p2 l2)))))))
-
-(defn icosahedron
-  "Create a set of triangles that represent an icosahedron."
-  [scale]
-  (triangles (map #(line/scale % scale) (lines icosahedron-corners)) false))
-
-(defn cube
-  "Create a list of lines that represent a cube."
-  [scale]
-  (triangles (map #(line/scale % scale) (lines cube-corners)) true))
 
 (defn subdivide
   "Subdivide each triangle in a list."
@@ -90,6 +134,31 @@
   "Translate triangle surface to polygon for each triangle point."
   [ts]
   (map #(polygonate % ts) (triangle-points ts)))
+
+
+;;====================================================================================================
+;; Mesh Building
+
+(defn icosahedron
+  "Create a set of triangles that represent an icosahedron."
+  [scale]
+  (triangles (map #(line/scale % scale) (lines icosahedron-corners)) false))
+
+(defn cube
+  "Create a list of lines that represent a cube."
+  [scale]
+  (triangles (map #(line/scale % scale) (lines cube-corners)) true))
+
+(defn fibonacci
+  "Create a list of lines that represent a cube."
+  [scale]
+  (map #(point/scale % scale) (sphere/fibonacci 128)))
+
+(defn delaunay
+  "Create a list of triangles for a delaunay of a fibonaccic sphere."
+  [scale]
+  (map #(triangle/scale % scale) (to-delaunay (sphere/fibonacci 128))))
+
 
 ;;=================================================================================================================
 ;; Create a graph that holds all triangles and connects them to their neighbours.
