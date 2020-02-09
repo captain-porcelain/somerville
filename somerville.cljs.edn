@@ -1,3 +1,5 @@
 ^{:css-dirs ["resources/public/css"]
+  :extra-main-files {:worker {:main somerville.visualization.worker
+                              :target :webworker}}
   :log-syntax-error-style :concise}
-{:main somerville.visualization.commons}
+{:main somerville.visualization.core}

@@ -92,9 +92,14 @@
         back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
         moved (map #(point/add % trans) pfp)
         d (delaunay/delaunay moved)
-        ls (delaunay/voronoi d)
-        backed (map #(line/move % back) ls)]
-    (map line-to-sphere backed)))
+        vls (delaunay/voronoi d)
+        ls (map :line vls)
+        backed (map #(line/move % back) ls)
+        tmp (dorun (map println backed))
+        v (map line-to-sphere backed)
+        tmp (dorun (map println v))
+        ]
+    v))
 
 (defn to-delaunay
   "Create delaunay for points on a sphere."
@@ -107,7 +112,8 @@
         moved (map #(point/add % trans) pfp)
         d (delaunay/delaunay moved)
         ts (map :t (:triangles d))
-        backed (map #(triangle/move % back) ts)]
+        backed (map #(triangle/move % back) ts)
+        tmp (dorun (map println backed))]
     (map triangle-to-sphere backed)))
 
 (defn triangles
@@ -171,7 +177,7 @@
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonaccic sphere."
   [scale]
-  (map #(triangle/scale % scale) (to-voronoi (sphere/fibonacci 128))))
+  (map #(line/scale % scale) (to-voronoi (sphere/fibonacci 128))))
 
 
 ;;=================================================================================================================

@@ -1,8 +1,8 @@
 (ns somerville.visualization.gaia
   (:require
     [somerville.color.color :as color]
-    [somerville.geometry.polygon :as polygon]
     [somerville.maps.gaia.core :as gaia]
+    [talos.core :as talos]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))
@@ -23,11 +23,16 @@
 ;;====================================================================================================
 ;; Data Handling
 
-(def index (reagent/atom 0))
+(def fsm (reagent/atom nil))
+(def worker (atom nil))
+
 (def world (atom (gaia/icosahedron 400)))
+
+(def draw-mode (reagent/atom :triangles))
+(def index (reagent/atom 0))
+
 (def mouse-position (atom [0 0]))
 (def position (atom [0 0]))
-(def draw-mode (reagent/atom :triangles))
 
 (defn get-mouse-angle-x
   "get mouse based angle"
@@ -41,78 +46,32 @@
   (let [[x y] @position]
     (* tau (/ (- height y) height))))
 
-(defn cycle-up!
-  "Cycle through faces."
-  []
-  (when (< @index (dec (count @world))) (swap! index inc)))
+(defn receive!
+  [msg]
+  (log/info msg))
 
-(defn cycle-down!
-  "Cycle through faces."
+(defn start-worker!
+  "Test background worker process."
   []
-  (when (> @index 0) (swap! index dec)))
-
-(defn regenerate-cube!
-  "Reset world to cube."
-  []
- (do
-   (reset! index 0)
-   (reset! draw-mode :triangles)
-   (reset! world (gaia/cube 150))))
-
-(defn regenerate-icosahedron!
-  "Reset world to icosahedron."
-  []
-  (do
-    (reset! index 0)
-    (reset! draw-mode :triangles)
-    (reset! world (gaia/icosahedron 400))))
-
-(defn regenerate-delaunay!
-  "Reset world to delaunay of fibonacci sphere."
-  []
-  (do
-    (reset! index 0)
-    (reset! draw-mode :triangles)
-    (reset! world (gaia/delaunay 200))))
-
-(defn regenerate-voronoi!
-  "Reset world to voronoi of fibonacci sphere."
-  []
-  (do
-    (reset! index 0)
-    (reset! draw-mode :lines)
-    (reset! world (gaia/voronoi 200))))
-
-(defn regenerate-fibonacci!
-  "Reset world to random fibonacci sphere."
-  []
-  (do
-    (reset! index 0)
-    (reset! draw-mode :points)
-    (reset! world (gaia/fibonacci 200))))
-
-(defn subdivide!
-  "Subdivide current world."
-  []
-  (do
-    (reset! index 0)
-    (reset! world (gaia/subdivide @world))))
-
+  (let [w (js/Worker. "cljs-out/somerville-main-worker.js")
+        ;tmp (do (.postMessage w "start"))
+        tmp (set! (.-onmessage w) receive!)]
+    (reset! worker w)))
 
 ;;====================================================================================================
 ;; Drawing Functionality
-
-(defn draw-line
-  "Draws one line of the world."
-  [l lc]
-  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
-  (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))
 
 (defn draw-point
   "Draws one point of the world."
   [p lc]
   (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/point (:x p) (:y p) (:z p)))
+
+(defn draw-line
+  "Draws one line of the world."
+  [l lc]
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))
 
 (defn draw-triangle
   "Draws one polygon representing an area of the world."
@@ -142,6 +101,101 @@
         (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors))))))
 
 
+;;=====================================================================================================================
+;; Define the FSM that handles gaia
+
+(defn idle-callback
+  [my-fsm event]
+  (log/info "Calculation done..."))
+
+(defn calculating-callback
+  [my-fsm event]
+  (log/info "Starting calculation..."))
+
+(defn cycle-up-callback
+  "Cycle through faces."
+  []
+  (when (< @index (dec (count @world))) (swap! index inc))
+  (talos/process! @fsm {:event :done}))
+
+(defn cycle-down-callback
+  "Cycle through faces."
+  []
+  (when (> @index 0) (swap! index dec))
+  (talos/process! @fsm {:event :done}))
+
+(defn make-cube-callback
+  "Reset world to cube."
+  []
+  (reset! index 0)
+  (reset! draw-mode :triangles)
+  (reset! world (gaia/cube 150))
+  (talos/process! @fsm {:event :done}))
+
+(defn make-icosahedron-callback
+  "Reset world to icosahedron."
+  []
+  (reset! index 0)
+  (reset! draw-mode :triangles)
+  (reset! world (gaia/icosahedron 400))
+  (talos/process! @fsm {:event :done}))
+
+(defn make-delaunay-callback
+  "Reset world to delaunay of fibonacci sphere."
+  []
+  (reset! index 0)
+  (reset! draw-mode :triangles)
+  (reset! world (gaia/delaunay 200))
+  (talos/process! @fsm {:event :done}))
+
+(defn make-voronoi-callback
+  "Reset world to voronoi of fibonacci sphere."
+  []
+  (reset! index 0)
+  (reset! draw-mode :lines)
+  (reset! world (gaia/voronoi 100))
+  (talos/process! @fsm {:event :done}))
+
+(defn make-fibonacci-callback
+  "Reset world to random fibonacci sphere."
+  []
+  (reset! index 0)
+  (reset! draw-mode :points)
+  (reset! world (gaia/fibonacci 200))
+  (talos/process! @fsm {:event :done}))
+
+(defn subdivide-callback
+  "Subdivide current world."
+  []
+  (reset! index 0)
+  (reset! world (gaia/subdivide @world))
+  (talos/process! @fsm {:event :done}))
+
+(def states
+  (list (talos/state :idle             idle-callback)
+        (talos/state :cycle-up         cycle-up-callback)
+        (talos/state :cycle-down       cycle-down-callback)
+        (talos/state :make-cube        make-cube-callback)
+        (talos/state :make-delaunay    make-delaunay-callback)
+        (talos/state :make-fibonacci   make-fibonacci-callback)
+        (talos/state :make-icosahedron make-icosahedron-callback)
+        (talos/state :make-voronoi     make-voronoi-callback)
+        (talos/state :subdivide        subdivide-callback)
+        (talos/state :calculating      calculating-callback)))
+
+(def transitions
+  (list (talos/transition :trigger-calculation     :idle                      :calculating)
+        (talos/transition :key-pressed             :idle                      :cycle-up           (fn [event data] (= 171 (:data event)))) ;; +
+        (talos/transition :key-pressed             :idle                      :cycle-down         (fn [event data] (= 173 (:data event)))) ;; -
+        (talos/transition :key-pressed             :idle                      :make-cube          (fn [event data] (=  67 (:data event)))) ;; c
+        (talos/transition :key-pressed             :idle                      :make-delaunay      (fn [event data] (=  68 (:data event)))) ;; d
+        (talos/transition :key-pressed             :idle                      :make-fibonacci     (fn [event data] (=  70 (:data event)))) ;; f
+        (talos/transition :key-pressed             :idle                      :make-icosahedron   (fn [event data] (=  73 (:data event)))) ;; i
+        (talos/transition :key-pressed             :idle                      :subdivide          (fn [event data] (=  83 (:data event)))) ;; s
+        (talos/transition :key-pressed             :idle                      :make-voronoi       (fn [event data] (=  86 (:data event)))) ;; v
+        (talos/transition :done                    :*                         :idle)
+        (talos/transition :calculation-finished    :calculating               :idle)))
+
 ;;====================================================================================================
 ;; Event Handling
 
@@ -164,16 +218,7 @@
 
 (defn key-pressed []
   "Trigger actions on key presses."
-  (case (quil/key-code)
-    171 (cycle-up!) ;; +
-    173 (cycle-down!) ;; -
-     67 (regenerate-cube!);; c
-     68 (regenerate-delaunay!);; d
-     70 (regenerate-fibonacci!) ;; f
-     73 (regenerate-icosahedron!) ;; i
-     83 (subdivide!) ;; s
-     86 (regenerate-voronoi!);; v
-    (log/info "Pressed unhandled key with code" (quil/key-code))))
+  (talos/process! @fsm {:event :key-pressed :data (quil/key-code)}))
 
 
 ;;====================================================================================================
@@ -190,6 +235,8 @@
 (defn init
   "Initialize Quil sketch."
   [canvas-id]
+  (reset! fsm (talos/fsm states transitions))
+  (start-worker!)
   (quil/defsketch gaia-sketch
     :host "hostelement"
     :setup setup
@@ -225,6 +272,7 @@
    [:h3 "Settings"]
    [:span
     [:ul
+     [:li (str "State: " (try (:name @(:state @fsm)) (catch js/Object e "")))]
      [:li (str "Surface Index: " @index)]
      [:li (str "Draw Mode: " @draw-mode)]]]])
 

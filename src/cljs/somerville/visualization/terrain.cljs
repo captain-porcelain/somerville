@@ -172,6 +172,7 @@
    [:span
     [:ul
      [:li (str "Loki detail: " @loki-detail)]
+     [:li (str "World size: " (:width @world) "x" (:height @world))]
      [:li (str "Contour steps: " @contour-steps)]
      [:li (str "Contour lines: " (count @contours))]
      [:li (str "Line colors: " (count @line-colors))]]]])
