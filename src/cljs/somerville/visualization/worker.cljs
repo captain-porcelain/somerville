@@ -3,7 +3,7 @@
     [taoensso.timbre :as log]))
 
 (defn do-work
-  []
-  (.log js/console "Worker started"))
+  [msg]
+  (log/info (str "Received message " (.stringify js/JSON (.-data msg)))))
 
 (set! (.-onmessage js/self) do-work)

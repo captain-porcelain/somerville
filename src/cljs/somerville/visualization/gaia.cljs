@@ -161,6 +161,7 @@
   []
   (reset! index 0)
   (reset! draw-mode :points)
+  (.postMessage @worker "fibonacci")
   (reset! world (gaia/fibonacci 200))
   (talos/process! @fsm {:event :done}))
 
