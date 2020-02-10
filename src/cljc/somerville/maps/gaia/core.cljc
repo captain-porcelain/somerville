@@ -95,9 +95,9 @@
         vls (delaunay/voronoi d)
         ls (map :line vls)
         backed (map #(line/move % back) ls)
-        tmp (dorun (map println backed))
+        ;tmp (dorun (map println backed))
         v (map line-to-sphere backed)
-        tmp (dorun (map println v))
+        ;tmp (dorun (map println v))
         ]
     v))
 
@@ -113,7 +113,8 @@
         d (delaunay/delaunay moved)
         ts (map :t (:triangles d))
         backed (map #(triangle/move % back) ts)
-        tmp (dorun (map println backed))]
+        ;tmp (dorun (map println backed))
+        ]
     (map triangle-to-sphere backed)))
 
 (defn triangles

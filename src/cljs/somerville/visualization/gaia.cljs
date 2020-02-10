@@ -2,6 +2,7 @@
   (:require
     [somerville.color.color :as color]
     [somerville.maps.gaia.core :as gaia]
+    [somerville.visualization.commons :as commons]
     [talos.core :as talos]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
@@ -46,17 +47,6 @@
   (let [[x y] @position]
     (* tau (/ (- height y) height))))
 
-(defn receive!
-  [msg]
-  (log/info msg))
-
-(defn start-worker!
-  "Test background worker process."
-  []
-  (let [w (js/Worker. "cljs-out/somerville-main-worker.js")
-        ;tmp (do (.postMessage w "start"))
-        tmp (set! (.-onmessage w) receive!)]
-    (reset! worker w)))
 
 ;;====================================================================================================
 ;; Drawing Functionality
@@ -106,96 +96,116 @@
 
 (defn idle-callback
   [my-fsm event]
-  (log/info "Calculation done..."))
-
-(defn calculating-callback
-  [my-fsm event]
-  (log/info "Starting calculation..."))
+  (log/info "Idle state reached."))
 
 (defn cycle-up-callback
   "Cycle through faces."
-  []
+  [my-fsm event]
   (when (< @index (dec (count @world))) (swap! index inc))
   (talos/process! @fsm {:event :done}))
 
 (defn cycle-down-callback
   "Cycle through faces."
-  []
+  [my-fsm event]
   (when (> @index 0) (swap! index dec))
   (talos/process! @fsm {:event :done}))
 
-(defn make-cube-callback
+(defn request-cube-callback
   "Reset world to cube."
-  []
-  (reset! index 0)
-  (reset! draw-mode :triangles)
-  (reset! world (gaia/cube 150))
-  (talos/process! @fsm {:event :done}))
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
+                                                 :command "cube"
+                                                 :data {:draw-mode :triangles}}))
+  (talos/process! @fsm {:event :work-requested}))
 
-(defn make-icosahedron-callback
+(defn request-icosahedron-callback
   "Reset world to icosahedron."
-  []
-  (reset! index 0)
-  (reset! draw-mode :triangles)
-  (reset! world (gaia/icosahedron 400))
-  (talos/process! @fsm {:event :done}))
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
+                                                 :command "icosahedron"
+                                                 :data {:draw-mode :triangles}}))
+  (talos/process! @fsm {:event :work-requested}))
 
-(defn make-delaunay-callback
+(defn request-delaunay-callback
   "Reset world to delaunay of fibonacci sphere."
-  []
-  (reset! index 0)
-  (reset! draw-mode :triangles)
-  (reset! world (gaia/delaunay 200))
-  (talos/process! @fsm {:event :done}))
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
+                                                 :command "delaunay"
+                                                 :data {:draw-mode :triangles}}))
+  (talos/process! @fsm {:event :work-requested}))
 
-(defn make-voronoi-callback
+(defn request-voronoi-callback
   "Reset world to voronoi of fibonacci sphere."
-  []
-  (reset! index 0)
-  (reset! draw-mode :lines)
-  (reset! world (gaia/voronoi 100))
-  (talos/process! @fsm {:event :done}))
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
+                                                 :command "voronoi"
+                                                 :data {:draw-mode :lines}}))
+  (talos/process! @fsm {:event :work-requested}))
 
-(defn make-fibonacci-callback
+(defn request-fibonacci-callback
   "Reset world to random fibonacci sphere."
-  []
-  (reset! index 0)
-  (reset! draw-mode :points)
-  (.postMessage @worker "fibonacci")
-  (reset! world (gaia/fibonacci 200))
-  (talos/process! @fsm {:event :done}))
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
+                                                 :command "fibonacci"
+                                                 :data {:draw-mode :points}}))
+  (talos/process! @fsm {:event :work-requested}))
 
-(defn subdivide-callback
+(defn request-subdivide-callback
   "Subdivide current world."
-  []
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
+                                                 :command "subdivide"
+                                                 :data {:draw-mode @draw-mode
+                                                        :world @world}}))
+  (talos/process! @fsm {:event :work-requested}))
+
+(defn got-world-callback
+  "Reset world to calculated data."
+  [my-fsm event]
   (reset! index 0)
-  (reset! world (gaia/subdivide @world))
+  (reset! draw-mode (keyword (:draw-mode (:data (:data event)))))
+  (reset! world (:result (:data event)))
   (talos/process! @fsm {:event :done}))
 
 (def states
-  (list (talos/state :idle             idle-callback)
-        (talos/state :cycle-up         cycle-up-callback)
-        (talos/state :cycle-down       cycle-down-callback)
-        (talos/state :make-cube        make-cube-callback)
-        (talos/state :make-delaunay    make-delaunay-callback)
-        (talos/state :make-fibonacci   make-fibonacci-callback)
-        (talos/state :make-icosahedron make-icosahedron-callback)
-        (talos/state :make-voronoi     make-voronoi-callback)
-        (talos/state :subdivide        subdivide-callback)
-        (talos/state :calculating      calculating-callback)))
+  (list
+    (talos/state :starting             idle-callback)
+    (talos/state :idle                 idle-callback)
+    (talos/state :cycle-up             cycle-up-callback)
+    (talos/state :cycle-down           cycle-down-callback)
+    (talos/state :request-cube         request-cube-callback)
+    (talos/state :request-icosahedron  request-icosahedron-callback)
+    (talos/state :request-delaunay     request-delaunay-callback)
+    (talos/state :request-fibonacci    request-fibonacci-callback)
+    (talos/state :request-voronoi      request-voronoi-callback)
+    (talos/state :request-subdivide    request-subdivide-callback)
+    (talos/state :wait-world           idle-callback)
+    (talos/state :got-world            got-world-callback)))
 
 (def transitions
-  (list (talos/transition :trigger-calculation     :idle                      :calculating)
-        (talos/transition :key-pressed             :idle                      :cycle-up           (fn [event data] (= 171 (:data event)))) ;; +
-        (talos/transition :key-pressed             :idle                      :cycle-down         (fn [event data] (= 173 (:data event)))) ;; -
-        (talos/transition :key-pressed             :idle                      :make-cube          (fn [event data] (=  67 (:data event)))) ;; c
-        (talos/transition :key-pressed             :idle                      :make-delaunay      (fn [event data] (=  68 (:data event)))) ;; d
-        (talos/transition :key-pressed             :idle                      :make-fibonacci     (fn [event data] (=  70 (:data event)))) ;; f
-        (talos/transition :key-pressed             :idle                      :make-icosahedron   (fn [event data] (=  73 (:data event)))) ;; i
-        (talos/transition :key-pressed             :idle                      :subdivide          (fn [event data] (=  83 (:data event)))) ;; s
-        (talos/transition :key-pressed             :idle                      :make-voronoi       (fn [event data] (=  86 (:data event)))) ;; v
-        (talos/transition :done                    :*                         :idle)
-        (talos/transition :calculation-finished    :calculating               :idle)))
+  (list
+    (talos/transition :done-worker-start       :starting             :idle)
+    (talos/transition :key-pressed             :idle                 :cycle-up            (fn [event data] (= 171 (:data event)))) ;; +
+    (talos/transition :key-pressed             :idle                 :cycle-down          (fn [event data] (= 173 (:data event)))) ;; -
+    (talos/transition :key-pressed             :idle                 :request-cube        (fn [event data] (=  67 (:data event)))) ;; c
+    (talos/transition :work-requested          :request-cube         :wait-world)
+    (talos/transition :done-cube               :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-delaunay    (fn [event data] (=  68 (:data event)))) ;; d
+    (talos/transition :work-requested          :request-delaunay     :wait-world)
+    (talos/transition :done-delaunay           :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-fibonacci   (fn [event data] (=  70 (:data event)))) ;; f
+    (talos/transition :work-requested          :request-fibonacci    :wait-world)
+    (talos/transition :done-fibonacci          :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-icosahedron (fn [event data] (=  73 (:data event)))) ;; i
+    (talos/transition :work-requested          :request-icosahedron  :wait-world)
+    (talos/transition :done-icosahedron        :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-subdivide   (fn [event data] (=  83 (:data event)))) ;; s
+    (talos/transition :work-requested          :request-subdivide    :wait-world)
+    (talos/transition :done-subdivide          :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-voronoi     (fn [event data] (=  86 (:data event)))) ;; v
+    (talos/transition :work-requested          :request-voronoi      :wait-world)
+    (talos/transition :done-voronoi            :wait-world           :got-world)
+    (talos/transition :done                    :*                    :idle)))
 
 ;;====================================================================================================
 ;; Event Handling
@@ -217,13 +227,30 @@
         y (quil/mouse-y)]
     (reset! mouse-position [x y])))
 
-(defn key-pressed []
+(defn key-pressed
   "Trigger actions on key presses."
+  []
   (talos/process! @fsm {:event :key-pressed :data (quil/key-code)}))
+
+(defn receive!
+  "Receive messages from webworker."
+  [msg]
+  (let [message (commons/to-clojurescript (.-data msg))
+        tmp (log/info (str "Received work done message " (:command message)))]
+    (talos/process! @fsm {:event (keyword (str "done-" (:command message)))
+                          :data {:data (:data message)
+                                 :result (:result message)}})))
 
 
 ;;====================================================================================================
 ;; App Setup
+
+(defn start-worker!
+  "Test background worker process."
+  []
+  (let [w (js/Worker. "cljs-out/somerville-main-worker.js")
+        tmp (set! (.-onmessage w) receive!)]
+    (reset! worker w)))
 
 (defn setup
   "This function is called by quil once before drawing"
@@ -236,7 +263,9 @@
 (defn init
   "Initialize Quil sketch."
   [canvas-id]
-  (reset! fsm (talos/fsm states transitions))
+  (let [tmp-fsm (talos/fsm states transitions)
+        state (reagent/atom @(:state tmp-fsm))]
+    (reset! fsm (assoc tmp-fsm :state state)))
   (start-worker!)
   (quil/defsketch gaia-sketch
     :host "hostelement"
@@ -269,13 +298,14 @@
 (defn settings
   "Show information current settings."
   [props]
-  [:div
-   [:h3 "Settings"]
-   [:span
-    [:ul
-     [:li (str "State: " (try (:name @(:state @fsm)) (catch js/Object e "")))]
-     [:li (str "Surface Index: " @index)]
-     [:li (str "Draw Mode: " @draw-mode)]]]])
+  (let [state (:state @fsm)]
+    [:div
+     [:h3 "Settings"]
+     [:span
+      [:ul
+       [:li (str "State: " (try (:name @state) (catch js/Object e (:state @fsm))))]
+       [:li (str "Surface Index: " @index)]
+       [:li (str "Draw Mode: " @draw-mode)]]]]))
 
 (defn ui
   "Draw the basic ui for this visualization."
