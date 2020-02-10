@@ -31,7 +31,7 @@
 (defn voronoi
   "Make a voronoi sphere."
   []
-  (gaia/voronoi 100))
+  (gaia/voronoi 200))
 
 (defn subdivide
   "Subdivide current world"

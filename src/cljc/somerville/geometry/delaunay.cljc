@@ -46,8 +46,8 @@
   [points]
   (let [maxx (max-val points :x)
         maxy (max-val points :y)
-        minx (min-val points :x)
-        miny (min-val points :y)]
+        minx (- (min-val points :x) 1)
+        miny (- (min-val points :y) 1)]
     (delaunay-triangle
       (triangle/triangle
         (p/point minx miny)
@@ -102,9 +102,9 @@
            bt
            (recur (add-point bt (first ps)) (rest ps)))))))
   ([points max-point]
-   (delaunay points (p/point 0 0) max-point))
+   (delaunay points (p/point (min-val points :x) (min-val points :y)) max-point))
   ([points]
-   (delaunay points (p/point (max-val points :x) (max-val points :y)))))
+   (delaunay points (p/point (min-val points :x) (min-val points :y)) (p/point (max-val points :x) (max-val points :y)))))
 
 (defn remove-bounds
   "Remove the triangles that share a point with the boundary"

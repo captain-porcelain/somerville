@@ -85,40 +85,13 @@
 (defn to-voronoi
   "Create voronoi for points on a sphere."
   [points]
-  (let [pfp (map proj/to-plane points)
-        mx (apply min (map :x pfp))
-        my (apply min (map :y pfp))
-        trans (point/point (+ 1 (* -1 mx)) (+ 1 (* -1 my)))
-        back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
-        moved (map #(point/add % trans) pfp)
-        d (delaunay/delaunay moved)
-        backed (map #(assoc % :t (triangle/move (:t %) back)) (:triangles d))
-        db (assoc d :triangles backed)
-        vls (delaunay/voronoi db)
-        ls (map :line vls)
-        ;tmp (dorun (println "2D Lines"))
-        ;tmp (dorun (map println ls))
-        v (map line-to-sphere ls)
-        ;tmp (dorun (println "Sphere Lines"))
-        ;tmp (dorun (map println v))
-        ]
-    v))
+  (let [d (delaunay/delaunay (map proj/to-plane points))]
+    (map #(line-to-sphere (:line %)) (delaunay/voronoi d))))
 
 (defn to-delaunay
   "Create delaunay for points on a sphere."
   [points]
-  (let [pfp (map proj/to-plane points)
-        mx (apply min (map :x pfp))
-        my (apply min (map :y pfp))
-        trans (point/point (+ 1 (* -1 mx)) (+ 1 (* -1 my)))
-        back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
-        moved (map #(point/add % trans) pfp)
-        d (delaunay/delaunay moved)
-        ts (map :t (:triangles d))
-        backed (map #(triangle/move % back) ts)
-        ;tmp (dorun (map println backed))
-        ]
-    (map triangle-to-sphere backed)))
+  (map triangle-to-sphere (map :t (:triangles (delaunay/delaunay (map proj/to-plane points))))))
 
 (defn triangles
   "Create a set of triangles from a set of lines. If two lines share a point create the triangle from
@@ -181,7 +154,7 @@
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonacci sphere."
   [scale]
-  (map #(line/scale % scale) (to-voronoi (sphere/fibonacci 128))))
+  (map #(line/scale % scale) (to-voronoi (sphere/fibonacci 256))))
 
 
 ;;=================================================================================================================
