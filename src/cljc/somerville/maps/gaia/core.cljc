@@ -75,7 +75,7 @@
 (defn line-to-sphere
   "Map the points of a line onto a sphere."
   [l]
-  (line/line (proj/to-sphere (:p1 (:line l))) (proj/to-sphere (:p2 (:line l)))))
+  (line/line (proj/to-sphere (:p1 l)) (proj/to-sphere (:p2 l))))
 
 (defn triangle-to-sphere
   "Map the points of a triangle onto a sphere."
@@ -92,11 +92,14 @@
         back (point/point (* -1 (:x trans)) (* -1 (:y trans)))
         moved (map #(point/add % trans) pfp)
         d (delaunay/delaunay moved)
-        vls (delaunay/voronoi d)
+        backed (map #(assoc % :t (triangle/move (:t %) back)) (:triangles d))
+        db (assoc d :triangles backed)
+        vls (delaunay/voronoi db)
         ls (map :line vls)
-        backed (map #(line/move % back) ls)
-        ;tmp (dorun (map println backed))
-        v (map line-to-sphere backed)
+        ;tmp (dorun (println "2D Lines"))
+        ;tmp (dorun (map println ls))
+        v (map line-to-sphere ls)
+        ;tmp (dorun (println "Sphere Lines"))
         ;tmp (dorun (map println v))
         ]
     v))
@@ -171,12 +174,12 @@
   (map #(point/scale % scale) (sphere/fibonacci 128)))
 
 (defn delaunay
-  "Create a list of triangles for a delaunay of a fibonaccic sphere."
+  "Create a list of triangles for a delaunay of a fibonacci sphere."
   [scale]
   (map #(triangle/scale % scale) (to-delaunay (sphere/fibonacci 128))))
 
 (defn voronoi
-  "Create a list of lines for a voronoi of a fibonaccic sphere."
+  "Create a list of lines for a voronoi of a fibonacci sphere."
   [scale]
   (map #(line/scale % scale) (to-voronoi (sphere/fibonacci 128))))
 
