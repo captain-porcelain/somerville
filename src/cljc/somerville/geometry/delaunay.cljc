@@ -31,6 +31,11 @@
         ps2 #{(:p1 (:t t2)) (:p2 (:t t2)) (:p3 (:t t2))}]
     (pos? (count (clojure.set/intersection ps1 ps2)))))
 
+(defn min-val
+  "Get min k value of given points."
+  [points k]
+  (apply min (map k points)))
+
 (defn max-val
   "Get max k value of given points."
   [points k]
@@ -39,11 +44,15 @@
 (defn bounding-triangle
   "Find a triangle that contains all points."
   [points]
-  (delaunay-triangle
-    (triangle/triangle
-      (p/point 0 0)
-      (p/point 0 (* 2 (+ 1 (max-val points :y))))
-      (p/point (* 2 (+ 1 (max-val points :x))) 0))))
+  (let [maxx (max-val points :x)
+        maxy (max-val points :y)
+        minx (min-val points :x)
+        miny (min-val points :y)]
+    (delaunay-triangle
+      (triangle/triangle
+        (p/point minx miny)
+        (p/point minx (* 2 (+ 1 maxy)))
+        (p/point (* 2 (+ 1 maxx)) miny)))))
 
 (defn invalidates?
   "Check if point invalidates triangle."
@@ -83,8 +92,8 @@
 
 (defn delaunay
   "Create Delaunay triangulation."
-  ([points max-point]
-   (let [bounds (bounding-triangle (list max-point))]
+  ([points min-point max-point]
+   (let [bounds (bounding-triangle (list min-point max-point))]
      (if (= 0 (count points))
        (Delaunay-triangulation. (list) (list bounds) bounds max-point)
        (loop [bt (Delaunay-triangulation. (list) (list bounds) bounds max-point)
@@ -92,6 +101,8 @@
          (if (= 0 (count ps))
            bt
            (recur (add-point bt (first ps)) (rest ps)))))))
+  ([points max-point]
+   (delaunay points (p/point 0 0) max-point))
   ([points]
    (delaunay points (p/point (max-val points :x) (max-val points :y)))))
 

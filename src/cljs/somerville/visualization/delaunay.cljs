@@ -13,6 +13,8 @@
 
 (def width 1200)
 (def height 800)
+(def w2 (/ width 2))
+(def h2 (/ height 2))
 
 (def colors
   {:background     (color/rgba  10  10  10)
@@ -26,7 +28,7 @@
 ;; Data Handling
 
 (def points (reagent/atom (list)))
-(def delaunay-triangles (atom (delaunay/delaunay @points (p/point width height))))
+(def delaunay-triangles (atom (delaunay/delaunay @points (p/point (* -1 w2) (* -1 h2)) (p/point w2 h2))))
 (def voronoi-lines (atom (delaunay/voronoi @delaunay-triangles)))
 (def draw-delaunay (reagent/atom true))
 (def draw-voronoi (reagent/atom true))
@@ -79,7 +81,7 @@
     (do
       (quil/stroke (:r pv) (:g pv) (:b pv) (:a pv))
       (quil/fill (:r pv) (:g pv) (:b pv) (:a pv))
-      (quil/rect (:x p) (:y p) 4 4))))
+      (quil/rect (+ (:x p) w2) (+ (:y p) h2) 4 4))))
 
 (defn draw-line
   "Draw voronoi line."
@@ -88,7 +90,7 @@
     (do
       (quil/stroke (:r lv) (:g lv) (:b lv) (:a lv))
       (quil/fill (:r lv) (:g lv) (:b lv) (:a lv))
-      (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))
+      (quil/line (+ (:x (:p1 l)) w2) (+ (:y (:p1 l)) h2) (+ (:x (:p2 l)) w2) (+ (:y (:p2 l)) h2)))))
 
 (defn draw-triangle
   "Draw delaunay triangle"
@@ -97,14 +99,14 @@
     (do
       (quil/stroke (:r pd) (:g pd) (:b pd) (:a pd))
       (quil/fill (:r pd) (:g pd) (:b pd) (:a pd))
-      (quil/rect (:x (:p (:c t))) (:y (:p (:c t))) 4 4)))
+      (quil/rect (+ (:x (:p (:c t))) w2) (+ (:y (:p (:c t))) h2) 4 4)))
   (let [ld (:line-delaunay colors)]
     (do
       (quil/stroke (:r ld) (:g ld) (:b ld) (:a ld))
       (quil/fill (:r ld) (:g ld) (:b ld) (:a ld))
-      (quil/line (:x (:p1 (:t t))) (:y (:p1 (:t t))) (:x (:p2 (:t t))) (:y (:p2 (:t t))))
-      (quil/line (:x (:p2 (:t t))) (:y (:p2 (:t t))) (:x (:p3 (:t t))) (:y (:p3 (:t t))))
-      (quil/line (:x (:p3 (:t t))) (:y (:p3 (:t t))) (:x (:p1 (:t t))) (:y (:p1 (:t t)))))))
+      (quil/line (+ (:x (:p1 (:t t))) w2) (+ (:y (:p1 (:t t))) h2) (+ (:x (:p2 (:t t))) w2) (+ (:y (:p2 (:t t))) h2))
+      (quil/line (+ (:x (:p2 (:t t))) w2) (+ (:y (:p2 (:t t))) h2) (+ (:x (:p3 (:t t))) w2) (+ (:y (:p3 (:t t))) h2))
+      (quil/line (+ (:x (:p3 (:t t))) w2) (+ (:y (:p3 (:t t))) h2) (+ (:x (:p1 (:t t))) w2) (+ (:y (:p1 (:t t))) h2)))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -131,7 +133,7 @@
 (defn mouse-released
   "Handle releasing mouse buttons."
   []
-  (add-point! (p/point (quil/mouse-x) (quil/mouse-y))))
+  (add-point! (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))))
 
 (defn key-pressed []
   "Trigger actions on key presses."
