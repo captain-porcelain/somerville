@@ -21,8 +21,8 @@
     (is (= 11 (d/max-val points :y)))))
 
 (deftest bounds
-  (let [bp1 (p/point 0   0)
-        bp2 (p/point 0  24)
+  (let [bp1 (p/point 1   0)
+        bp2 (p/point 1  24)
         bp3 (p/point 22  0)
         p3 (p/point 4 5)
         p4 (p/point 10 9)
@@ -35,9 +35,9 @@
     (is (= bp3 (:p3 (:t bt))))))
 
 (deftest negative-bounds
-  (let [bp1 (p/point 0   0)
-        bp2 (p/point 0  24)
-        bp3 (p/point 22  0)
+  (let [bp1 (p/point 1  -2)
+        bp2 (p/point 1  24)
+        bp3 (p/point 22 -2)
         p3 (p/point  4  5)
         p4 (p/point 10  9)
         p5 (p/point  2 11)
