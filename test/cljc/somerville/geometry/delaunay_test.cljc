@@ -61,12 +61,22 @@
   (is (d/invalidates? dt pn2))
   (is (d/invalidates? dt pn3))))
 
-;(deftest adding
-  ;(let [p1 (p/point 6 1)
-        ;p2 (p/point 1 1)
-        ;bt (d/bounding-triangle (list (p/point 3 3)))
-        ;d1 (d/add-point (list bt) p1)
-        ;d2 (d/add-point d1 p2)]
-    ;;(log/info (str "triangulation 2: " (clojure.string/join "\n" (map str (:points d2)))))
-    ;;(log/info d1)
-    ;))
+(deftest missing-line
+  (let [width 1200
+        height 800
+        p0 (p/point -296,4.4666595458984375)
+        p1 (p/point -360,31.466659545898438)
+        p2 (p/point -395,69.46665954589844)
+        p3 (p/point -430,38.46665954589844)
+        p4 (p/point -417,-50.53334045410156)
+        p5 (p/point -382,-144.53334045410156)
+        p6 (p/point -141,2.4666595458984375)
+        p7 (p/point -301,278.46665954589844)
+        p8 (p/point -296,60.46665954589844)
+        p9 (p/point -295,-232.53334045410156)
+        points (list p0 p1 p2 p3 p4 p5 p6 p7 p8 p9)
+        bound1 (p/point (* -1 width) (* -1 height))
+        bound2 (p/point width height)
+        d (d/delaunay points bound1 bound2)
+        v (d/voronoi d)]
+    (is (= 18 (count v)))))
