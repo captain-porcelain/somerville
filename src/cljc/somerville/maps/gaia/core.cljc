@@ -143,18 +143,18 @@
 
 (defn fibonacci
   "Create a list of lines that represent a cube."
-  [scale]
-  (map #(point/scale % scale) (sphere/fibonacci 128)))
+  [size scale]
+  (map #(point/scale % scale) (sphere/fibonacci size)))
 
 (defn delaunay
   "Create a list of triangles for a delaunay of a fibonacci sphere."
-  [scale]
-  (map #(triangle/scale % scale) (to-delaunay (sphere/fibonacci 128))))
+  [size scale]
+  (map #(triangle/scale % scale) (to-delaunay (sphere/fibonacci size))))
 
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonacci sphere."
-  [scale]
-  (map #(line/scale % scale) (to-voronoi (sphere/fibonacci 256))))
+  [size scale]
+  (map #(line/scale % scale) (to-voronoi (sphere/fibonacci size))))
 
 
 ;;=================================================================================================================

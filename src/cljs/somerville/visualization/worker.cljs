@@ -10,28 +10,28 @@
 
 (defn cube
   "Make a cube."
-  []
-  (gaia/cube 150))
+  [data]
+  (gaia/cube (:scale data)))
 
 (defn icosahedron
   "Make an icosahedron."
-  []
-  (gaia/icosahedron 400))
+  [data]
+  (gaia/icosahedron (:scale data)))
 
 (defn fibonacci
   "Make a fibonacci point sphere."
-  []
-  (gaia/fibonacci 200))
+  [data]
+  (gaia/fibonacci (:fibonacci-size data) (:scale data)))
 
 (defn delaunay
   "Make a delaunay sphere."
-  []
-  (gaia/delaunay 200))
+  [data]
+  (gaia/delaunay (:fibonacci-size data) (:scale data)))
 
 (defn voronoi
   "Make a voronoi sphere."
-  []
-  (gaia/voronoi 200))
+  [data]
+  (gaia/voronoi (:fibonacci-size data) (:scale data)))
 
 (defn subdivide
   "Subdivide current world"
@@ -42,11 +42,11 @@
   "Handle work requests for gaia."
   [message]
   (case (:command message)
-    "fibonacci"    (fibonacci)
-    "delaunay"     (delaunay)
-    "voronoi"      (voronoi)
-    "icosahedron"  (icosahedron)
-    "cube"         (cube)
+    "fibonacci"    (fibonacci (:data message))
+    "delaunay"     (delaunay (:data message))
+    "voronoi"      (voronoi (:data message))
+    "icosahedron"  (icosahedron (:data message))
+    "cube"         (cube (:data message))
     "subdivide"    (subdivide (:world (:data message)))))
 
 

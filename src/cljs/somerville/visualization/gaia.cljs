@@ -28,6 +28,7 @@
 (def worker (atom nil))
 
 (def world (atom (gaia/icosahedron 400)))
+(def fibonacci-size (reagent/atom 100))
 
 (def draw-mode (reagent/atom :triangles))
 (def index (reagent/atom 0))
@@ -115,7 +116,7 @@
   [my-fsm event]
   (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
                                                  :command "cube"
-                                                 :data {:draw-mode :triangles}}))
+                                                 :data {:draw-mode :triangles :scale 150}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-icosahedron-callback
@@ -123,7 +124,7 @@
   [my-fsm event]
   (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
                                                  :command "icosahedron"
-                                                 :data {:draw-mode :triangles}}))
+                                                 :data {:draw-mode :triangles :scale 400}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-delaunay-callback
@@ -131,7 +132,9 @@
   [my-fsm event]
   (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
                                                  :command "delaunay"
-                                                 :data {:draw-mode :triangles}}))
+                                                 :data {:draw-mode :triangles
+                                                        :scale 200
+                                                        :fibonacci-size @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-voronoi-callback
@@ -139,7 +142,9 @@
   [my-fsm event]
   (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
                                                  :command "voronoi"
-                                                 :data {:draw-mode :lines}}))
+                                                 :data {:draw-mode :lines
+                                                        :scale 200
+                                                        :fibonacci-size @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-fibonacci-callback
@@ -147,7 +152,9 @@
   [my-fsm event]
   (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
                                                  :command "fibonacci"
-                                                 :data {:draw-mode :points}}))
+                                                 :data {:draw-mode :points
+                                                        :scale 200
+                                                        :fibonacci-size @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-subdivide-callback
@@ -293,6 +300,8 @@
      [:li "f to recreate an fibonacci sphere"]
      [:li "d to recreate a delaunay of a fibonacci sphere"]
      [:li "v to recreate a voronoi of a fibonacci sphere"]
+     [:li "m to increase points on fibonacci sphere"]
+     [:li "l to decrease points on fibonacci sphere"]
      [:li "s to subdivide"]]]])
 
 (defn settings
@@ -305,7 +314,8 @@
       [:ul
        [:li (str "State: " (try (:name @state) (catch js/Object e (:state @fsm))))]
        [:li (str "Surface Index: " @index)]
-       [:li (str "Draw Mode: " @draw-mode)]]]]))
+       [:li (str "Draw Mode: " @draw-mode)]
+       [:li (str "Fibonacci Size: " @fibonacci-size)]]]]))
 
 (defn ui
   "Draw the basic ui for this visualization."
