@@ -38,11 +38,10 @@
   (Line2. p1 p2))
 
 (defn sorted-line
-  "Get a line from two points and sort points by x."
+  "Get a line from two points and sort points."
   [p1 p2]
-  (if (< (:x p1) (:x p2))
-    (Line2. p1 p2)
-    (Line2. p2 p1)))
+  (let [ps (sort [p1 p2])]
+    (Line2. (first ps) (second ps))))
 
 (defn line-from-slope
   "Get a line from the slope intercept form a * x + b."

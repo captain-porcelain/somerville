@@ -7,7 +7,8 @@
     [somerville.color.color :as color]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
-    [reagent.core :as reagent]))
+    [reagent.core :as reagent]
+    [somerville.geometry.triangle :as triangle]))
 
 (def width 1200)
 (def height 800)
@@ -32,7 +33,7 @@
 (def draw-delaunay (reagent/atom true))
 (def draw-voronoi (reagent/atom true))
 (def last-point (reagent/atom nil))
-(def mouse-position (reagent/atom (p/point 0 0)))
+(def info (reagent/atom []))
 
 (defn add-point!
   "Add another point to the diagram."
@@ -81,6 +82,16 @@
       (reset! points (list p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))
       (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
       (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))))
+
+(defn debug!
+  []
+  (let [pa (p/point (quil/mouse-x) (quil/mouse-y))
+        pr (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))
+        t (first (filter #(triangle/inside? (:t %) pr) (:triangles @delaunay-triangles)))
+        ]
+    (reset! info [(str "Absolute mouse: " (c/out pa))
+                  (str "Relative mouse: " (c/out pr))
+                  (str "Triangle: " (c/out t))])))
 
 
 ;;====================================================================================================
@@ -153,6 +164,7 @@
     :b (bug!)
     :c (clear!)
     :p (print-points!)
+    :i (debug!)
     :d (toggle-drawing-delaunay!)
     :v (toggle-drawing-voronoi!)
     (log/info (str "pressed key " (quil/key-as-keyword)))))
@@ -192,6 +204,7 @@
      [:li "left mouse button to add point"]
      [:li "c to clear diagram"]
      [:li "b to create debugging diagram"]
+     [:li "i to fetch debugging information"]
      [:li "p to print the points"]
      [:li "d to toggle drawing delaunay"]
      [:li "v to toggle drawing voronoi"]]]])
@@ -202,11 +215,14 @@
   [:div
    [:h3 "Settings"]
    [:span
-    [:ul
-     [:li (str "Count points: " (count @points))]
-     [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
-     [:li (str "Drawing delaunay: " @draw-delaunay)]
-     [:li (str "Drawing voronoi: " @draw-voronoi)]]]])
+    (into []
+          (concat
+            [:ul
+             [:li (str "Count points: " (count @points))]
+             [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
+             [:li (str "Drawing delaunay: " @draw-delaunay)]
+             [:li (str "Drawing voronoi: " @draw-voronoi)]]
+            (map (fn [i] [:li i]) @info)))]])
 
 (defn ui
   "Draw the basic ui for this visualization."
@@ -223,5 +239,3 @@
   (reagent/create-class
     {:reagent-render ui
      :component-did-mount #(init "hostelement")}))
-
-
