@@ -111,6 +111,18 @@
   (when (> @index 0) (swap! index dec))
   (talos/process! @fsm {:event :done}))
 
+(defn increase-fibonacci-callback
+  "Increase amount of fibonacci points for next generation."
+  [my-fsm event]
+  (swap! fibonacci-size #(+ % 10))
+  (talos/process! @fsm {:event :done}))
+
+(defn decrease-fibonacci-callback
+  "Decrease amount of fibonacci points for next generation."
+  [my-fsm event]
+  (when (> @fibonacci-size 0) (swap! fibonacci-size #(- % 10)))
+  (talos/process! @fsm {:event :done}))
+
 (defn request-cube-callback
   "Reset world to cube."
   [my-fsm event]
@@ -180,6 +192,8 @@
     (talos/state :idle                 idle-callback)
     (talos/state :cycle-up             cycle-up-callback)
     (talos/state :cycle-down           cycle-down-callback)
+    (talos/state :increase-fib         increase-fibonacci-callback)
+    (talos/state :decrease-fib         decrease-fibonacci-callback)
     (talos/state :request-cube         request-cube-callback)
     (talos/state :request-icosahedron  request-icosahedron-callback)
     (talos/state :request-delaunay     request-delaunay-callback)
@@ -194,6 +208,8 @@
     (talos/transition :done-worker-start       :starting             :idle)
     (talos/transition :key-pressed             :idle                 :cycle-up            (fn [event data] (= 171 (:data event)))) ;; +
     (talos/transition :key-pressed             :idle                 :cycle-down          (fn [event data] (= 173 (:data event)))) ;; -
+    (talos/transition :key-pressed             :idle                 :increase-fib        (fn [event data] (=  77 (:data event)))) ;; m
+    (talos/transition :key-pressed             :idle                 :decrease-fib        (fn [event data] (=  76 (:data event)))) ;; l
     (talos/transition :key-pressed             :idle                 :request-cube        (fn [event data] (=  67 (:data event)))) ;; c
     (talos/transition :work-requested          :request-cube         :wait-world)
     (talos/transition :done-cube               :wait-world           :got-world)

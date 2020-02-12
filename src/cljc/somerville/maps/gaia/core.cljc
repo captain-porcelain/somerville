@@ -85,13 +85,17 @@
 (defn to-voronoi
   "Create voronoi for points on a sphere."
   [points]
-  (let [d (delaunay/delaunay (map proj/to-plane points))]
-    (map #(line-to-sphere (:line %)) (delaunay/voronoi d))))
+  (let [projected (map #(point/scale % 100) (map proj/to-plane points))
+        d (delaunay/delaunay projected)
+        lines (map :line (delaunay/voronoi d))]
+    (map line-to-sphere (map #(line/scale % 0.01) lines))))
 
 (defn to-delaunay
   "Create delaunay for points on a sphere."
   [points]
-  (map triangle-to-sphere (map :t (:triangles (delaunay/delaunay (map proj/to-plane points))))))
+  (let [projected (map #(point/scale % 100) (map proj/to-plane points))
+        triangles (map :t (:triangles (delaunay/delaunay projected)))]
+    (map triangle-to-sphere (map #(triangle/scale % 0.01) triangles))))
 
 (defn triangles
   "Create a set of triangles from a set of lines. If two lines share a point create the triangle from

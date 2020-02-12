@@ -3,7 +3,9 @@
     [somerville.geometry.commons :as c]
     [somerville.geometry.line :as line]
     [somerville.geometry.point :as p]
+    [somerville.geometry.sphere :as sphere]
     [somerville.geometry.delaunay :as delaunay]
+    [somerville.geometry.projection.stereographic :as proj]
     [somerville.color.color :as color]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
@@ -34,6 +36,18 @@
 (def draw-voronoi (reagent/atom true))
 (def last-point (reagent/atom nil))
 (def info (reagent/atom []))
+(def zoom (reagent/atom 1))
+(def fib-detail (reagent/atom 10))
+
+(defn increase-fib!
+  "Increase amount of fibonacci points"
+  []
+  (swap! fib-detail inc))
+
+(defn decrease-fib!
+  "Decrease amount of fibonacci points"
+  []
+  (swap! fib-detail #(if (< 2 %) (dec %) %)))
 
 (defn add-point!
   "Add another point to the diagram."
@@ -43,12 +57,27 @@
   (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles point))
   (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
 
+(defn projected-fibonacci-sphere!
+  "Create points for the projected fibonacci sphere."
+  []
+  (dorun (map add-point! (map proj/to-plane (sphere/fibonacci @fib-detail)))))
+
 (defn clear!
   "Clear the diagram."
   []
   (reset! points (list))
   (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
   (reset! voronoi-lines (list)))
+
+(defn reset-zoom!
+  "Reset zoom."
+  []
+  (reset! zoom 1))
+
+(defn zoom!
+  "Zoom the points"
+  [direction]
+  (reset! zoom (if (pos? direction) (* 0.9 @zoom) (* 1.1 @zoom))))
 
 (defn toggle-drawing-delaunay!
   "Toggle drawing the delaunay triangles."
@@ -99,8 +128,9 @@
 
 (defn draw-point
   "Draw voronoi points."
-  [p]
-  (let [pv (:point-voronoi colors)]
+  [point]
+  (let [pv (:point-voronoi colors)
+        p (p/scale point @zoom)]
     (do
       (quil/stroke (:r pv) (:g pv) (:b pv) (:a pv))
       (quil/fill (:r pv) (:g pv) (:b pv) (:a pv))
@@ -108,8 +138,9 @@
 
 (defn draw-line
   "Draw voronoi line."
-  [l]
-  (let [lv (:line-voronoi colors)]
+  [line]
+  (let [lv (:line-voronoi colors)
+        l (line/scale line @zoom)]
     (do
       (quil/stroke (:r lv) (:g lv) (:b lv) (:a lv))
       (quil/fill (:r lv) (:g lv) (:b lv) (:a lv))
@@ -118,18 +149,20 @@
 (defn draw-triangle
   "Draw delaunay triangle"
   [t]
-  (let [pd (:point-delaunay colors)]
+  (let [pd (:point-delaunay colors)
+        c (p/scale (:c t) @zoom)]
     (do
       (quil/stroke (:r pd) (:g pd) (:b pd) (:a pd))
       (quil/fill (:r pd) (:g pd) (:b pd) (:a pd))
-      (quil/rect (+ (:x (:p (:c t))) w2) (+ (:y (:p (:c t))) h2) 4 4)))
-  (let [ld (:line-delaunay colors)]
+      (quil/rect (+ (:x (:p c)) w2) (+ (:y (:p c)) h2) 4 4)))
+  (let [ld (:line-delaunay colors)
+        t (triangle/scale (:t t) @zoom)]
     (do
       (quil/stroke (:r ld) (:g ld) (:b ld) (:a ld))
       (quil/fill (:r ld) (:g ld) (:b ld) (:a ld))
-      (quil/line (+ (:x (:p1 (:t t))) w2) (+ (:y (:p1 (:t t))) h2) (+ (:x (:p2 (:t t))) w2) (+ (:y (:p2 (:t t))) h2))
-      (quil/line (+ (:x (:p2 (:t t))) w2) (+ (:y (:p2 (:t t))) h2) (+ (:x (:p3 (:t t))) w2) (+ (:y (:p3 (:t t))) h2))
-      (quil/line (+ (:x (:p3 (:t t))) w2) (+ (:y (:p3 (:t t))) h2) (+ (:x (:p1 (:t t))) w2) (+ (:y (:p1 (:t t))) h2)))))
+      (quil/line (+ (:x (:p1 t)) w2) (+ (:y (:p1 t)) h2) (+ (:x (:p2 t)) w2) (+ (:y (:p2 t)) h2))
+      (quil/line (+ (:x (:p2 t)) w2) (+ (:y (:p2 t)) h2) (+ (:x (:p3 t)) w2) (+ (:y (:p3 t)) h2))
+      (quil/line (+ (:x (:p3 t)) w2) (+ (:y (:p3 t)) h2) (+ (:x (:p1 t)) w2) (+ (:y (:p1 t)) h2)))))
 
 (defn draw
   "This function is called by quil repeatedly."
@@ -142,7 +175,7 @@
   (when @draw-delaunay
     (dorun
       (for [t (:triangles @delaunay-triangles)]
-      ;(for [t (delaunay/remove-bounds @delaunay-triangles)]
+        ;(for [t (delaunay/remove-bounds @delaunay-triangles)]
         (draw-triangle t))))
   (when @draw-voronoi
     (dorun
@@ -158,13 +191,22 @@
   []
   (add-point! (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))))
 
+(defn mouse-wheel
+  ""
+  [direction]
+  (zoom! direction))
+
 (defn key-pressed []
   "Trigger actions on key presses."
   (case (quil/key-as-keyword)
     :b (bug!)
     :c (clear!)
+    :f (projected-fibonacci-sphere!)
+    :+ (increase-fib!)
+    :- (decrease-fib!)
     :p (print-points!)
     :i (debug!)
+    :r (reset-zoom!)
     :d (toggle-drawing-delaunay!)
     :v (toggle-drawing-voronoi!)
     (log/info (str "pressed key " (quil/key-as-keyword)))))
@@ -190,6 +232,7 @@
     :draw draw
     :size [width height]
     :mouse-released mouse-released
+    :mouse-wheel mouse-wheel
     :key-pressed key-pressed))
 
 (defn usage
@@ -202,7 +245,12 @@
     "Press"
     [:ul
      [:li "left mouse button to add point"]
+     [:li "mouse wheel to zoom"]
+     [:li "r to reset zoom"]
      [:li "c to clear diagram"]
+     [:li "f to create projected fibonacci point"]
+     [:li "+ to increase amount of fibonacci points"]
+     [:li "- to decrease amount of fibonacci points"]
      [:li "b to create debugging diagram"]
      [:li "i to fetch debugging information"]
      [:li "p to print the points"]
@@ -219,9 +267,11 @@
           (concat
             [:ul
              [:li (str "Count points: " (count @points))]
+             [:li (str "Count fibonacci points: " @fib-detail)]
              [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
              [:li (str "Drawing delaunay: " @draw-delaunay)]
-             [:li (str "Drawing voronoi: " @draw-voronoi)]]
+             [:li (str "Drawing voronoi: " @draw-voronoi)]
+             [:li (str "Drawing zoom: " @zoom)]]
             (map (fn [i] [:li i]) @info)))]])
 
 (defn ui
