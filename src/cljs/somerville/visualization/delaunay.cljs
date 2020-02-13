@@ -1,5 +1,6 @@
 (ns somerville.visualization.delaunay
   (:require
+    [somerville.commons :as sc]
     [somerville.geometry.commons :as c]
     [somerville.geometry.line :as line]
     [somerville.geometry.point :as p]
@@ -19,11 +20,21 @@
 
 
 (def colors
-  {:background     (color/rgba  10  10  10)
-   :point-voronoi  (color/rgba   0 204 102)
-   :point-delaunay (color/rgba 247  92   3)
-   :line-voronoi   (color/rgba 241 196  15)
-   :line-delaunay  (color/rgba 217  60 110)})
+  {:background      (color/rgba  40  40  40)
+
+   :point-voronoi   (color/rgba 158   0  83)
+   :line-voronoi    (color/rgba 255   0 128)
+
+   :point-delaunay  (color/rgba 254  78   0)
+   :line-delaunay   (color/rgba 230 127  13)
+
+   :point-invalid   (color/rgba  18  53  91)
+   :line-invalid    (color/rgba  27 153 139)
+
+   :line-highlight  (color/rgba 255 255 255)
+   :point-highlight (color/rgba 255 255 255)
+
+   :point-next      (color/rgba  57   0 153)})
 
 
 ;;====================================================================================================
@@ -39,6 +50,8 @@
 (def zoom (reagent/atom 1))
 (def fib-detail (reagent/atom 10))
 (def fib-points (reagent/atom []))
+(def invalidated (reagent/atom []))
+(def highlight-triangle (reagent/atom nil))
 
 (defn increase-fib!
   "Increase amount of fibonacci points"
@@ -55,17 +68,42 @@
   [point]
   (reset! points (cons point @points))
   (reset! last-point point)
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
   (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles point))
   (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
+
+(defn unadd-point!
+  "Remove last point"
+  []
+  (reset! points (rest @points))
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
+  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
+
+(defn next-triangle!
+  "Cycle through triangles."
+  []
+  (swap! highlight-triangle
+         #(let [c (count (:triangles @delaunay-triangles))]
+            (cond
+              (= % (dec c)) nil
+              (and (nil? %) (< 0 c)) 0
+              (< 0 c) (inc %)))))
 
 (defn make-fibonacci-sphere!
   "Create points for the projected fibonacci sphere."
   []
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
   (reset! fib-points (map proj/to-plane (sphere/fibonacci @fib-detail))))
 
 (defn next-fibonacci-point!
   "Add next fibonacci point to diagram"
   []
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
   (when (< 0 (count @fib-points))
     (do
       (add-point! (first @fib-points))
@@ -74,12 +112,25 @@
 (defn remaining-fibonacci-points!
   "Add remaining fibonacci points to diagram"
   []
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
   (dorun (map add-point! @fib-points))
   (reset! fib-points []))
+
+(defn highlight-invalidated!
+  "Highlight the triangles that are invalidated by the next fibonacci point."
+  []
+  (let [p (first @fib-points)
+        classified (map (fn [t] [(delaunay/invalidates? t p) t]) (:triangles @delaunay-triangles))
+        nok (map second (filter first classified))]
+    (reset! invalidated nok)))
 
 (defn clear!
   "Clear the diagram."
   []
+  (reset! fib-points [])
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
   (reset! points (list))
   (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
   (reset! voronoi-lines (list)))
@@ -131,8 +182,7 @@
   []
   (let [pa (p/point (quil/mouse-x) (quil/mouse-y))
         pr (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))
-        t (first (filter #(triangle/inside? (:t %) pr) (:triangles @delaunay-triangles)))
-        ]
+        t (first (filter #(triangle/inside? (:t %) pr) (:triangles @delaunay-triangles)))]
     (reset! info [(str "Absolute mouse: " (c/out pa))
                   (str "Relative mouse: " (c/out pr))
                   (str "Triangle: " (c/out t))])))
@@ -142,60 +192,77 @@
 ;; Drawing Functionality
 
 (defn draw-point
-  "Draw voronoi points."
-  [point]
-  (let [pv (:point-voronoi colors)
-        p (p/scale point @zoom)]
+  "Draw a point."
+  [point col]
+  (let [p (p/scale point @zoom)]
     (do
-      (quil/stroke (:r pv) (:g pv) (:b pv) (:a pv))
-      (quil/fill (:r pv) (:g pv) (:b pv) (:a pv))
-      (quil/point (+ (:x p) w2) (+ (:y p) h2)))))
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
+      (quil/stroke-weight 5)
+      (quil/point (+ (:x p) w2) (+ (:y p) h2))
+      (quil/stroke-weight 1))))
+
+(defn draw-circle
+  "Draw a cirlce."
+  [c col]
+  (let [p (p/scale (:p c) @zoom)
+        d (* (:r c) @zoom 2)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) 40)
+      (quil/ellipse (+ (:x p) w2) (+ (:y p) h2) d d))))
 
 (defn draw-line
-  "Draw voronoi line."
-  [line]
-  (let [lv (:line-voronoi colors)
-        l (line/scale line @zoom)]
+  "Draw a line."
+  [line col]
+  (let [l (line/scale line @zoom)]
     (do
-      (quil/stroke (:r lv) (:g lv) (:b lv) (:a lv))
-      (quil/fill (:r lv) (:g lv) (:b lv) (:a lv))
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
       (quil/line (+ (:x (:p1 l)) w2) (+ (:y (:p1 l)) h2) (+ (:x (:p2 l)) w2) (+ (:y (:p2 l)) h2)))))
 
 (defn draw-triangle
-  "Draw delaunay triangle"
-  [t]
-  (let [pd (:point-delaunay colors)
-        c (p/scale (:p (:c t)) @zoom)]
-    (do
-      (quil/stroke (:r pd) (:g pd) (:b pd) (:a pd))
-      (quil/fill (:r pd) (:g pd) (:b pd) (:a pd))
-      (quil/point (+ (:x c) w2) (+ (:y c) h2))))
-  (let [ld (:line-delaunay colors)
-        t (triangle/scale (:t t) @zoom)]
-    (do
-      (quil/stroke (:r ld) (:g ld) (:b ld) (:a ld))
-      (quil/fill (:r ld) (:g ld) (:b ld) (:a ld))
-      (quil/line (+ (:x (:p1 t)) w2) (+ (:y (:p1 t)) h2) (+ (:x (:p2 t)) w2) (+ (:y (:p2 t)) h2))
-      (quil/line (+ (:x (:p2 t)) w2) (+ (:y (:p2 t)) h2) (+ (:x (:p3 t)) w2) (+ (:y (:p3 t)) h2))
-      (quil/line (+ (:x (:p3 t)) w2) (+ (:y (:p3 t)) h2) (+ (:x (:p1 t)) w2) (+ (:y (:p1 t)) h2)))))
+  "Draw a triangle"
+  [t pcol lcol]
+  (draw-point (:p (:c t)) pcol)
+  (draw-line (line/line (:p1 (:t t)) (:p2 (:t t))) lcol)
+  (draw-line (line/line (:p2 (:t t)) (:p3 (:t t))) lcol)
+  (draw-line (line/line (:p3 (:t t)) (:p1 (:t t))) lcol))
+
+(defn draw-invalidated?
+  "Check if the invalidated should be drawn."
+  []
+  (and
+    @draw-delaunay
+    (not (nil? (first @fib-points)))
+    (< 0 (count @invalidated))))
 
 (defn draw
   "This function is called by quil repeatedly."
   []
-  (let [bg (:background colors)]
-    (quil/background (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/background (:r (:background colors)) (:g (:background colors)) (:b (:background colors)) (:a (:background colors)))
+
   (dorun
-    (for [p @points]
-      (draw-point p)))
+    (map #(draw-point % (:point-voronoi colors)) @points))
+
   (when @draw-delaunay
     (dorun
-      (for [t (:triangles @delaunay-triangles)]
-        ;(for [t (delaunay/remove-bounds @delaunay-triangles)]
-        (draw-triangle t))))
+      (map #(draw-triangle % (:point-delaunay colors) (:line-delaunay colors)) (:triangles @delaunay-triangles))))
+
+  (when (draw-invalidated?)
+    (do
+      (draw-point (first @fib-points) (:next-point colors))
+      (dorun
+        (map #(draw-triangle % (:line-invalid colors) (:point-invalid colors)) @invalidated))))
+
   (when @draw-voronoi
     (dorun
-      (for [l @voronoi-lines]
-        (draw-line (:line l))))))
+      (map #(draw-line (:line %) (:line-voronoi colors)) @voronoi-lines)))
+
+  (when-not (nil? @highlight-triangle)
+    (do
+      (draw-circle (:c (nth (:triangles @delaunay-triangles) @highlight-triangle)) (:line-highlight colors))
+      (draw-triangle (nth (:triangles @delaunay-triangles) @highlight-triangle) (:line-highlight colors) (:point-highlight colors)))))
 
 
 ;;====================================================================================================
@@ -204,10 +271,13 @@
 (defn mouse-released
   "Handle releasing mouse buttons."
   []
-  (add-point! (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))))
+  (add-point!
+    (p/scale
+      (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))
+      (/ 1 @zoom))))
 
 (defn mouse-wheel
-  ""
+  "Handle mouse wheel events."
   [direction]
   (zoom! direction))
 
@@ -216,6 +286,7 @@
   (case (quil/key-as-keyword)
     :b (bug!)
     :c (clear!)
+    :u (unadd-point!)
     :f (make-fibonacci-sphere!)
     :n (next-fibonacci-point!)
     :a (remaining-fibonacci-points!)
@@ -223,7 +294,9 @@
     :- (decrease-fib!)
     :p (print-points!)
     :i (debug!)
+    :h (highlight-invalidated!)
     :r (reset-zoom!)
+    :t (next-triangle!)
     :d (toggle-drawing-delaunay!)
     :v (toggle-drawing-voronoi!)
     (log/info (str "pressed key " (quil/key-as-keyword)))))
@@ -262,17 +335,20 @@
     "Press"
     [:ul
      [:li "left mouse button to add point"]
+     [:li "u to remove last point"]
      [:li "mouse wheel to zoom"]
      [:li "r to reset zoom"]
      [:li "c to clear diagram"]
      [:li "f to create projected fibonacci points"]
-     [:li "a to add all projected fibonacci points"]
-     [:li "n to add next projected fibonacci point"]
      [:li "+ to increase amount of fibonacci points"]
      [:li "- to decrease amount of fibonacci points"]
+     [:li "a to add all projected fibonacci points"]
+     [:li "n to add next projected fibonacci point"]
+     [:li "h to highlight triangles invalidated by next fibonacci point"]
      [:li "b to create debugging diagram"]
      [:li "i to fetch debugging information"]
      [:li "p to print the points"]
+     [:li "t to cycle through the triangles"]
      [:li "d to toggle drawing delaunay"]
      [:li "v to toggle drawing voronoi"]]]])
 
@@ -287,11 +363,13 @@
             [:ul
              [:li (str "Count points: " (count @points))]
              [:li (str "fibonacci details: " @fib-detail)]
+             [:li (str "invalidated points: " (count @invalidated))]
              [:li (str "Count fibonacci points: " (count @fib-points))]
              [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
              [:li (str "Drawing delaunay: " @draw-delaunay)]
              [:li (str "Drawing voronoi: " @draw-voronoi)]
-             [:li (str "Drawing zoom: " @zoom)]]
+             [:li (str "Drawing zoom: " @zoom)]
+             [:li (str "Highlighted: " @highlight-triangle)]]
             (map (fn [i] [:li i]) @info)))]])
 
 (defn ui

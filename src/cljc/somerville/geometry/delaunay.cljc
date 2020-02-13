@@ -78,7 +78,7 @@
   ;(log/info "HOLE")
   ;(log/info (sgc/out p))
   ;(dorun (map #(log/info (sgc/out %)) hole))
-  (map #(delaunay-triangle (triangle/triangle (:p1 %) (:p2 %) p)) hole))
+  (map #(delaunay-triangle (triangle/triangle (:p1 %) (:p2 %) p)) (map l/sorted-line hole)))
 
 (defn add-point
   "Add a new point to the triangulation."
@@ -143,9 +143,9 @@
   "Create an appropriate line for a voronoi cell."
   [tl bounds]
   (let [inner (filter #(not (shares-point % bounds)) (val tl))
-        tmp (log/info "inner" (count inner))
+        ;tmp (log/info "inner" (count inner))
         border (filter #(shares-point % bounds) (val tl))
-        tmp (log/info "border" (count border))
+        ;tmp (log/info "border" (count border))
         ps (list (:p1 (key tl)) (:p2 (key tl)))]
     (cond
       (= 2 (count inner)) (VoronoiLine. (center-to-center-line tl) ps)
@@ -155,7 +155,7 @@
 (defn voronoi-lines
   "Convert Delaunay triangles to lines of a voronoi diagram."
   [triangulation]
-  (log/info "========================== new =========================")
+  ;(log/info "========================== new =========================")
   (filter
     #(not (nil? %))
     (map

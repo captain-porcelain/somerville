@@ -39,9 +39,11 @@
 
 (defn sorted-line
   "Get a line from two points and sort points."
-  [p1 p2]
-  (let [ps (sort [p1 p2])]
-    (Line2. (first ps) (second ps))))
+  ([p1 p2]
+   (let [ps (sort [p1 p2])]
+     (Line2. (first ps) (second ps))))
+  ([l]
+   (sorted-line (:p1 l) (:p2 l))))
 
 (defn line-from-slope
   "Get a line from the slope intercept form a * x + b."
