@@ -38,6 +38,7 @@
 (def info (reagent/atom []))
 (def zoom (reagent/atom 1))
 (def fib-detail (reagent/atom 10))
+(def fib-points (reagent/atom []))
 
 (defn increase-fib!
   "Increase amount of fibonacci points"
@@ -57,10 +58,24 @@
   (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles point))
   (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
 
-(defn projected-fibonacci-sphere!
+(defn make-fibonacci-sphere!
   "Create points for the projected fibonacci sphere."
   []
-  (dorun (map add-point! (map proj/to-plane (sphere/fibonacci @fib-detail)))))
+  (reset! fib-points (map proj/to-plane (sphere/fibonacci @fib-detail))))
+
+(defn next-fibonacci-point!
+  "Add next fibonacci point to diagram"
+  []
+  (when (< 0 (count @fib-points))
+    (do
+      (add-point! (first @fib-points))
+      (swap! fib-points rest))))
+
+(defn remaining-fibonacci-points!
+  "Add remaining fibonacci points to diagram"
+  []
+  (dorun (map add-point! @fib-points))
+  (reset! fib-points []))
 
 (defn clear!
   "Clear the diagram."
@@ -134,7 +149,7 @@
     (do
       (quil/stroke (:r pv) (:g pv) (:b pv) (:a pv))
       (quil/fill (:r pv) (:g pv) (:b pv) (:a pv))
-      (quil/rect (+ (:x p) w2) (+ (:y p) h2) 4 4))))
+      (quil/point (+ (:x p) w2) (+ (:y p) h2)))))
 
 (defn draw-line
   "Draw voronoi line."
@@ -150,11 +165,11 @@
   "Draw delaunay triangle"
   [t]
   (let [pd (:point-delaunay colors)
-        c (p/scale (:c t) @zoom)]
+        c (p/scale (:p (:c t)) @zoom)]
     (do
       (quil/stroke (:r pd) (:g pd) (:b pd) (:a pd))
       (quil/fill (:r pd) (:g pd) (:b pd) (:a pd))
-      (quil/rect (+ (:x (:p c)) w2) (+ (:y (:p c)) h2) 4 4)))
+      (quil/point (+ (:x c) w2) (+ (:y c) h2))))
   (let [ld (:line-delaunay colors)
         t (triangle/scale (:t t) @zoom)]
     (do
@@ -201,7 +216,9 @@
   (case (quil/key-as-keyword)
     :b (bug!)
     :c (clear!)
-    :f (projected-fibonacci-sphere!)
+    :f (make-fibonacci-sphere!)
+    :n (next-fibonacci-point!)
+    :a (remaining-fibonacci-points!)
     :+ (increase-fib!)
     :- (decrease-fib!)
     :p (print-points!)
@@ -248,7 +265,9 @@
      [:li "mouse wheel to zoom"]
      [:li "r to reset zoom"]
      [:li "c to clear diagram"]
-     [:li "f to create projected fibonacci point"]
+     [:li "f to create projected fibonacci points"]
+     [:li "a to add all projected fibonacci points"]
+     [:li "n to add next projected fibonacci point"]
      [:li "+ to increase amount of fibonacci points"]
      [:li "- to decrease amount of fibonacci points"]
      [:li "b to create debugging diagram"]
@@ -267,7 +286,8 @@
           (concat
             [:ul
              [:li (str "Count points: " (count @points))]
-             [:li (str "Count fibonacci points: " @fib-detail)]
+             [:li (str "fibonacci details: " @fib-detail)]
+             [:li (str "Count fibonacci points: " (count @fib-points))]
              [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
              [:li (str "Drawing delaunay: " @draw-delaunay)]
              [:li (str "Drawing voronoi: " @draw-voronoi)]

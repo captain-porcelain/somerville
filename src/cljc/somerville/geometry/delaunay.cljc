@@ -143,7 +143,9 @@
   "Create an appropriate line for a voronoi cell."
   [tl bounds]
   (let [inner (filter #(not (shares-point % bounds)) (val tl))
+        tmp (log/info "inner" (count inner))
         border (filter #(shares-point % bounds) (val tl))
+        tmp (log/info "border" (count border))
         ps (list (:p1 (key tl)) (:p2 (key tl)))]
     (cond
       (= 2 (count inner)) (VoronoiLine. (center-to-center-line tl) ps)
@@ -153,6 +155,7 @@
 (defn voronoi-lines
   "Convert Delaunay triangles to lines of a voronoi diagram."
   [triangulation]
+  (log/info "========================== new =========================")
   (filter
     #(not (nil? %))
     (map
