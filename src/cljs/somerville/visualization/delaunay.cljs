@@ -15,8 +15,10 @@
 
 (def width 1200)
 (def height 800)
-(def w2 (/ width 2))
-(def h2 (/ height 2))
+(def mouse-position (atom [0 0]))
+(def position (atom [0 0]))
+(def offset-width (atom (/ width 2)))
+(def offset-height (atom (/ height 2)))
 
 
 (def colors
@@ -97,7 +99,7 @@
   []
   (reset! invalidated [])
   (reset! highlight-triangle nil)
-  (reset! fib-points (map proj/to-plane (sphere/fibonacci @fib-detail))))
+  (reset! fib-points (map #(p/scale % 10) (map proj/to-plane (sphere/fibonacci @fib-detail)))))
 
 (defn next-fibonacci-point!
   "Add next fibonacci point to diagram"
@@ -138,6 +140,8 @@
 (defn reset-zoom!
   "Reset zoom."
   []
+  (reset! offset-width (/ width 2))
+  (reset! offset-height (/ height 2))
   (reset! zoom 1))
 
 (defn zoom!
@@ -160,28 +164,10 @@
   []
   (dorun (map #(log/info (c/out %)) @points)))
 
-(defn bug!
-  "Set points for debugging the missing line bug."
-  []
-  (let [p0 (p/point -296,4.4666595458984375)
-        p1 (p/point -360,31.466659545898438)
-        p2 (p/point -395,69.46665954589844)
-        p3 (p/point -430,38.46665954589844)
-        p4 (p/point -417,-50.53334045410156)
-        p5 (p/point -382,-144.53334045410156)
-        p6 (p/point -141,2.4666595458984375)
-        p7 (p/point -301,278.46665954589844)
-        p8 (p/point -296,60.46665954589844)
-        p9 (p/point -295,-232.53334045410156)]
-    (do
-      (reset! points (list p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))
-      (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
-      (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))))
-
 (defn debug!
   []
   (let [pa (p/point (quil/mouse-x) (quil/mouse-y))
-        pr (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))
+        pr (p/point (- (quil/mouse-x) @offset-width) (- (quil/mouse-y) @offset-height))
         t (first (filter #(triangle/inside? (:t %) pr) (:triangles @delaunay-triangles)))]
     (reset! info [(str "Absolute mouse: " (c/out pa))
                   (str "Relative mouse: " (c/out pr))
@@ -199,7 +185,7 @@
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill (:r col) (:g col) (:b col) (:a col))
       (quil/stroke-weight 5)
-      (quil/point (+ (:x p) w2) (+ (:y p) h2))
+      (quil/point (+ (:x p) @offset-width) (+ (:y p) @offset-height))
       (quil/stroke-weight 1))))
 
 (defn draw-circle
@@ -210,7 +196,7 @@
     (do
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill (:r col) (:g col) (:b col) 40)
-      (quil/ellipse (+ (:x p) w2) (+ (:y p) h2) d d))))
+      (quil/ellipse (+ (:x p) @offset-width) (+ (:y p) @offset-height) d d))))
 
 (defn draw-line
   "Draw a line."
@@ -219,7 +205,7 @@
     (do
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill (:r col) (:g col) (:b col) (:a col))
-      (quil/line (+ (:x (:p1 l)) w2) (+ (:y (:p1 l)) h2) (+ (:x (:p2 l)) w2) (+ (:y (:p2 l)) h2)))))
+      (quil/line (+ (:x (:p1 l)) @offset-width) (+ (:y (:p1 l)) @offset-height) (+ (:x (:p2 l)) @offset-width) (+ (:y (:p2 l)) @offset-height)))))
 
 (defn draw-triangle
   "Draw a triangle"
@@ -268,13 +254,38 @@
 ;;====================================================================================================
 ;; Event Handling
 
+(defn mouse-dragged
+  "calculate position change and store in atom"
+  []
+  (case (quil/mouse-button)
+    :left (let [x (quil/mouse-x)
+                y (quil/mouse-y)
+                [old-x old-y] @mouse-position
+                p-x @offset-width
+                p-y @offset-height]
+            (reset! mouse-position [x y])
+            (reset! offset-width (+ p-x (- x old-x)))
+            (reset! offset-height (+ p-y (- y old-y))))
+    nil))
+
+(defn mouse-pressed
+  "store mouse position in atom"
+  []
+  (case (quil/mouse-button)
+    :left (let [x (quil/mouse-x)
+                y (quil/mouse-y)]
+            (reset! mouse-position [x y]))
+    nil))
+
 (defn mouse-released
   "Handle releasing mouse buttons."
   []
-  (add-point!
-    (p/scale
-      (p/point (- (quil/mouse-x) w2) (- (quil/mouse-y) h2))
-      (/ 1 @zoom))))
+  (case (quil/mouse-button)
+    :right (add-point!
+             (p/scale
+               (p/point (- (quil/mouse-x) @offset-width) (- (quil/mouse-y) @offset-height))
+               (/ 1 @zoom)))
+    nil))
 
 (defn mouse-wheel
   "Handle mouse wheel events."
@@ -284,7 +295,6 @@
 (defn key-pressed []
   "Trigger actions on key presses."
   (case (quil/key-as-keyword)
-    :b (bug!)
     :c (clear!)
     :u (unadd-point!)
     :f (make-fibonacci-sphere!)
@@ -321,6 +331,8 @@
     :setup setup
     :draw draw
     :size [width height]
+    :mouse-dragged mouse-dragged
+    :mouse-pressed mouse-pressed
     :mouse-released mouse-released
     :mouse-wheel mouse-wheel
     :key-pressed key-pressed))
@@ -345,7 +357,6 @@
      [:li "a to add all projected fibonacci points"]
      [:li "n to add next projected fibonacci point"]
      [:li "h to highlight triangles invalidated by next fibonacci point"]
-     [:li "b to create debugging diagram"]
      [:li "i to fetch debugging information"]
      [:li "p to print the points"]
      [:li "t to cycle through the triangles"]

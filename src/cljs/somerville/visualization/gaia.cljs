@@ -15,6 +15,7 @@
 
 (def colors
   {:background (color/rgba  10  10  10)
+   :heavens    (color/rgba 129 178 154 128)
    :line       (color/rgba 217  60 110)
    :fill       (color/rgba  40  40  40 180)
    :focus-line (color/rgba 241 196  15)
@@ -75,6 +76,24 @@
   (quil/vertex (:x (:p3 t)) (:y (:p3 t)) (:z (:p3 t)))
   (quil/end-shape))
 
+(defn draw-heavens
+  "Draw indicator for poles."
+  []
+  (let [c (:heavens colors)]
+    (do
+      (quil/stroke-weight 3)
+      (quil/fill (:r c) (:g c) (:b c) (:a c))
+      (quil/stroke (:r c) (:g c) (:b c) (:a c))
+      (quil/line 0 0 300 0 0 -300)
+      (quil/torus 300 5 128 128)
+      (quil/with-translation [0 0 -300]
+        (quil/with-rotation [(/ tau 4) 1 0 0]
+          (quil/cone 6 25)))
+      (quil/with-translation [0 0 300]
+        (quil/with-rotation [(/ tau 4) 1 0 0]
+          (quil/cone 6 25)))
+      (quil/stroke-weight 1))))
+
 (defn draw
   "This function is called by processing repeatedly."
   []
@@ -89,6 +108,7 @@
               :triangles (draw-triangle l (:fill colors) (:line colors))
               :lines (draw-line l (:line colors))
               :points (draw-point l (:line colors)))))
+        (draw-heavens)
         (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors))))))
 
 
