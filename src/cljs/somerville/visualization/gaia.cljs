@@ -1,7 +1,6 @@
 (ns somerville.visualization.gaia
   (:require
     [somerville.color.color :as color]
-    [somerville.maps.gaia.core :as gaia]
     [somerville.visualization.commons :as commons]
     [talos.core :as talos]
     [taoensso.timbre :as log]
@@ -28,14 +27,14 @@
 (def fsm (reagent/atom nil))
 (def worker (atom nil))
 
-(def world (atom (gaia/icosahedron 400)))
+(def world (atom []))
 (def fibonacci-size (reagent/atom 100))
 
 (def draw-mode (reagent/atom :triangles))
 (def index (reagent/atom 0))
 
 (def mouse-position (atom [0 0]))
-(def position (atom [0 0]))
+(def position (atom [61 -249]))
 
 (defn get-mouse-angle-x
   "get mouse based angle"
@@ -76,6 +75,15 @@
   (quil/vertex (:x (:p3 t)) (:y (:p3 t)) (:z (:p3 t)))
   (quil/end-shape))
 
+(defn draw-cell
+  "Draws one voronoi cell representing an area of the world."
+  [cell fc lc]
+  (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/begin-shape)
+  (dorun (map #(quil/vertex (:x %) (:y %) (:z %)) (:points cell)))
+  (quil/end-shape))
+
 (defn draw-heavens
   "Draw indicator for poles."
   []
@@ -105,11 +113,13 @@
         (dorun
           (for [l @world]
             (case @draw-mode
+              :cells (draw-cell l (:fill colors) (:line colors))
               :triangles (draw-triangle l (:fill colors) (:line colors))
               :lines (draw-line l (:line colors))
               :points (draw-point l (:line colors)))))
         (draw-heavens)
-        (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors))))))
+        (when (< 0 (count @world))
+          (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors)))))))
 
 
 ;;=====================================================================================================================
@@ -143,22 +153,6 @@
   (when (> @fibonacci-size 0) (swap! fibonacci-size #(- % 10)))
   (talos/process! @fsm {:event :done}))
 
-(defn request-cube-callback
-  "Reset world to cube."
-  [my-fsm event]
-  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
-                                                 :command "cube"
-                                                 :data {:draw-mode :triangles :scale 150}}))
-  (talos/process! @fsm {:event :work-requested}))
-
-(defn request-icosahedron-callback
-  "Reset world to icosahedron."
-  [my-fsm event]
-  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
-                                                 :command "icosahedron"
-                                                 :data {:draw-mode :triangles :scale 400}}))
-  (talos/process! @fsm {:event :work-requested}))
-
 (defn request-delaunay-callback
   "Reset world to delaunay of fibonacci sphere."
   [my-fsm event]
@@ -166,7 +160,7 @@
                                                  :command "delaunay"
                                                  :data {:draw-mode :triangles
                                                         :scale 200
-                                                        :fibonacci-size @fibonacci-size}}))
+                                                        :points @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-voronoi-callback
@@ -174,9 +168,9 @@
   [my-fsm event]
   (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
                                                  :command "voronoi"
-                                                 :data {:draw-mode :lines
+                                                 :data {:draw-mode :cells
                                                         :scale 200
-                                                        :fibonacci-size @fibonacci-size}}))
+                                                        :points @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))
 
 (defn request-fibonacci-callback
@@ -186,17 +180,9 @@
                                                  :command "fibonacci"
                                                  :data {:draw-mode :points
                                                         :scale 200
-                                                        :fibonacci-size @fibonacci-size}}))
+                                                        :points @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))
 
-(defn request-subdivide-callback
-  "Subdivide current world."
-  [my-fsm event]
-  (.postMessage @worker (commons/to-arraybuffer {:module "gaia"
-                                                 :command "subdivide"
-                                                 :data {:draw-mode @draw-mode
-                                                        :world @world}}))
-  (talos/process! @fsm {:event :work-requested}))
 
 (defn got-world-callback
   "Reset world to calculated data."
@@ -214,12 +200,9 @@
     (talos/state :cycle-down           cycle-down-callback)
     (talos/state :increase-fib         increase-fibonacci-callback)
     (talos/state :decrease-fib         decrease-fibonacci-callback)
-    (talos/state :request-cube         request-cube-callback)
-    (talos/state :request-icosahedron  request-icosahedron-callback)
     (talos/state :request-delaunay     request-delaunay-callback)
     (talos/state :request-fibonacci    request-fibonacci-callback)
     (talos/state :request-voronoi      request-voronoi-callback)
-    (talos/state :request-subdivide    request-subdivide-callback)
     (talos/state :wait-world           idle-callback)
     (talos/state :got-world            got-world-callback)))
 
@@ -230,21 +213,12 @@
     (talos/transition :key-pressed             :idle                 :cycle-down          (fn [event data] (= 173 (:data event)))) ;; -
     (talos/transition :key-pressed             :idle                 :increase-fib        (fn [event data] (=  77 (:data event)))) ;; m
     (talos/transition :key-pressed             :idle                 :decrease-fib        (fn [event data] (=  76 (:data event)))) ;; l
-    (talos/transition :key-pressed             :idle                 :request-cube        (fn [event data] (=  67 (:data event)))) ;; c
-    (talos/transition :work-requested          :request-cube         :wait-world)
-    (talos/transition :done-cube               :wait-world           :got-world)
     (talos/transition :key-pressed             :idle                 :request-delaunay    (fn [event data] (=  68 (:data event)))) ;; d
     (talos/transition :work-requested          :request-delaunay     :wait-world)
     (talos/transition :done-delaunay           :wait-world           :got-world)
     (talos/transition :key-pressed             :idle                 :request-fibonacci   (fn [event data] (=  70 (:data event)))) ;; f
     (talos/transition :work-requested          :request-fibonacci    :wait-world)
     (talos/transition :done-fibonacci          :wait-world           :got-world)
-    (talos/transition :key-pressed             :idle                 :request-icosahedron (fn [event data] (=  73 (:data event)))) ;; i
-    (talos/transition :work-requested          :request-icosahedron  :wait-world)
-    (talos/transition :done-icosahedron        :wait-world           :got-world)
-    (talos/transition :key-pressed             :idle                 :request-subdivide   (fn [event data] (=  83 (:data event)))) ;; s
-    (talos/transition :work-requested          :request-subdivide    :wait-world)
-    (talos/transition :done-subdivide          :wait-world           :got-world)
     (talos/transition :key-pressed             :idle                 :request-voronoi     (fn [event data] (=  86 (:data event)))) ;; v
     (talos/transition :work-requested          :request-voronoi      :wait-world)
     (talos/transition :done-voronoi            :wait-world           :got-world)
@@ -331,14 +305,11 @@
     [:ul
      [:li "+ to cycle up through the surfaces"]
      [:li "- to cycle down through the surfaces"]
-     [:li "c to recreate a cube"]
-     [:li "i to recreate an icosahedron"]
      [:li "f to recreate an fibonacci sphere"]
      [:li "d to recreate a delaunay of a fibonacci sphere"]
      [:li "v to recreate a voronoi of a fibonacci sphere"]
      [:li "m to increase points on fibonacci sphere"]
-     [:li "l to decrease points on fibonacci sphere"]
-     [:li "s to subdivide"]]]])
+     [:li "l to decrease points on fibonacci sphere"]]]])
 
 (defn settings
   "Show information current settings."
@@ -349,6 +320,7 @@
      [:span
       [:ul
        [:li (str "State: " (try (:name @state) (catch js/Object e (:state @fsm))))]
+       [:li (str "Surface Count: " (count @world))]
        [:li (str "Surface Index: " @index)]
        [:li (str "Draw Mode: " @draw-mode)]
        [:li (str "Fibonacci Size: " @fibonacci-size)]]]]))
@@ -368,6 +340,4 @@
   (reagent/create-class
     {:reagent-render ui
      :component-did-mount #(init "hostelement")}))
-
-
 

@@ -8,35 +8,25 @@
 ;;====================================================================================================
 ;; Work handling for gaia
 
-(defn cube
-  "Make a cube."
+(defn merge-config
+  "Create the config for gaia."
   [data]
-  (gaia/cube (:scale data)))
-
-(defn icosahedron
-  "Make an icosahedron."
-  [data]
-  (gaia/icosahedron (:scale data)))
+  (merge gaia/default-config data))
 
 (defn fibonacci
   "Make a fibonacci point sphere."
   [data]
-  (gaia/fibonacci (:fibonacci-size data) (:scale data)))
+  (gaia/fibonacci (merge-config data)))
 
 (defn delaunay
   "Make a delaunay sphere."
   [data]
-  (gaia/delaunay (:fibonacci-size data) (:scale data)))
+  (gaia/delaunay (merge-config data)))
 
 (defn voronoi
   "Make a voronoi sphere."
   [data]
-  (gaia/voronoi (:fibonacci-size data) (:scale data)))
-
-(defn subdivide
-  "Subdivide current world"
-  [world]
-  (gaia/subdivide world))
+  (gaia/voronoi (merge-config data)))
 
 (defn dispatch-gaia
   "Handle work requests for gaia."
@@ -44,10 +34,7 @@
   (case (:command message)
     "fibonacci"    (fibonacci (:data message))
     "delaunay"     (delaunay (:data message))
-    "voronoi"      (voronoi (:data message))
-    "icosahedron"  (icosahedron (:data message))
-    "cube"         (cube (:data message))
-    "subdivide"    (subdivide (:world (:data message)))))
+    "voronoi"      (voronoi (:data message))))
 
 
 ;;====================================================================================================

@@ -5,6 +5,7 @@
     [somerville.geometry.line :as line]
     [somerville.geometry.point :as p]
     [somerville.geometry.sphere :as sphere]
+    [somerville.geometry.polygon :as polygon]
     [somerville.geometry.delaunay :as delaunay]
     [somerville.geometry.projection.stereographic :as proj]
     [somerville.color.color :as color]
@@ -45,8 +46,10 @@
 (def points (reagent/atom (list)))
 (def delaunay-triangles (atom (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height))))
 (def voronoi-lines (atom (delaunay/voronoi @delaunay-triangles)))
+(def voronoi-cells (atom (delaunay/to-cells @voronoi-lines)))
 (def draw-delaunay (reagent/atom true))
 (def draw-voronoi (reagent/atom true))
+(def draw-cells (reagent/atom false))
 (def last-point (reagent/atom nil))
 (def info (reagent/atom []))
 (def zoom (reagent/atom 1))
@@ -73,7 +76,8 @@
   (reset! invalidated [])
   (reset! highlight-triangle nil)
   (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles point))
-  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
+  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))
+  (reset! voronoi-cells (delaunay/to-cells @voronoi-lines)))
 
 (defn unadd-point!
   "Remove last point"
@@ -82,7 +86,8 @@
   (reset! invalidated [])
   (reset! highlight-triangle nil)
   (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
-  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles)))
+  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))
+  (reset! voronoi-cells (delaunay/to-cells @voronoi-lines)))
 
 (defn next-triangle!
   "Cycle through triangles."
@@ -154,7 +159,12 @@
   []
   (reset! draw-delaunay (not @draw-delaunay)))
 
-(defn toggle-drawing-voronoi!
+(defn toggle-drawing-voronoi-cells!
+  "Toggle drawing the voronoi diagram."
+  []
+  (reset! draw-cells (not @draw-cells)))
+
+(defn toggle-drawing-voronoi-lines!
   "Toggle drawing the voronoi diagram."
   []
   (reset! draw-voronoi (not @draw-voronoi)))
@@ -162,7 +172,10 @@
 (defn print-points!
   "Print the points of the diagram."
   []
-  (dorun (map #(log/info (c/out %)) @points)))
+  (log/info "Points:")
+  (dorun (map #(log/info (c/out %)) @points))
+  (log/info "Cells:")
+  (dorun (map #(log/info (c/out %)) @voronoi-cells)))
 
 (defn debug!
   []
@@ -215,6 +228,13 @@
   (draw-line (line/line (:p2 (:t t)) (:p3 (:t t))) lcol)
   (draw-line (line/line (:p3 (:t t)) (:p1 (:t t))) lcol))
 
+(defn draw-cell
+  "Draw a voronoi cell"
+  [cell col]
+  (quil/begin-shape)
+  (dorun (map #(quil/vertex (+ (:x %) @offset-width) (+ (:y %) @offset-height)) (map #(p/scale % @zoom) (:points cell))))
+  (quil/end-shape))
+
 (defn draw-invalidated?
   "Check if the invalidated should be drawn."
   []
@@ -245,6 +265,10 @@
     (dorun
       (map #(draw-line (:line %) (:line-voronoi colors)) @voronoi-lines)))
 
+  (when @draw-cells
+    (dorun
+      (map #(draw-cell (:polygon %) (:line-voronoi colors)) @voronoi-cells)))
+
   (when-not (nil? @highlight-triangle)
     (do
       (draw-circle (:c (nth (:triangles @delaunay-triangles) @highlight-triangle)) (:line-highlight colors))
@@ -258,7 +282,7 @@
   "calculate position change and store in atom"
   []
   (case (quil/mouse-button)
-    :left (let [x (quil/mouse-x)
+    :right (let [x (quil/mouse-x)
                 y (quil/mouse-y)
                 [old-x old-y] @mouse-position
                 p-x @offset-width
@@ -272,7 +296,7 @@
   "store mouse position in atom"
   []
   (case (quil/mouse-button)
-    :left (let [x (quil/mouse-x)
+    :right (let [x (quil/mouse-x)
                 y (quil/mouse-y)]
             (reset! mouse-position [x y]))
     nil))
@@ -281,7 +305,7 @@
   "Handle releasing mouse buttons."
   []
   (case (quil/mouse-button)
-    :right (add-point!
+    :left (add-point!
              (p/scale
                (p/point (- (quil/mouse-x) @offset-width) (- (quil/mouse-y) @offset-height))
                (/ 1 @zoom)))
@@ -308,7 +332,8 @@
     :r (reset-zoom!)
     :t (next-triangle!)
     :d (toggle-drawing-delaunay!)
-    :v (toggle-drawing-voronoi!)
+    :v (toggle-drawing-voronoi-lines!)
+    :o (toggle-drawing-voronoi-cells!)
     (log/info (str "pressed key " (quil/key-as-keyword)))))
 
 
@@ -347,6 +372,7 @@
     "Press"
     [:ul
      [:li "left mouse button to add point"]
+     [:li "right mouse to move view"]
      [:li "u to remove last point"]
      [:li "mouse wheel to zoom"]
      [:li "r to reset zoom"]
@@ -361,7 +387,8 @@
      [:li "p to print the points"]
      [:li "t to cycle through the triangles"]
      [:li "d to toggle drawing delaunay"]
-     [:li "v to toggle drawing voronoi"]]]])
+     [:li "v to toggle drawing voronoi lines"]
+     [:li "o to toggle drawing voronoi cells"]]]])
 
 (defn settings
   "Show information current settings."
@@ -378,7 +405,8 @@
              [:li (str "Count fibonacci points: " (count @fib-points))]
              [:li (str "Last point: " (if (nil? @last-point) "none" (c/out @last-point)))]
              [:li (str "Drawing delaunay: " @draw-delaunay)]
-             [:li (str "Drawing voronoi: " @draw-voronoi)]
+             [:li (str "Drawing voronoi lines: " @draw-voronoi)]
+             [:li (str "Drawing voronoi cells: " @draw-cells)]
              [:li (str "Drawing zoom: " @zoom)]
              [:li (str "Highlighted: " @highlight-triangle)]]
             (map (fn [i] [:li i]) @info)))]])

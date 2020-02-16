@@ -3,13 +3,19 @@
 ;; And http://paulbourke.net/papers/triangulate/
 (ns somerville.geometry.delaunay
   (:require
+    [somerville.commons :as commons]
     [somerville.geometry.commons :as sgc]
     [somerville.geometry.line :as l]
     [somerville.geometry.point :as p]
     [somerville.geometry.circle :as circle]
     [somerville.geometry.triangle :as triangle]
+    [somerville.geometry.polygon :as polygon]
+    [clojure.string :as string]
     [taoensso.timbre :as log]))
 
+
+;;====================================================================================================
+;; Creating Delaunay Triangulations
 
 (defrecord Delaunay-triangle [t c]
   sgc/Printable
@@ -111,6 +117,10 @@
   [triangulation]
   (filter #(not (shares-point % (:bounds triangulation))) (:triangles triangulation)))
 
+
+;;====================================================================================================
+;; Creating Voronoi Lines
+
 (defn triangle-lines
   "Create a map from the lines that make up a triangle, setting value to keep pointer to triangle."
   [t]
@@ -125,37 +135,38 @@
   (apply merge-with concat (map triangle-lines triangles)))
 
 (defrecord VoronoiLine [line points])
+(defrecord VoronoiCell [point points closed]
+   sgc/Printable
+   (sgc/out [this i] (str (sgc/indent i) "Voronoi Cell " (if closed "(closed)" "(open)") " for " (sgc/out point i) " with points: " (string/join ", " (map sgc/out points i))))
+   (sgc/out [this] (sgc/out this 0)))
 
 (defn center-to-center-line
   "Create a line between the center points on both sides of a delaunay triangle line."
-  [tl]
-  (l/line (:p (:c (first (val tl)))) (:p (:c (second (val tl))))))
+  [t1 t2 points]
+  (VoronoiLine. (l/line (:p (:c t1)) (:p (:c t2))) points))
 
 (defn center-to-border-line
   "Create a line from the center on one side of the delaunay triangle line to the border."
-  [ti tb]
+  [ti tb points]
   (let [cp (:p (:c ti))
         mp (:p (:c tb))
         op (p/add (p/scale (p/subtract mp cp) 1000) cp)]
-    (l/line cp op)))
+    (VoronoiLine. (l/line cp op) points)))
 
 (defn voronoi-line
   "Create an appropriate line for a voronoi cell."
   [tl bounds]
   (let [inner (filter #(not (shares-point % bounds)) (val tl))
-        ;tmp (log/info "inner" (count inner))
         border (filter #(shares-point % bounds) (val tl))
-        ;tmp (log/info "border" (count border))
         ps (list (:p1 (key tl)) (:p2 (key tl)))]
     (cond
-      (= 2 (count inner)) (VoronoiLine. (center-to-center-line tl) ps)
-      (and (= 1 (count inner)) (= 1 (count border))) (VoronoiLine. (center-to-border-line (first inner) (first border)) ps)
+      (= 2 (count inner)) (center-to-center-line (first inner) (second inner) ps)
+      (and (= 1 (count inner)) (= 1 (count border))) (center-to-border-line (first inner) (first border) ps)
       :else nil)))
 
 (defn voronoi-lines
   "Convert Delaunay triangles to lines of a voronoi diagram."
   [triangulation]
-  ;(log/info "========================== new =========================")
   (filter
     #(not (nil? %))
     (map
@@ -166,4 +177,48 @@
   "Convert Delaunay triangles to voronoi diagram."
   [triangulation]
   (voronoi-lines triangulation))
+
+
+;;====================================================================================================
+;; Creating Voronoi Polygons
+
+(defn lines-of-point
+  "Filter the lines to those that relate to given point."
+  [lines point]
+  (map :line (filter #(commons/in? point (:points %)) lines)))
+
+(defn points-from-lines
+  "Extract the voronoi points from the lines again."
+  [lines]
+  (into #{} (reduce concat (map :points lines))))
+
+(defn collect-points
+  "Collect the voronoi points with their relevant lines."
+  [lines]
+  (map (fn [p] {:point p :lines (lines-of-point lines p)}) (points-from-lines lines)))
+
+(defn next-point
+  "Find the next point for a polygon."
+  [lines p]
+  (:p2 (first (filter #(= p (:p1 %)) lines))))
+
+(defn to-cell
+  "Convert the lines of one voronoi point to the points of a cell."
+  [lines]
+  (loop [p (:p1 (first lines))
+         cp p
+         ps [p]]
+    (let [np (next-point lines cp)
+          tmp (log/info "next point " np)]
+      (if (or (= p np) (nil? np))
+        {:points ps :closed (= p np)}
+        (recur p np (conj ps np))))))
+
+(defn to-cells
+  "Transform lines to voronoi cells."
+  [lines]
+  (map
+    #(let [cell (to-cell (:lines %))]
+       (VoronoiCell. (:point %) (:points cell) (:closed cell)))
+    (collect-points lines)))
 
