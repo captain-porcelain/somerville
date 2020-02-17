@@ -78,7 +78,9 @@
 (defn draw-cell
   "Draws one voronoi cell representing an area of the world."
   [cell fc lc]
-  (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
+  (if (:closed cell)
+    (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
+    (quil/fill 255 255 255 0))
   (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/begin-shape)
   (dorun (map #(quil/vertex (:x %) (:y %) (:z %)) (:points cell)))
