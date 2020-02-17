@@ -26,12 +26,19 @@
 (defn cell-to-sphere
   "Map the points of a voronoi cell onto a sphere."
   [c]
-  (delaunay/VoronoiCell. (:point c) (map #(proj/to-sphere %) (:points c)) (:closed c)))
+  (delaunay/VoronoiCell. (proj/to-sphere (:point c)) (map #(proj/to-sphere %) (:points c)) (:closed c)))
 
 (defn scale-cell
   "Scale a voronoi cell."
   [c s]
-  (delaunay/VoronoiCell. (:point c) (map #(point/scale % s) (:points c)) (:closed c)))
+  (delaunay/VoronoiCell. (point/scale (:point c) s) (map #(point/scale % s) (:points c)) (:closed c)))
+
+(defn close-cell
+  "If the given cell is not closed inject a closing point at the pole."
+  [c]
+  (if (:closed c)
+    c
+    (delaunay/VoronoiCell. (:point c) (into [] (cons (point/point 0 0 -1) (conj (:points c) (point/point 0 0 -1)))) true)))
 
 (defn to-voronoi
   "Create voronoi for points on a sphere."
@@ -39,7 +46,7 @@
   (let [projected (map #(point/scale % 10) (map proj/to-plane points))
         d (delaunay/delaunay projected)
         cells (delaunay/to-cells (delaunay/voronoi d))]
-    (map cell-to-sphere (map #(scale-cell % 0.1) cells))))
+    (map close-cell (map cell-to-sphere (map #(scale-cell % 0.1) cells)))))
 
 (defn to-delaunay
   "Create delaunay for points on a sphere."
@@ -55,22 +62,22 @@
 (def default-config
   {:points 400
    :scale 200
-   :random 0.05})
+   :jitter 0.05})
 
 (defn fibonacci
   "Create a list of lines that represent a cube."
   [config]
-  (map #(point/scale % (:scale config)) (sphere/fibonacci (:points config))))
+  (map #(point/scale % (:scale config)) (sphere/fibonacci (:points config) (:jitter config))))
 
 (defn delaunay
   "Create a list of triangles for a delaunay of a fibonacci sphere."
   [config]
-  (map #(triangle/scale % (:scale config)) (to-delaunay (sphere/fibonacci (:points config)))))
+  (map #(triangle/scale % (:scale config)) (to-delaunay (sphere/fibonacci (:points config) (:jitter config)))))
 
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonacci sphere."
   [config]
-  (map #(scale-cell % (:scale config)) (to-voronoi (sphere/fibonacci (:points config)))))
+  (map #(scale-cell % (:scale config)) (to-voronoi (sphere/fibonacci (:points config) (:jitter config)))))
 
 
 ;;=================================================================================================================

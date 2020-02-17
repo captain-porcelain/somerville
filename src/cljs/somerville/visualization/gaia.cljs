@@ -16,7 +16,8 @@
   {:background (color/rgba  10  10  10)
    :heavens    (color/rgba 129 178 154 128)
    :line       (color/rgba 217  60 110)
-   :fill       (color/rgba  40  40  40 200)
+   :fill       (color/rgba  40  40  40 255)
+   :point      (color/rgba   0 204 102)
    :focus-line (color/rgba 241 196  15)
    :focus-fill (color/rgba  80  80  80 128)})
 
@@ -77,14 +78,15 @@
 
 (defn draw-cell
   "Draws one voronoi cell representing an area of the world."
-  [cell fc lc]
+  [cell fc lc pc]
   (if (:closed cell)
     (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
     (quil/fill 255 255 255 0))
   (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/begin-shape)
   (dorun (map #(quil/vertex (:x %) (:y %) (:z %)) (:points cell)))
-  (quil/end-shape))
+  (quil/end-shape)
+  (draw-point (:point cell) pc))
 
 (defn draw-heavens
   "Draw indicator for poles."
@@ -115,10 +117,10 @@
         (dorun
           (for [l @world]
             (case @draw-mode
-              :cells (draw-cell l (:fill colors) (:line colors))
+              :cells (draw-cell l (:fill colors) (:line colors) (:point colors))
               :triangles (draw-triangle l (:fill colors) (:line colors))
               :lines (draw-line l (:line colors))
-              :points (draw-point l (:line colors)))))
+              :points (draw-point l (:point colors)))))
         (draw-heavens)
         (when (< 0 (count @world))
           (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors)))))))
