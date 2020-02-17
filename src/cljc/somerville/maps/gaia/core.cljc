@@ -4,7 +4,6 @@
     [somerville.geometry.point :as point]
     [somerville.geometry.line :as line]
     [somerville.geometry.triangle :as triangle]
-    [somerville.geometry.polygon :as polygon]
     [somerville.geometry.sphere :as sphere]
     [somerville.geometry.delaunay :as delaunay]
     [somerville.geometry.projection.stereographic :as proj]
@@ -24,18 +23,23 @@
   [t]
   (triangle/triangle (proj/to-sphere (:p1 t)) (proj/to-sphere (:p2 t)) (proj/to-sphere (:p3 t))))
 
-(defn polygon-to-sphere
-  "Map the points of a polygon onto a sphere."
-  [p]
-  (polygon/polygon (map line-to-sphere (:lines p))))
+(defn cell-to-sphere
+  "Map the points of a voronoi cell onto a sphere."
+  [c]
+  (delaunay/VoronoiCell. (:point c) (map #(proj/to-sphere %) (:points c)) (:closed c)))
+
+(defn scale-cell
+  "Scale a voronoi cell."
+  [c s]
+  (delaunay/VoronoiCell. (:point c) (map #(point/scale % s) (:points c)) (:closed c)))
 
 (defn to-voronoi
   "Create voronoi for points on a sphere."
   [points]
   (let [projected (map #(point/scale % 10) (map proj/to-plane points))
         d (delaunay/delaunay projected)
-        cells (map :polygon (delaunay/to-cells (delaunay/voronoi d)))]
-    (map polygon-to-sphere (map #(polygon/scale % 0.1) cells))))
+        cells (delaunay/to-cells (delaunay/voronoi d))]
+    (map cell-to-sphere (map #(scale-cell % 0.1) cells))))
 
 (defn to-delaunay
   "Create delaunay for points on a sphere."
@@ -66,7 +70,7 @@
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonacci sphere."
   [config]
-  (map #(line/scale % (:scale config)) (to-voronoi (sphere/fibonacci (:points config)))))
+  (map #(scale-cell % (:scale config)) (to-voronoi (sphere/fibonacci (:points config)))))
 
 
 ;;=================================================================================================================

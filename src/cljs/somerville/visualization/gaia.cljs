@@ -16,7 +16,7 @@
   {:background (color/rgba  10  10  10)
    :heavens    (color/rgba 129 178 154 128)
    :line       (color/rgba 217  60 110)
-   :fill       (color/rgba  40  40  40 180)
+   :fill       (color/rgba  40  40  40 200)
    :focus-line (color/rgba 241 196  15)
    :focus-fill (color/rgba  80  80  80 128)})
 
