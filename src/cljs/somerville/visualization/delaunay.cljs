@@ -28,6 +28,9 @@
    :point-voronoi   (color/rgba 158   0  83)
    :line-voronoi    (color/rgba 255   0 128)
 
+   :line-cell       (color/rgba   0 204 102)
+   :area-cell       (color/rgba   0 204 102  50)
+
    :point-delaunay  (color/rgba 254  78   0)
    :line-delaunay   (color/rgba 230 127  13)
 
@@ -139,6 +142,7 @@
   (reset! invalidated [])
   (reset! highlight-triangle nil)
   (reset! points (list))
+  (reset! voronoi-cells (list))
   (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
   (reset! voronoi-lines (list)))
 
@@ -175,7 +179,7 @@
   (log/info "Points:")
   (dorun (map #(log/info (c/out %)) @points))
   (log/info "Cells:")
-  (dorun (map #(log/info (c/out %)) @voronoi-cells)))
+  (dorun (map #(log/info (c/out %) " angle " (p/angle (:point %) (first (:points %)) (second (:points %)))) @voronoi-cells)))
 
 (defn debug!
   []
@@ -230,10 +234,16 @@
 
 (defn draw-cell
   "Draw a voronoi cell"
-  [cell col]
+  [cell lc la]
+  (quil/stroke-weight 2)
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (if (:closed cell)
+    (quil/fill (:r la) (:g la) (:b la) (:a la))
+    (quil/fill 255 255 255 0))
   (quil/begin-shape)
   (dorun (map #(quil/vertex (+ (:x %) @offset-width) (+ (:y %) @offset-height)) (map #(p/scale % @zoom) (:points cell))))
-  (quil/end-shape))
+  (quil/end-shape)
+  (quil/stroke-weight 1))
 
 (defn draw-invalidated?
   "Check if the invalidated should be drawn."
@@ -267,7 +277,7 @@
 
   (when @draw-cells
     (dorun
-      (map #(draw-cell (:polygon %) (:line-voronoi colors)) @voronoi-cells)))
+      (map #(draw-cell % (:line-cell colors) (:area-cell colors)) @voronoi-cells)))
 
   (when-not (nil? @highlight-triangle)
     (do

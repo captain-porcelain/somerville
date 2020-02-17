@@ -81,9 +81,6 @@
 (defn triangulate-hole
   "Create a list of triangles that fills hole."
   [hole p]
-  ;(log/info "HOLE")
-  ;(log/info (sgc/out p))
-  ;(dorun (map #(log/info (sgc/out %)) hole))
   (map #(delaunay-triangle (triangle/triangle (:p1 %) (:p2 %) p)) (map l/sorted-line hole)))
 
 (defn add-point
@@ -136,9 +133,9 @@
 
 (defrecord VoronoiLine [line points])
 (defrecord VoronoiCell [point points closed]
-   sgc/Printable
-   (sgc/out [this i] (str (sgc/indent i) "Voronoi Cell " (if closed "(closed)" "(open)") " for " (sgc/out point i) " with points: " (string/join ", " (map #(sgc/out % i) points))))
-   (sgc/out [this] (sgc/out this 0)))
+  sgc/Printable
+  (sgc/out [this i] (str (sgc/indent i) "Voronoi Cell " (if closed "(closed)" "(open)") " for " (sgc/out point i) " with points: " (string/join ", " (map #(sgc/out % i) points))))
+  (sgc/out [this] (sgc/out this 0)))
 
 (defn center-to-center-line
   "Create a line between the center points on both sides of a delaunay triangle line."
@@ -197,32 +194,64 @@
   [lines]
   (map (fn [p] {:point p :lines (lines-of-point lines p)}) (points-from-lines lines)))
 
-(defn next-point
-  "Find the next point for a polygon."
-  [lines p]
-  (let [match1 (:p2 (first (filter #(= p (:p1 %)) lines)))
-        match2 (:p1 (first (filter #(= p (:p2 %)) lines)))]
-  (if (nil? match1) match2 match1)))
+(defn next-line
+  "Get the next line that builds a cell."
+  [points lines]
+  (first (filter #(or (commons/in? (:p1 %) points) (commons/in? (:p2 %) points)) lines)))
+
+(defn update-points
+  "Add relevant point from line to cell points."
+  [points line]
+  (into []
+        (cond
+          (and (= (first points) (:p1 line))) (cons (:p2 line) points)
+          (and (= (first points) (:p2 line))) (cons (:p1 line) points)
+          (and (= (last  points) (:p1 line))) (conj points (:p2 line))
+          (and (= (last  points) (:p2 line))) (conj points (:p1 line)))))
+
+(defn make-clockwise-comparator
+  "Create a comparator for sorting points clockwise.
+  See https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order"
+  [c]
+  (fn [a b]
+    (let [dxac (- (:x a) (:x c))
+          dxbc (- (:x b) (:x c))
+          dyac (- (:y a) (:y c))
+          dybc (- (:y b) (:y c))
+          det (- (* dxac dybc) (* dxbc dyac))
+          d1 (+ (* dxac dxac) (* dyac dyac))
+          d2 (+ (* dxbc dxbc) (* dybc dybc))]
+      (cond
+        (and (>= dxac 0) (< dxbc 0)) true
+        (and (< dxac 0)(>= dxbc 0)) false
+        (and (= dxac 0)(= dxbc 0) (or (>= dyac 0) (>= dybc 0))) (> (:y a) (:y b))
+        (and (= dxac 0)(= dxbc 0) (not (or (>= dyac 0) (>= dybc 0)))) (> (:y b) (:y a))
+        (< det 0) true
+        (> det 0) false
+        :else (> d1 d2)))))
 
 (defn to-cell
   "Convert the lines of one voronoi point to the points of a cell."
   [lines]
-  (dorun (map #(log/info (sgc/out %)) lines))
-  (loop [p (:p1 (first lines))
-         cp p
-         ps [p]]
-    (let [np (next-point lines cp)
-         ; tmp (log/info "next point " np)
-          ]
-      (if (or (= p np) (nil? np))
-        {:points ps :closed (= p np)}
-        (recur p np (conj ps np))))))
+  (loop [ls (rest lines)
+         points [(:p1 (first lines)) (:p2 (first lines))]]
+    (let [nl (next-line points ls)
+          remaining (into [] (remove #{nl} ls))]
+      (if (nil? nl)
+        {:points points :closed (= (first points) (last points))}
+        (recur remaining (update-points points nl))))))
 
 (defn to-cells
   "Transform lines to voronoi cells."
   [lines]
   (map
-    #(let [cell (to-cell (:lines %))]
-       (VoronoiCell. (:point %) (:points cell) (:closed cell)))
+    #(let [cell (to-cell (:lines %))
+           ;a (p/angle (:point %) (first (:points cell)) (second (:points cell)))
+           ;tmp (log/info (sgc/out (:point %)) "has angle" a)
+           ;points (if (neg? a) (reverse (:points cell)) (:points cell))
+           points (:points cell)
+           ;points (sort (make-clockwise-comparator (:point %)) (:points cell))
+           ]
+       (VoronoiCell. (:point %) points (:closed cell)))
     (collect-points lines)))
 
