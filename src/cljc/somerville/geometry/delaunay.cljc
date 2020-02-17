@@ -137,13 +137,13 @@
 (defrecord VoronoiLine [line points])
 (defrecord VoronoiCell [point points closed]
    sgc/Printable
-   (sgc/out [this i] (str (sgc/indent i) "Voronoi Cell " (if closed "(closed)" "(open)") " for " (sgc/out point i) " with points: " (string/join ", " (map sgc/out points i))))
+   (sgc/out [this i] (str (sgc/indent i) "Voronoi Cell " (if closed "(closed)" "(open)") " for " (sgc/out point i) " with points: " (string/join ", " (map #(sgc/out % i) points))))
    (sgc/out [this] (sgc/out this 0)))
 
 (defn center-to-center-line
   "Create a line between the center points on both sides of a delaunay triangle line."
   [t1 t2 points]
-  (VoronoiLine. (l/line (:p (:c t1)) (:p (:c t2))) points))
+  (VoronoiLine. (l/sorted-line (:p (:c t1)) (:p (:c t2))) points))
 
 (defn center-to-border-line
   "Create a line from the center on one side of the delaunay triangle line to the border."
@@ -151,7 +151,7 @@
   (let [cp (:p (:c ti))
         mp (:p (:c tb))
         op (p/add (p/scale (p/subtract mp cp) 1000) cp)]
-    (VoronoiLine. (l/line cp op) points)))
+    (VoronoiLine. (l/sorted-line cp op) points)))
 
 (defn voronoi-line
   "Create an appropriate line for a voronoi cell."
@@ -200,16 +200,20 @@
 (defn next-point
   "Find the next point for a polygon."
   [lines p]
-  (:p2 (first (filter #(= p (:p1 %)) lines))))
+  (let [match1 (:p2 (first (filter #(= p (:p1 %)) lines)))
+        match2 (:p1 (first (filter #(= p (:p2 %)) lines)))]
+  (if (nil? match1) match2 match1)))
 
 (defn to-cell
   "Convert the lines of one voronoi point to the points of a cell."
   [lines]
+  (dorun (map #(log/info (sgc/out %)) lines))
   (loop [p (:p1 (first lines))
          cp p
          ps [p]]
     (let [np (next-point lines cp)
-          tmp (log/info "next point " np)]
+         ; tmp (log/info "next point " np)
+          ]
       (if (or (= p np) (nil? np))
         {:points ps :closed (= p np)}
         (recur p np (conj ps np))))))
