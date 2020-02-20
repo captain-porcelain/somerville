@@ -20,3 +20,6 @@ repl:
 
 outdated:
 		clojure -A:outdated
+
+marginalia:
+		clojure -A:marginalia

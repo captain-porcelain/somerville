@@ -180,7 +180,7 @@
         v2 (normalize (subtract p3 p1))
         vcross (cross v1 v2)
         vdot (Math/acos (dot v1 v2))
-        vdot (if (< (:z vcross) 0) (- (* 2 Math/PI) vdot))]
+        vdot (if (< (:z vcross) 0) (- (* 2 Math/PI) vdot) vdot)]
     vdot))
 
 (defn point-at

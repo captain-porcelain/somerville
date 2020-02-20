@@ -17,11 +17,10 @@
 
 (defn fibonacci-point
   "Create a fibonacci point on a sphere."
-  [index samples offset increment jitter]
+  [index samples offset increment]
   (let [y (+ (dec (* index offset)) (/ offset 2))
         r (Math/sqrt (- 1 (Math/pow y 2)))
-        rnd (- 1 (* jitter (/ (rand-int 100) 100)))
-        phi (* increment (mod (+ index 1) samples) rnd)
+        phi (* increment (mod (+ index 1) samples))
         x (* r (Math/cos phi))
         z (* r (Math/sin phi))]
     (point/point x y z)))
@@ -29,10 +28,20 @@
 (defn fibonacci
   "Create a grid of points on a unit sphere.
   See https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere"
-  ([samples jitter]
+  ([samples]
    (let [offset (/ 2 samples)
          increment (* Math/PI (- 3 (Math/sqrt 5)))]
-     (map #(fibonacci-point % samples offset increment jitter) (range samples))))
+     (map #(fibonacci-point % samples offset increment) (range samples))))
   ([samples]
    (fibonacci samples 0)))
+
+(defn jitter
+  "Randomize a point on a unit sphere."
+  [p max-angle]
+  (let [p0 (point/point 0 0 0)
+        px (point/point 1 0 0)
+        py (point/point 0 1 0)
+        ax (point/angle-dot p0 px p)
+        ay (point/angle-dot p0 py p)]
+   ))
 
