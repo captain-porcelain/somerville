@@ -46,6 +46,9 @@
         ray (* half (/ (- (rand-int 100) 50) 100))
         nax (+ ax rax)
         nay (+ ay ray)
+        x (+ (:x p) (* dist (Math/cos nax)))
+        y (+ (:y p) (* dist (Math/sin nax)))
+        z (+ (:z p) (* dist (Math/sin nay)))
         ]
-   ))
+   (point/point x y z)))
 
