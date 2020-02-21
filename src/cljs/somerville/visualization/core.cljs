@@ -25,7 +25,9 @@
     [:li {:on-click #(reset! current-view "tracer")} "Tracer"]
     [:li {:on-click #(reset! current-view "delaunay")} "Voronoi by Delaunay"]
     [:li {:on-click #(reset! current-view "fortune")} "Voronoi by Fortune"]
-    [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]]])
+    [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]]
+   [:div
+    [:a {:href "docs/toc.html"} "Documentation"]]])
 
 (defn switch
   "Switch the shown view."

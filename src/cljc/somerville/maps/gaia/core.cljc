@@ -67,17 +67,17 @@
 (defn fibonacci
   "Create a list of lines that represent a cube."
   [config]
-  (map #(point/scale % (:scale config)) (sphere/fibonacci (:points config) (:jitter config))))
+  (map #(point/scale % (:scale config)) (sphere/fibonacci (:points config))))
 
 (defn delaunay
   "Create a list of triangles for a delaunay of a fibonacci sphere."
   [config]
-  (map #(triangle/scale % (:scale config)) (to-delaunay (sphere/fibonacci (:points config) (:jitter config)))))
+  (map #(triangle/scale % (:scale config)) (to-delaunay (sphere/fibonacci (:points config)))))
 
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonacci sphere."
   [config]
-  (map #(scale-cell % (:scale config)) (to-voronoi (sphere/fibonacci (:points config) (:jitter config)))))
+  (map #(scale-cell % (:scale config)) (to-voronoi (sphere/fibonacci (:points config)))))
 
 
 ;;=================================================================================================================

@@ -2,7 +2,8 @@
  {org.clojure/clojure                {:mvn/version "1.10.1"}
   org.clojure/clojurescript          {:mvn/version "1.10.597"}
   quil                               {:mvn/version "3.1.0"}
-  org.clojure/core.async             {:mvn/version "0.7.559"}
+  org.clojure/core.async             {:mvn/version "1.0.567"}
+  ;org.clojure/core.async             {:mvn/version "0.7.559"}
   com.taoensso/timbre                {:mvn/version "4.10.0"}
   reagent                            {:mvn/version "0.9.1"}
   dali                               {:mvn/version "0.7.5"}
@@ -41,5 +42,8 @@
 
   :marginalia
   {:extra-deps
-   {marginalia                       {:mvn/version "RELEASE"}}
-   :main-opts  ["-m" "marginalia.main" "src/cljc/somerville/commons.cljc"]}}}
+   {marginalia                       {:git/url "gitea@git.pinkbubbles.de:chris/marginalia.git"
+                                      :sha "a4a1a82950d34f2b0a65d23ec04f3d21baa6954f"
+                                      :deps/manifest :deps}}
+   :main-opts  ["-m" "marginalia.main" "-d" "resources/public/docs/" "-m"]}}}
+
