@@ -79,4 +79,4 @@
         bound2 (p/point width height)
         d (d/delaunay points bound1 bound2)
         v (d/voronoi d)]
-    (is (= 18 (count v)))))
+    (is (= 21 (count v)))))

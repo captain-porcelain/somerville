@@ -137,6 +137,11 @@
   (sgc/out [this i] (str (sgc/indent i) "Voronoi Cell " (if closed "(closed)" "(open)") " for " (sgc/out point i) " with points: " (string/join ", " (map #(sgc/out % i) points))))
   (sgc/out [this] (sgc/out this 0)))
 
+(defn voronoi-cell
+  "Create a voronoi cell."
+  [point points closed]
+  (VoronoiCell. point points closed))
+
 (defn center-to-center-line
   "Create a line between the center points on both sides of a delaunay triangle line."
   [t1 t2 points]

@@ -1,3 +1,4 @@
+;; A collection of records and functions to work with points in two and three dimensions.
 (ns somerville.geometry.point
   (:require
     [taoensso.timbre :as log]
@@ -189,6 +190,22 @@
   (point
     (+ (:x p) (* dist (Math/cos angle)))
     (+ (:y p) (* dist (Math/sin angle)))))
+
+(defn p3d->angles
+  "Calculate the alpha and beta angles that define a 3d point."
+  [p]
+  (let [pn (normalize p)
+        beta (Math/asin (:z pn))
+        alpha (Math/asin (/ (:y pn) (Math/cos beta)))]
+    [alpha beta]))
+
+(defn angles->p3d
+  "Calculate the 3d point defined by alpha and beta angles."
+  [alpha beta]
+  (let [x (* (Math/cos alpha) (Math/cos beta))
+        y (* (Math/sin alpha) (Math/cos beta))
+        z (Math/sin beta)]
+    (point x y z)))
 
 (defn close?
   "Check if two points are close together."

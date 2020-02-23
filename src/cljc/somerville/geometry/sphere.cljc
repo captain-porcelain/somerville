@@ -36,19 +36,10 @@
 (defn jitter
   "Randomize a point on a unit sphere."
   [p max-angle]
-  (let [p0 (point/point 0 0 0)
-        px (point/point 1 0 0)
-        py (point/point 0 1 0)
-        ax (point/angle-dot p0 px p)
-        ay (point/angle-dot p0 py p)
-        half (/ max-angle 2)
-        rax (* half (/ (- (rand-int 100) 50) 100))
-        ray (* half (/ (- (rand-int 100) 50) 100))
-        nax (+ ax rax)
-        nay (+ ay ray)
-        x (+ (:x p) (* dist (Math/cos nax)))
-        y (+ (:y p) (* dist (Math/sin nax)))
-        z (+ (:z p) (* dist (Math/sin nay)))
-        ]
-   (point/point x y z)))
+  (let [[alpha beta] (point/p3d->angles p)
+        random-alpha (* max-angle (/ (- (rand-int 100) 50) 100))
+        random-beta (* max-angle (/ (- (rand-int 100) 50) 100))
+        new-alpha (+ alpha random-alpha)
+        new-beta (+ beta random-beta)]
+   (point/angles->p3d new-alpha new-beta)))
 

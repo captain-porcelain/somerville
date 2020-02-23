@@ -76,3 +76,40 @@
         pa (p/average (list p1 p2 p3))]
     (is (= (p/point 1 1 0) pa))))
 
+(deftest angles-3d
+  (let [px1 (p/point 1 0 0)
+        [alphax1 betax1] (p/p3d->angles px1)
+        tmp (dorun (println (str alphax1 " , " betax1)))
+        px1t (p/angles->p3d alphax1 betax1)
+
+        pnx (p/point -1 0 0)
+        [alphanx betanx] (p/p3d->angles pnx)
+        tmp (dorun (println (str alphanx " , " betanx)))
+        pnxt (p/angles->p3d alphanx betanx)
+
+        py1 (p/point 0 1 0)
+        [alphay1 betay1] (p/p3d->angles py1)
+        py1t (p/angles->p3d alphay1 betay1)
+
+        pny (p/point 0 -1 0)
+        [alphany betany] (p/p3d->angles pny)
+        pnyt (p/angles->p3d alphany betany)
+
+        pz1 (p/point 0 1 0)
+        [alphaz1 betaz1] (p/p3d->angles pz1)
+        pz1t (p/angles->p3d alphaz1 betaz1)
+
+        pnz (p/point 0 0 -1)
+        [alphanz betanz] (p/p3d->angles pnz)
+        pnzt (p/angles->p3d alphanz betanz)
+
+        p (p/normalize (p/point 3 2 4))
+        [alpha beta] (p/p3d->angles p)
+        pt (p/angles->p3d alpha beta) ]
+    (is (p/close? px1 px1t))
+    (is (p/close? pnx pnxt))
+    (is (p/close? py1 py1t))
+    (is (p/close? pny pnyt))
+    (is (p/close? pz1 pz1t))
+    (is (p/close? pnz pnzt))
+    (is (p/close? p pt))))

@@ -26,19 +26,19 @@
 (defn cell-to-sphere
   "Map the points of a voronoi cell onto a sphere."
   [c]
-  (delaunay/VoronoiCell. (proj/to-sphere (:point c)) (map #(proj/to-sphere %) (:points c)) (:closed c)))
+  (delaunay/voronoi-cell (proj/to-sphere (:point c)) (map #(proj/to-sphere %) (:points c)) (:closed c)))
 
 (defn scale-cell
   "Scale a voronoi cell."
   [c s]
-  (delaunay/VoronoiCell. (point/scale (:point c) s) (map #(point/scale % s) (:points c)) (:closed c)))
+  (delaunay/voronoi-cell (point/scale (:point c) s) (map #(point/scale % s) (:points c)) (:closed c)))
 
 (defn close-cell
   "If the given cell is not closed inject a closing point at the pole."
   [c]
   (if (:closed c)
     c
-    (delaunay/VoronoiCell. (:point c) (into [] (cons (point/point 0 0 -1) (conj (:points c) (point/point 0 0 -1)))) true)))
+    (delaunay/voronoi-cell (:point c) (into [] (cons (point/point 0 0 -1) (conj (:points c) (point/point 0 0 -1)))) true)))
 
 (defn to-voronoi
   "Create voronoi for points on a sphere."
@@ -67,17 +67,17 @@
 (defn fibonacci
   "Create a list of lines that represent a cube."
   [config]
-  (map #(point/scale % (:scale config)) (sphere/fibonacci (:points config))))
+  (map #(point/scale % (:scale config)) (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config)))))
 
 (defn delaunay
   "Create a list of triangles for a delaunay of a fibonacci sphere."
   [config]
-  (map #(triangle/scale % (:scale config)) (to-delaunay (sphere/fibonacci (:points config)))))
+  (map #(triangle/scale % (:scale config)) (to-delaunay (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config))))))
 
 (defn voronoi
   "Create a list of lines for a voronoi of a fibonacci sphere."
   [config]
-  (map #(scale-cell % (:scale config)) (to-voronoi (sphere/fibonacci (:points config)))))
+  (map #(scale-cell % (:scale config)) (to-voronoi (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config))))))
 
 
 ;;=================================================================================================================
