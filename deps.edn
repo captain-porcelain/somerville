@@ -40,10 +40,8 @@
    {olical/depot                     {:mvn/version "1.8.4"}}
    :main-opts  ["-m" "depot.outdated.main" "-a" "outdated"]}
 
-  :marginalia
+  :sidenotes
   {:extra-deps
-   {marginalia                       {:git/url "gitea@git.pinkbubbles.de:chris/marginalia.git"
-                                      :sha "a4a1a82950d34f2b0a65d23ec04f3d21baa6954f"
-                                      :deps/manifest :deps}}
-   :main-opts  ["-m" "marginalia.main" "-d" "resources/public/docs/" "-m"]}}}
+   {sidenotes/sidenotes              {:mvn/version "RELEASE"}}
+   :main-opts  ["-m" "sidenotes.core"]}}}
 

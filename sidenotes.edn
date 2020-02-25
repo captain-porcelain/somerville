@@ -1,0 +1,3 @@
+{:projectname "Somerville"
+ :description "Implementation of some mathematical functions."
+ :output-to "resources/public/docs"}
