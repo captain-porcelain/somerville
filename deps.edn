@@ -3,7 +3,6 @@
   org.clojure/clojurescript          {:mvn/version "1.10.597"}
   quil                               {:mvn/version "3.1.0"}
   org.clojure/core.async             {:mvn/version "1.0.567"}
-  ;org.clojure/core.async             {:mvn/version "0.7.559"}
   com.taoensso/timbre                {:mvn/version "4.10.0"}
   reagent                            {:mvn/version "0.9.1"}
   dali                               {:mvn/version "0.7.5"}
@@ -13,7 +12,7 @@
 
  :aliases
  {:repl
-  {:extra-paths ["resources"]
+  {:extra-paths ["tools" "resources"]
    :extra-deps
    {com.bhauman/rebel-readline       {:mvn/version "RELEASE"}
     org.clojure/tools.nrepl          {:mvn/version "RELEASE"}
@@ -25,8 +24,9 @@
    {com.bhauman/rebel-readline-cljs  {:mvn/version "RELEASE"}
     com.bhauman/figwheel-main        {:mvn/version "RELEASE"}}}
 
-  :uberjar
-  {:extra-deps {uberdeps             {:mvn/version "RELEASE"}}}
+  :cambada
+  {:extra-deps
+   {luchiniatwork/cambada            {:mvn/version "RELEASE"}}}
 
   :test
   {:extra-paths ["test/clj" "test/cljc"]

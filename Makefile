@@ -1,7 +1,7 @@
-build: uberjar
+build: fig
 
-uberjar:
-		clojure -A:uberjar -m uberdeps.uberjar --target target/somerville.jar
+package:
+		clojure -A:cambada -m cambada.jar --app-version $(VERSION)
 
 clean:
 		rm -rf target/
@@ -20,6 +20,13 @@ repl:
 
 outdated:
 		clojure -A:outdated
+
+install:
+		clojure -A:publish install target/somerville-$(VERSION).jar
+
+publish:
+		echo ${CLOJARS_USERNAME}
+		clojure -A:publish deploy target/somerville-$(VERSION).jar
 
 sidenotes:
 		clojure -A:sidenotes
