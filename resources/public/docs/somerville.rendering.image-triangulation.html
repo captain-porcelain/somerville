@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rendering.image-triangulation</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rendering.image-triangulation
+  (:import
+    [java.awt Color Graphics2D Rectangle AlphaComposite]
+    [java.awt.image BufferedImage])
+  (:require
+    [somerville.fills.flood-fill :as ff]
+    [somerville.rendering.image :as i]
+    [somerville.geometry.point :as p]
+    [somerville.fills.convex-hull :as cxh]
+    [somerville.fills.concave-hull :as cvh]
+    [somerville.color.color :as c]
+    [somerville.rendering.svg :as svg]
+    [taoensso.timbre :as log]
+    [clojure.string :as s]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Image Processing</pre>
+			</div>
+			<div class="box section">
+				<p>Create a decider function for the flood fill. It is based on color similarity.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-decider-fn
+  [image threshold-cie]
+  (fn [p1 p2]
+    (let [vfn (fn [p] (c/rgba (.getRGB image (:x p) (:y p))))
+          cie (c/cie76 (vfn p1) (vfn p2))]
+      (&lt; cie threshold-cie))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add color of seed point to partition.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-seed-color
+  [part image]
+  (assoc part :color (.getRGB image (:x (:seed part)) (:y (:seed part)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add color of seed point to all partitions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-seed-colors
+  [partitions image]
+  (map #(add-seed-color % image) partitions))</pre>
+			</div>
+			<div class="box section">
+				<p>Find center point of partition.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn partition-center
+  [points]
+  (p/point
+    (int (/ (reduce + (map :x points)) (count points)))
+    (int (/ (reduce + (map :y points)) (count points)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add center point to partition.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-center
+  [part]
+  (assoc part :center (partition-center (:points part))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add center point to all partitions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-centers
+  [partitions]
+  (map add-center partitions))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn find-partitions
+  [image samples sensitivity]
+  (let [decider-fn (make-decider-fn image sensitivity)]
+    (add-centers (add-seed-colors (ff/partition-samples samples decider-fn 0 0 (.getWidth image) (.getHeight image)) image))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Debugging helpers</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-partition
+  [image part]
+  (dorun (map #(.setRGB image (:x %) (:y %) (:color part)) (:points part))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-partitions
+  [filename width height partitions]
+  (let [image (i/make-image width height)
+        tmp (dorun (map #(draw-partition image %) partitions))]
+    (i/write-image filename image)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-partitions-separately
+  [filename width height partitions]
+  (dorun
+    (map #(let [filename (str (s/replace filename &quot;.png&quot; &quot;-&quot;) (:x (:seed %)) &quot;-&quot; (:y (:seed %)) &quot;-pixel.png&quot;)
+                image (i/make-image width height)
+                tmp (draw-partition image %)]
+            (i/write-image filename image)) partitions)))</pre>
+			</div>
+			<div class="box section">
+				<p>Render grid walls to image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-hull
+  [filename width height polygon seed]
+  (let [filename (str (s/replace filename &quot;.png&quot; &quot;-&quot;) (:x seed) &quot;-&quot; (:y seed) &quot;-hull.png&quot;)
+        image (i/make-image width height)
+        graphics ^Graphics2D (.createGraphics image)
+        tmp (.setPaint graphics Color/white)
+        tmp (.fill graphics (Rectangle. 0 0 width height))
+        tmp (.setPaint graphics Color/black)
+        tmp (dorun (map #(.drawLine graphics (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines polygon)))
+        tmp (.dispose graphics)]
+    (i/write-image filename image)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-hulls
+  [filename width height hulls]
+  (dorun (map #(render-hull filename width height (:hull %) (:seed %)) hulls)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Actual triangulation</pre>
+			</div>
+			<div class="box section">
+				<p>Create a voronoi representation of an image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangulate-image
+  [image-file-name]
+  (let [image (i/load-image image-file-name)
+        partitions (find-partitions image 1000 15)
+        tmp (log/info (str &quot;Found &quot; (count partitions) &quot; partitions&quot;))
+        ;approximation1 (map #(assoc % :hull (cxh/quick-hull (:points %))) partitions)
+        ;approximation2 (map #(assoc % :hull (cvh/hull (:points %) 20)) partitions)
+        tmp (dorun (map #(log/info (count (:points %))) partitions))
+        tmp (draw-partitions-separately &quot;/tmp/partitions.png&quot; (.getWidth image) (.getHeight image) partitions)
+        ;tmp (draw-partitions &quot;/tmp/partitions.png&quot; (.getWidth image) (.getHeight image) partitions)
+        ;tmp (render-hulls &quot;/tmp/partitions.png&quot; (.getWidth image) (.getHeight image) approximation2)
+        ]
+    ;(svg/voronoi approximation &quot;/tmp/voronoi.svg&quot;)
+    partitions))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

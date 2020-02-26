@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1>Somerville</h1>
+				<h2>Implementation of some mathematical functions.</h2>
+			</div>
+			<div class="box subheader">
+				<h3>Dependencies</h3>
+			</div>
+			<div class="box comment">org.clojure/clojure</div>
+			<div class="box section">Maven 1.10.1</div>
+						<div class="box comment">org.clojure/clojurescript</div>
+			<div class="box section">Maven 1.10.597</div>
+						<div class="box comment">quil</div>
+			<div class="box section">Maven 3.1.0</div>
+						<div class="box comment">org.clojure/core.async</div>
+			<div class="box section">Maven 1.0.567</div>
+						<div class="box comment">com.taoensso/timbre</div>
+			<div class="box section">Maven 4.10.0</div>
+						<div class="box comment">reagent</div>
+			<div class="box section">Maven 0.9.1</div>
+						<div class="box comment">dali</div>
+			<div class="box section">Maven 0.7.5</div>
+						<div class="box comment">talos</div>
+			<div class="box section">Maven RELEASE</div>
+			
+			<div class="box subheader">
+				<h3>Namespaces</h3>
+			</div>
+			<div class="box list">
+				<a href="repl.html">repl</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.data-structures.array.html">somerville.data-structures.array</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.data-structures.binary-search-tree.html">somerville.data-structures.binary-search-tree</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.data-structures.matrix.html">somerville.data-structures.matrix</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.data-structures.weight-balanced-binary-tree.html">somerville.data-structures.weight-balanced-binary-tree</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.discovery.html">somerville.rendering.discovery</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.dungeons.ascii.html">somerville.rendering.dungeons.ascii</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.dungeons.tiles.html">somerville.rendering.dungeons.tiles</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.dungeons.walls.html">somerville.rendering.dungeons.walls</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.image.html">somerville.rendering.image</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.image-triangulation.html">somerville.rendering.image-triangulation</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.resources.html">somerville.rendering.resources</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.svg.html">somerville.rendering.svg</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.terrain.povray.html">somerville.rendering.terrain.povray</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rendering.terrain.terrain.html">somerville.rendering.terrain.terrain</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.color.color.html">somerville.color.color</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.commons.html">somerville.commons</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.fills.concave-hull.html">somerville.fills.concave-hull</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.fills.convex-hull.html">somerville.fills.convex-hull</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.fills.flood-fill.html">somerville.fills.flood-fill</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.fills.line-fill.html">somerville.fills.line-fill</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.circle.html">somerville.geometry.circle</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.commons.html">somerville.geometry.commons</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.delaunay.html">somerville.geometry.delaunay</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.fortune.html">somerville.geometry.fortune</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.icosahedron.html">somerville.geometry.icosahedron</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.line.html">somerville.geometry.line</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.parabola.html">somerville.geometry.parabola</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.plane.html">somerville.geometry.plane</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.point.html">somerville.geometry.point</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.polygon.html">somerville.geometry.polygon</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.projection.projection.html">somerville.geometry.projection.projection</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.projection.stereographic.html">somerville.geometry.projection.stereographic</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.rectangle.html">somerville.geometry.rectangle</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.shapes.html">somerville.geometry.shapes</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.sphere.html">somerville.geometry.sphere</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.triangle.html">somerville.geometry.triangle</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.geometry.voronoi.html">somerville.geometry.voronoi</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.grammar.l-system.html">somerville.grammar.l-system</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.dungeons.aldous-broder.html">somerville.maps.dungeons.aldous-broder</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.dungeons.binary-tree.html">somerville.maps.dungeons.binary-tree</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.dungeons.dijkstra.html">somerville.maps.dungeons.dijkstra</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.dungeons.dwarven-digger.html">somerville.maps.dungeons.dwarven-digger</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.dungeons.hunt-and-kill.html">somerville.maps.dungeons.hunt-and-kill</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.dungeons.sidewinder.html">somerville.maps.dungeons.sidewinder</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.gaia.ariadne.html">somerville.maps.gaia.ariadne</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.gaia.core.html">somerville.maps.gaia.core</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.grid.html">somerville.maps.grid</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.maps.terrain.loki.html">somerville.maps.terrain.loki</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rasterization.conrec.html">somerville.rasterization.conrec</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.rasterization.rasterize.html">somerville.rasterization.rasterize</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.commons.html">somerville.visualization.commons</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.core.html">somerville.visualization.core</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.delaunay.html">somerville.visualization.delaunay</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.fortune.html">somerville.visualization.fortune</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.gaia.html">somerville.visualization.gaia</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.l-system.html">somerville.visualization.l-system</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.terrain.html">somerville.visualization.terrain</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.tracer.html">somerville.visualization.tracer</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.voronoi.html">somerville.visualization.voronoi</a>
+			</div>
+			<div class="box list">
+				<a href="somerville.visualization.worker.html">somerville.visualization.worker</a>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+	</body>
+</html>

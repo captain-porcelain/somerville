@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.delaunay</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>Create Delaunay triangulation. See https://leatherbee.org/index.php/2018/10/06/terrain-generation-3-voronoi-diagrams/ And http://paulbourke.net/papers/triangulate/</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.delaunay
+  (:require
+    [somerville.commons :as commons]
+    [somerville.geometry.commons :as sgc]
+    [somerville.geometry.line :as l]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.circle :as circle]
+    [somerville.geometry.triangle :as triangle]
+    [somerville.geometry.polygon :as polygon]
+    [clojure.string :as string]
+    [taoensso.timbre :as log]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Creating Delaunay Triangulations</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Delaunay-triangle [t c]
+  sgc/Printable
+  (sgc/out [this i] (str (sgc/indent i) &quot;Delaunay triangle\\n&quot; (sgc/out t) &quot;\\nwith circumcircle\\n&quot; (sgc/out c)))
+  (sgc/out [this] (sgc/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Delaunay-triangulation [points triangles bounds max-point])</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn delaunay-triangle
+  ([t c]
+   (Delaunay-triangle. t c))
+  ([t]
+   (Delaunay-triangle. t (triangle/circumcircle t))))</pre>
+			</div>
+			<div class="box section">
+				<p>Test if two delaunay triangles share at least one point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn shares-point
+  [t1 t2]
+  (let [ps1 #{(:p1 (:t t1)) (:p2 (:t t1)) (:p3 (:t t1))}
+        ps2 #{(:p1 (:t t2)) (:p2 (:t t2)) (:p3 (:t t2))}]
+    (pos? (count (clojure.set/intersection ps1 ps2)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get min k value of given points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn min-val
+  [points k]
+  (apply min (map k points)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get max k value of given points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn max-val
+  [points k]
+  (apply max (map k points)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find a triangle that contains all points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn bounding-triangle
+  [points]
+  (let [maxx (max-val points :x)
+        maxy (max-val points :y)
+        minx (- (min-val points :x) 1)
+        miny (- (min-val points :y) 1)]
+    (delaunay-triangle
+      (triangle/triangle
+        (p/point minx miny)
+        (p/point minx (* 2 (+ 1 maxy)))
+        (p/point (* 2 (+ 1 maxx)) miny)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if point invalidates triangle.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn invalidates?
+  [dt p]
+  (or (circle/point-in? (:c dt) p) (circle/point-on? (:c dt) p)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a map from the lines that make up a triangle, setting value to count, i.e. 1.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-counted-lines
+  [t]
+  (hash-map
+    (l/sorted-line (:p1 (:t t)) (:p2 (:t t))) 1
+    (l/sorted-line (:p2 (:t t)) (:p3 (:t t))) 1
+    (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) 1))</pre>
+			</div>
+			<div class="box section">
+				<p>Create the hole left by invalidated triangles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn hole
+  [triangles]
+  (map key (filter #(= 1 (val %)) (apply merge-with + (map to-counted-lines triangles)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a list of triangles that fills hole.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangulate-hole
+  [hole p]
+  (map #(delaunay-triangle (triangle/triangle (:p1 %) (:p2 %) p)) (map l/sorted-line hole)))</pre>
+			</div>
+			<div class="box section">
+				<p>Add a new point to the triangulation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-point
+  [triangulation p]
+  (let [triangles (:triangles triangulation)
+        classified (map (fn [t] [(invalidates? t p) t]) triangles)
+        nok (map second (filter first classified))
+        ok (map second (filter #(not (first %)) classified))
+        th (triangulate-hole (hole nok) p)]
+    (Delaunay-triangulation. (conj (:points triangulation) p) (concat ok th) (:bounds triangulation) (:max-point triangulation))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create Delaunay triangulation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn delaunay
+  ([points min-point max-point]
+   (let [bounds (bounding-triangle (list min-point max-point))]
+     (if (= 0 (count points))
+       (Delaunay-triangulation. (list) (list bounds) bounds max-point)
+       (loop [bt (Delaunay-triangulation. (list) (list bounds) bounds max-point)
+              ps points]
+         (if (= 0 (count ps))
+           bt
+           (recur (add-point bt (first ps)) (rest ps)))))))
+  ([points max-point]
+   (delaunay points (p/point (min-val points :x) (min-val points :y)) max-point))
+  ([points]
+   (delaunay points (p/point (min-val points :x) (min-val points :y)) (p/point (max-val points :x) (max-val points :y)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Remove the triangles that share a point with the boundary</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn remove-bounds
+  [triangulation]
+  (filter #(not (shares-point % (:bounds triangulation))) (:triangles triangulation)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Creating Voronoi Lines</pre>
+			</div>
+			<div class="box section">
+				<p>Create a map from the lines that make up a triangle, setting value to keep pointer to triangle.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-lines
+  [t]
+  (hash-map
+    (l/sorted-line (:p1 (:t t)) (:p2 (:t t))) [t]
+    (l/sorted-line (:p2 (:t t)) (:p3 (:t t))) [t]
+    (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) [t]))</pre>
+			</div>
+			<div class="box section">
+				<p>Convert all triangles to list of unique edges that link to the triangles they touch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn all-to-triangle-lines
+  [triangles]
+  (apply merge-with concat (map triangle-lines triangles)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord VoronoiLine [line points])
+(defrecord VoronoiCell [point points closed]
+  sgc/Printable
+  (sgc/out [this i] (str (sgc/indent i) &quot;Voronoi Cell &quot; (if closed &quot;(closed)&quot; &quot;(open)&quot;) &quot; for &quot; (sgc/out point i) &quot; with points: &quot; (string/join &quot;, &quot; (map #(sgc/out % i) points))))
+  (sgc/out [this] (sgc/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a voronoi cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi-cell
+  [point points closed]
+  (VoronoiCell. point points closed))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a line between the center points on both sides of a delaunay triangle line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn center-to-center-line
+  [t1 t2 points]
+  (VoronoiLine. (l/sorted-line (:p (:c t1)) (:p (:c t2))) points))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a line from the center on one side of the delaunay triangle line to the border.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn center-to-border-line
+  [ti tb points]
+  (let [cp (:p (:c ti))
+        mp (:p (:c tb))
+        op (p/add (p/scale (p/subtract mp cp) 1000) cp)]
+    (VoronoiLine. (l/sorted-line cp op) points)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create an appropriate line for a voronoi cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi-line
+  [tl bounds]
+  (let [inner (filter #(not (shares-point % bounds)) (val tl))
+        border (filter #(shares-point % bounds) (val tl))
+        ps (list (:p1 (key tl)) (:p2 (key tl)))]
+    (cond
+      (= 2 (count inner)) (center-to-center-line (first inner) (second inner) ps)
+      (and (= 1 (count inner)) (= 1 (count border))) (center-to-border-line (first inner) (first border) ps)
+      :else nil)))</pre>
+			</div>
+			<div class="box section">
+				<p>Convert Delaunay triangles to lines of a voronoi diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi-lines
+  [triangulation]
+  (filter
+    #(not (nil? %))
+    (map
+      #(voronoi-line % (:bounds triangulation))
+      (all-to-triangle-lines (:triangles triangulation)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Convert Delaunay triangles to voronoi diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi
+  [triangulation]
+  (voronoi-lines triangulation))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Creating Voronoi Polygons</pre>
+			</div>
+			<div class="box section">
+				<p>Filter the lines to those that relate to given point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lines-of-point
+  [lines point]
+  (map :line (filter #(commons/in? point (:points %)) lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Extract the voronoi points from the lines again.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn points-from-lines
+  [lines]
+  (into #{} (reduce concat (map :points lines))))</pre>
+			</div>
+			<div class="box section">
+				<p>Collect the voronoi points with their relevant lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn collect-points
+  [lines]
+  (map (fn [p] {:point p :lines (lines-of-point lines p)}) (points-from-lines lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the next line that builds a cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn next-line
+  [points lines]
+  (first (filter #(or (commons/in? (:p1 %) points) (commons/in? (:p2 %) points)) lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Add relevant point from line to cell points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn update-points
+  [points line]
+  (into []
+        (cond
+          (and (= (first points) (:p1 line))) (cons (:p2 line) points)
+          (and (= (first points) (:p2 line))) (cons (:p1 line) points)
+          (and (= (last  points) (:p1 line))) (conj points (:p2 line))
+          (and (= (last  points) (:p2 line))) (conj points (:p1 line)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a comparator for sorting points clockwise. See https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-clockwise-comparator
+  [c]
+  (fn [a b]
+    (let [dxac (- (:x a) (:x c))
+          dxbc (- (:x b) (:x c))
+          dyac (- (:y a) (:y c))
+          dybc (- (:y b) (:y c))
+          det (- (* dxac dybc) (* dxbc dyac))
+          d1 (+ (* dxac dxac) (* dyac dyac))
+          d2 (+ (* dxbc dxbc) (* dybc dybc))]
+      (cond
+        (and (&gt;= dxac 0) (&lt; dxbc 0)) true
+        (and (&lt; dxac 0)(&gt;= dxbc 0)) false
+        (and (= dxac 0)(= dxbc 0) (or (&gt;= dyac 0) (&gt;= dybc 0))) (&gt; (:y a) (:y b))
+        (and (= dxac 0)(= dxbc 0) (not (or (&gt;= dyac 0) (&gt;= dybc 0)))) (&gt; (:y b) (:y a))
+        (&lt; det 0) true
+        (&gt; det 0) false
+        :else (&gt; d1 d2)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Convert the lines of one voronoi point to the points of a cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-cell
+  [lines]
+  (loop [ls (rest lines)
+         points [(:p1 (first lines)) (:p2 (first lines))]]
+    (let [nl (next-line points ls)
+          remaining (into [] (remove #{nl} ls))]
+      (if (nil? nl)
+        {:points points :closed (= (first points) (last points))}
+        (recur remaining (update-points points nl))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Transform lines to voronoi cells.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-cells
+  [lines]
+  (map
+    #(let [cell (to-cell (:lines %))
+           ;a (p/angle (:point %) (first (:points cell)) (second (:points cell)))
+           ;tmp (log/info (sgc/out (:point %)) &quot;has angle&quot; a)
+           ;points (if (neg? a) (reverse (:points cell)) (:points cell))
+           points (:points cell)
+           ;points (sort (make-clockwise-comparator (:point %)) (:points cell))
+           ]
+       (VoronoiCell. (:point %) points (:closed cell)))
+    (collect-points lines)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

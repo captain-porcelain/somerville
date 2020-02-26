@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rendering.terrain.povray</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rendering.terrain.povray
+  (:require
+    [clojure.string :as s]
+    [clojure.java.shell :as shell]
+    [somerville.rasterization.conrec :as conrec]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.polygon :as polygon]
+    [somerville.maps.grid :as grid]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangulation
+  [g]
+  (let [size (dec (dec (:width g)))]
+    (for [x (range size)
+          y (range size)
+          i (range 4)]
+      (let [heights (conrec/triangle-heights g x y)]
+        (case i
+          0 (polygon/from-points (list (:p1 heights) (:p0 heights) (:p2 heights)))
+          1 (polygon/from-points (list (:p2 heights) (:p0 heights) (:p3 heights)))
+          2 (polygon/from-points (list (:p3 heights) (:p0 heights) (:p4 heights)))
+          3 (polygon/from-points (list (:p4 heights) (:p0 heights) (:p1 heights))))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn heights
+  [g]
+  (let [size (:width g)]
+    (for [y (range size)
+          x (range size)]
+      (:z (grid/get-from g x y)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn camera
+  [g width height config]
+  (let [max-height (apply max (heights g))
+        detail (:detail (:config g))
+        camera (p/point (/ (:width g) 2) (* 4 (/ (:height g) 5)) (* (/ detail 1.8) max-height))
+        focus  (p/point (/ (:width g) 2) (/ (:height g) 2) 0)]
+    (str &quot;camera {\\n&quot;
+         &quot;  location &lt;&quot; (* -1 (float (:x camera))) &quot;, &quot; (* -1 (float (:y camera))) &quot;, &quot; (float (:z camera)) &quot;&gt;\\n&quot;
+         &quot;  look_at &lt;&quot; (* -1 (float (:x focus))) &quot;, &quot; (* -1 (float (:y focus))) &quot;, &quot; (float (:z focus)) &quot;&gt;\\n&quot;
+         &quot;  right image_width/image_height*x\\n&quot;
+         &quot;}&quot;)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn light_source
+  [g config]
+  (str
+    &quot;light_source { &lt;&quot; (* -1 (/ (:width g) 2)) &quot;, 0, &quot; (* 1.5 (apply max (heights g))) &quot;&gt; color rgb&lt;1, 1, 1&gt; }&quot;))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn background
+  [config]
+  (str
+    &quot;background { rgbft &lt;&quot;
+    (float (/ (nth (:background-color config) 0) 255)) &quot;,&quot;
+    (float (/ (nth (:background-color config) 1) 255)) &quot;,&quot;
+    (float (/ (nth (:background-color config) 2) 255)) &quot;,&quot;
+    (float (/ (nth (:background-color config) 3) 255))
+    &quot;&gt; }&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Select appropriate texture based on height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn texture
+  [m config]
+  (str &quot;texture { &quot; (second (first (filter #(&lt; (first %) m) (:level-map config)))) &quot; }&quot;))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn declare-textures
+  []
+  (str
+    &quot;#declare HT_Water = texture {\\n&quot;
+    &quot;  Water\\n&quot;
+    &quot;  finish { ambient 0.2 diffuse 0.1 }\\n&quot;
+    &quot;}&quot;
+    &quot;#declare HT_Snow = texture {\\n&quot;
+    &quot;  pigment { White_Marble }\\n&quot;
+    &quot;  finish { ambient 0.2 diffuse 0.1 }\\n&quot;
+    &quot;}&quot;
+    &quot;#declare HT_Green = texture {\\n&quot;
+    &quot;  pigment { Jade }\\n&quot;
+    &quot;  finish { ambient 0.2 diffuse 0.1 }\\n&quot;
+    &quot;}&quot;
+    &quot;#declare HT_Rock = texture {\\n&quot;
+    &quot;  T_Stone10\\n&quot;
+    &quot;  finish { ambient 0.2 diffuse 0.1 }\\n&quot;
+    &quot;}&quot;
+    &quot;#declare HT_Sand = texture {\\n&quot;
+    &quot;  T_Stone37\\n&quot;
+    &quot;  finish { ambient 0.2 diffuse 0.1 }\\n&quot;
+    &quot;}&quot;
+    &quot;#declare HT_DarkStone = texture {\\n&quot;
+    &quot;  T_Stone31\\n&quot;
+    &quot;  finish { ambient 0.2 diffuse 0.1 }\\n&quot;
+    &quot;}&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Ensure z value is not below low-height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn level-z
+  [z config]
+  (if (&lt; z (:water-height config)) (:water-height config) z))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle
+  [polygon g config]
+  (let [ps (polygon/to-points polygon)]
+    (str &quot;  triangle { &quot;
+         &quot;&lt;&quot; (* -1 (float (:x (nth ps 0)))) &quot;,&quot; (* -1 (float (:y (nth ps 0)))) &quot;,&quot; (float (level-z (:z (nth ps 0)) config)) &quot;&gt;, &quot;
+         &quot;&lt;&quot; (* -1 (float (:x (nth ps 1)))) &quot;,&quot; (* -1 (float (:y (nth ps 1)))) &quot;,&quot; (float (level-z (:z (nth ps 1)) config)) &quot;&gt;, &quot;
+         &quot;&lt;&quot; (* -1 (float (:x (nth ps 2)))) &quot;,&quot; (* -1 (float (:y (nth ps 2)))) &quot;,&quot; (float (level-z (:z (nth ps 2)) config)) &quot;&gt; &quot;
+         (texture (apply max (map :z ps)) config)
+         &quot; }&quot;)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mesh
+  [g config]
+  (str &quot;mesh {\\n&quot;
+       (s/join &quot;\\n&quot; (map #(triangle % g config) (triangulation g)))
+       &quot;\\n}&quot;))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn box
+  [[x y] g config]
+  (str &quot;box {&quot;
+       &quot;&lt;&quot; x &quot;, &quot; y &quot;, 0&gt;, &quot;
+       &quot;&lt;&quot; (inc x) &quot;, &quot; (inc y) &quot;, &quot; (float (level-z (:z (grid/get-from g x y)) config)) &quot;&gt; &quot;
+       (texture (float (:z (grid/get-from g x y))) config)
+       &quot;}&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Get points of grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn grid-points
+  [g]
+  (let [size (dec (:width g))]
+    (for [y (range size)
+          x (range size)]
+      [x y])))</pre>
+			</div>
+			<div class="box section">
+				<p>Transform the </p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn boxes
+  [g config]
+  (s/join &quot;\\n&quot; (map #(box % g config) (grid-points g))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create povray scene description</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn scene-description
+  [g config width height payload]
+  (str &quot;#include \\&quot;colors.inc\\&quot;\\n&quot;
+       &quot;#include \\&quot;stones.inc\\&quot;\\n&quot;
+       &quot;#include \\&quot;textures.inc\\&quot;\\n&quot;
+       &quot;#include \\&quot;shapes.inc\\&quot;\\n&quot;
+       &quot;#include \\&quot;glass.inc\\&quot;\\n&quot;
+       &quot;#include \\&quot;metals.inc\\&quot;\\n&quot;
+       &quot;#include \\&quot;woods.inc\\&quot;\\n\\n&quot;
+       (camera g width height config)
+       &quot;\\n\\n&quot;
+       (light_source g config)
+       &quot;\\n\\n&quot;
+       (background config)
+       &quot;\\n\\n&quot;
+       (declare-textures)
+       &quot;\\n\\n&quot;
+       payload))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render
+  [filename width height]
+  (shell/sh &quot;povray&quot; filename (str &quot;-W&quot; width) (str &quot;-H&quot; height)))</pre>
+			</div>
+			<div class="box section">
+				<p>Render the grid using a triangulation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-triangulation
+  [g config filename width height]
+  (let [pov (s/replace filename &quot;.png&quot; &quot;.pov&quot;)]
+    (do
+      (spit pov (scene-description g config width height (mesh g config)))
+      (:exit (render pov width height)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def default-config
+  {:background-color      [0 0 0 255]
+   :water-height          10
+   :level-map             [[32 &quot;HT_DarkStone&quot;]
+                           [28 &quot;HT_Rock&quot;]
+                           [20 &quot;HT_Green&quot;]
+                           [0 &quot;HT_Sand&quot;]
+                           [-1000 &quot;HT_Water&quot;]]})</pre>
+			</div>
+			<div class="box section">
+				<p>Render the grid using blocks.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-blocks
+  [g config filename width height]
+  (let [pov (s/replace filename &quot;.png&quot; &quot;.pov&quot;)]
+    (do
+      (spit pov (scene-description g config width height (boxes g config)))
+      (:exit (render pov width height)))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

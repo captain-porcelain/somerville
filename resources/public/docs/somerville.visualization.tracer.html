@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.visualization.tracer</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.visualization.tracer
+  (:require
+    [somerville.fills.line-fill :as lf]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.commons :as c]
+    [somerville.color.color :as color]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [cljs.core.async :refer [chan &lt;! &gt;!]]
+    [reagent.core :as reagent])
+  (:require-macros
+    [cljs.core.async.macros :refer [go]]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def width 320)
+(def height 320)</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def colors
+  {:background     (color/rgba  10  10  10)
+   :point-voronoi  (color/rgba   0 204 102)
+   :point-delaunay (color/rgba 247  92   3)
+   :line-voronoi   (color/rgba 241 196  15)
+   :line-delaunay  (color/rgba 217  60 110)})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Data Handling</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def test-image (atom nil))
+(def image (atom nil))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def partitions-all (reagent/atom nil))
+(def partitions (reagent/atom nil))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def threshold-cie (reagent/atom 10))
+(def threshold-cluster (reagent/atom 100))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def alt (atom false))
+(def draw-image (reagent/atom true))
+(def debug (reagent/atom nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if the colors of two pixels are to be considered the same.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decider-fn
+  [p1 p2]
+  (let [vfn (fn [p] (apply color/rgba (quil/get-pixel @image (:x p) (:y p))))
+        cie (color/cie76 (vfn p1) (vfn p2))]
+    (&lt; cie @threshold-cie)))</pre>
+			</div>
+			<div class="box section">
+				<p>Filter partitions that are too small.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn do-filter
+  []
+  (let [sizes (map lf/cluster-size @partitions-all)
+        avg1 (float (/ (reduce + sizes) (count sizes)))
+        parts2 (filter #(&lt; @threshold-cluster (lf/cluster-size %)) @partitions-all)
+        tmp (log/info (str &quot;filtered to &quot; (count parts2)))]
+    (reset! partitions parts2)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find partitions of pixels with a given sameness.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn do-partition
+  []
+  (let [tmp (log/info &quot;partitionning ...&quot;)
+        parts1 (lf/clusters (p/point 0 0) 319 319 decider-fn)
+        sizes (map lf/cluster-size parts1)
+        avg1 (float (/ (reduce + sizes) (count sizes)))
+        tmp (log/info (str &quot;... done. found &quot; (count parts1) &quot; partitions with avg &quot; avg1))]
+    (reset! partitions-all parts1)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find partions and filter them.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn dopartition
+  []
+  (go
+    (do-partition)
+    (do-filter)))</pre>
+			</div>
+			<div class="box section">
+				<p>Print color of a point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn debug-point!
+  [point]
+  (reset!
+    debug
+    (str &quot;Color at &quot; (c/out point) &quot;: &quot;
+         (c/out (apply color/rgba (quil/get-pixel @image (:x point) (:y point)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Increase the size a cluster must have to not be filtered out.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn increase-cluster-threshold!
+  []
+  (reset! threshold-cluster (+ @threshold-cluster 100))
+  (do-filter))</pre>
+			</div>
+			<div class="box section">
+				<p>Decrease the size a cluster must have to not be filtered out.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decrease-cluster-threshold!
+  []
+  (when (&lt; 100 @threshold-cluster) (reset! threshold-cluster (- @threshold-cluster 100)))
+  (do-filter))</pre>
+			</div>
+			<div class="box section">
+				<p>Increase the threshold by which cie colors are considered the same.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn increase-cie-threshold!
+  []
+  (reset! threshold-cie (+ @threshold-cie 1))
+  (do-filter))</pre>
+			</div>
+			<div class="box section">
+				<p>Decrease the threshold by which cie colors are considered the same.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decrease-cie-threshold!
+  []
+  (when (&lt; 100 @threshold-cie) (reset! threshold-cie (- @threshold-cie 1)))
+  (do-filter))</pre>
+			</div>
+			<div class="box section">
+				<p>Toggle between drawing the image and the partitions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn toggle-drawing-image!
+  []
+  (reset! draw-image (not @draw-image)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Drawing Functionality</pre>
+			</div>
+			<div class="box section">
+				<p>Draw found cluster.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-cluster
+  [cluster]
+  (dorun
+    (for [l cluster]
+      (let [p (:p1 (first cluster))
+            dc (apply color/rgba (quil/get-pixel @image (:x p) (:y p)))
+            dc (if (lf/in-cluster? (p/point (quil/mouse-x) (quil/mouse-y)) cluster) (color/rgba 255 255 255) dc)]
+        (quil/stroke (:r dc) (:g dc) (:b dc))
+        (quil/fill (:r dc) (:g dc) (:b dc))
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil repeatedly.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw
+  []
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
+  (when @draw-image (quil/image @test-image 0 0))
+  (when (not @draw-image) (dorun (for [cl @partitions] (draw-cluster cl)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Event Handling</pre>
+			</div>
+			<div class="box section">
+				<p>Handle pressing mouse buttons.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-pressed
+  []
+  (debug-point! (p/point (quil/mouse-x) (quil/mouse-y))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn key-released []
+  (case (quil/key-code)
+     18 (reset! alt false)
+     nil))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn key-pressed []
+  (case (quil/key-code)
+     18 (reset! alt true) ;; alt
+    171 (if @alt (increase-cluster-threshold!) (increase-cie-threshold!)) ;; +
+    173 (if @alt (decrease-cluster-threshold!) (decrease-cie-threshold!)) ;; +
+     68 (toggle-drawing-image!) ;; d
+     80 (dopartition) ;; p
+    (log/info &quot;Pressed unhandled key with code&quot; (quil/key-code))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+App Setup</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil once before drawing</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn setup
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 1)
+  (reset! test-image (quil/load-image  &quot;/images/test-image.jpg&quot;))
+  (reset! image (quil/load-image &quot;/images/test-image.jpg&quot;)))</pre>
+			</div>
+			<div class="box section">
+				<p>Initialize Quil sketch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn init
+  [canvas-id]
+  (quil/defsketch tracer-sketch
+    :host &quot;hostelement&quot;
+    :setup setup
+    :draw draw
+    :size [width height]
+    :mouse-pressed mouse-pressed
+    :key-released key-released
+    :key-pressed key-pressed))</pre>
+			</div>
+			<div class="box section">
+				<p>Show information about usage.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn usage
+  [props]
+  [:div
+   [:h2 &quot;Tracer&quot;]
+   [:h3 &quot;Usage&quot;]
+   [:span
+    &quot;Press&quot;
+    [:ul
+     [:li &quot;p to partition&quot;]
+     [:li &quot;d to toggle drawing image&quot;]
+     [:li &quot;alt + to increase cluster threshold&quot;]
+     [:li &quot;alt - to decrease cluster threshold&quot;]
+     [:li &quot;+ to increase cie threshold&quot;]
+     [:li &quot;- to decrease cie threshold&quot;]
+     [:li &quot;left mouse click to find color at cursor&quot;]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Show information current settings.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn settings
+  [props]
+  [:div
+   [:h3 &quot;Settings&quot;]
+   [:span
+    [:ul
+     [:li (str &quot;Draw image: &quot; @draw-image)]
+     [:li (str &quot;Threshold CIE: &quot; @threshold-cie)]
+     [:li (str &quot;Threshold Cluster: &quot; @threshold-cluster)]
+     [:li (str &quot;Count partitions: &quot; (count @partitions))]]]
+   (when (not (nil? @debug))
+     [:div
+      [:h3 &quot;Debug&quot;]
+      [:div @debug]])])</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the basic ui for this visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ui
+  [props]
+  [:div {:class &quot;row&quot;}
+   [:div {:id &quot;hostelement&quot; :class &quot;column left&quot; :on-load init}]
+   [:div {:class &quot;column right&quot;}
+    [usage]
+    [settings]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Render html and canvas for terrain visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visualize
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

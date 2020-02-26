@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.maps.gaia.core</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>http://experilous.com/1/blog/post/procedural-planet-generation</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.maps.gaia.core
+  (:require
+    [somerville.geometry.point :as point]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.triangle :as triangle]
+    [somerville.geometry.sphere :as sphere]
+    [somerville.geometry.delaunay :as delaunay]
+    [somerville.geometry.projection.stereographic :as proj]
+    [clojure.set :as s]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Mesh Helpers</pre>
+			</div>
+			<div class="box section">
+				<p>Map the points of a line onto a sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line-to-sphere
+  [l]
+  (line/line (proj/to-sphere (:p1 l)) (proj/to-sphere (:p2 l))))</pre>
+			</div>
+			<div class="box section">
+				<p>Map the points of a triangle onto a sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-to-sphere
+  [t]
+  (triangle/triangle (proj/to-sphere (:p1 t)) (proj/to-sphere (:p2 t)) (proj/to-sphere (:p3 t))))</pre>
+			</div>
+			<div class="box section">
+				<p>Map the points of a voronoi cell onto a sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cell-to-sphere
+  [c]
+  (delaunay/voronoi-cell (proj/to-sphere (:point c)) (map #(proj/to-sphere %) (:points c)) (:closed c)))</pre>
+			</div>
+			<div class="box section">
+				<p>Scale a voronoi cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn scale-cell
+  [c s]
+  (delaunay/voronoi-cell (point/scale (:point c) s) (map #(point/scale % s) (:points c)) (:closed c)))</pre>
+			</div>
+			<div class="box section">
+				<p>If the given cell is not closed inject a closing point at the pole.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn close-cell
+  [c]
+  (if (:closed c)
+    c
+    (delaunay/voronoi-cell (:point c) (into [] (cons (point/point 0 0 -1) (conj (:points c) (point/point 0 0 -1)))) true)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create voronoi for points on a sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-voronoi
+  [points]
+  (let [projected (map #(point/scale % 10) (map proj/to-plane points))
+        d (delaunay/delaunay projected)
+        cells (delaunay/to-cells (delaunay/voronoi d))]
+    (map close-cell (map cell-to-sphere (map #(scale-cell % 0.1) cells)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create delaunay for points on a sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-delaunay
+  [points]
+  (let [projected (map #(point/scale % 10) (map proj/to-plane points))
+        triangles (map :t (:triangles (delaunay/delaunay projected)))]
+    (map triangle-to-sphere (map #(triangle/scale % 0.1) triangles))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Mesh Building</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def default-config
+  {:points 400
+   :scale 200
+   :jitter 0.05})</pre>
+			</div>
+			<div class="box section">
+				<p>Create a list of lines that represent a cube.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn fibonacci
+  [config]
+  (map #(point/scale % (:scale config)) (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a list of triangles for a delaunay of a fibonacci sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn delaunay
+  [config]
+  (map #(triangle/scale % (:scale config)) (to-delaunay (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a list of lines for a voronoi of a fibonacci sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi
+  [config]
+  (map #(scale-cell % (:scale config)) (to-voronoi (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">=================================================================================================================
+Create a graph that holds all triangles and connects them to their neighbours.</pre>
+			</div>
+			<div class="box section">
+				<p>Check if two triangles share an edge. They do so if they share two points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn share-edge?
+  [t1 t2]
+  (= 4 (count (s/union #{(:p1 t1) (:p2 t1) (:p3 t1)} #{(:p1 t2) (:p2 t2) (:p3 t2)}))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get list of neighbors in ts for t as pairs [t1 t2].</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn neighbours
+  [t ts]
+  (into #{} (filter #(not (nil? %)) (map #(if (share-edge? t %) [t %] nil) (remove #{t} ts)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create edges of triangles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn create-edges
+  [ts]
+  (into '() (apply s/union (map #(neighbours % ts) ts))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

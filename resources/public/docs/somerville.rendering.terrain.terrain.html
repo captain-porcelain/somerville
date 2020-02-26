@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rendering.terrain.terrain</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rendering.terrain.terrain
+  (:import
+    [java.awt Color Graphics2D Rectangle RenderingHints Polygon]
+    [java.awt.image BufferedImage])
+  (:require
+    [somerville.rasterization.conrec :as conrec]
+    [somerville.geometry.projection.projection :as projection]
+    [somerville.geometry.polygon :as polygon]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as l]
+    [somerville.color.color :as color]
+    [somerville.rendering.image :as image]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">=======================================================================================================================
+General Rendering</pre>
+			</div>
+			<div class="box section">
+				<p>Create a new image to hold the finished tiles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn new-image
+  [config width height]
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (.setRenderingHint graphics RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
+        tmp (.setPaint graphics (image/to-awt (apply color/rgba (:background-color config))))
+        tmp (.fill graphics (Rectangle. 0 0 width height))]
+    [img graphics]))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a polygon onto the canvas.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-polygon
+  [graphics polygon line-color fill-color]
+  (let [xs (into-array Integer/TYPE (map :x (polygon/to-points polygon)))
+        ys (into-array Integer/TYPE (map :y (polygon/to-points polygon)))
+        p (Polygon. xs ys (count xs))
+        ;tmp (.setPaint graphics (image/to-awt (apply color/rgba fill-color)))
+        ;tmp (.fillPolygon graphics p)
+        tmp (.setPaint graphics (image/to-awt (apply color/rgba line-color)))
+        tmp (.drawPolygon graphics p)]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-line
+  [graphics line line-color]
+  ;(.fillOval graphics (- (:x (:p1 line)) 2) (- (:y (:p1 line)) 4) 4 4)
+  ;(.fillOval graphics (- (:x (:p2 line)) 2) (- (:y (:p2 line)) 2) 4 4)
+  (.setPaint graphics (image/to-awt (apply color/rgba line-color)))
+  (.drawLine graphics (:x (:p1 line)) (:y (:p1 line)) (:x (:p2 line)) (:y (:p2 line))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def default-config
+  {:background-color      [0 0 0 255]
+   :line-color            [128 20 128 255]
+   :water-color           [50 150 200 128]
+   :height-steps          4})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">=======================================================================================================================
+Rendering the world as triangulation</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangulation
+  [g]
+  (let [size (dec (dec (:width g)))]
+    (for [x (range size)
+          y (range size)
+          i (range 4)]
+      (let [heights (conrec/triangle-heights g x y)]
+        (case i
+          0 (polygon/from-points (list (:p1 heights) (:p0 heights) (:p2 heights)))
+          1 (polygon/from-points (list (:p2 heights) (:p0 heights) (:p3 heights)))
+          2 (polygon/from-points (list (:p3 heights) (:p0 heights) (:p4 heights)))
+          3 (polygon/from-points (list (:p4 heights) (:p0 heights) (:p1 heights))))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw pairs of triangles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-triangles
+  [g config graphics width height]
+  (let [camera (p/point (/ (:width g) 2) 0 20)
+        focus  (p/point (/ (:width g) 2) (/ (:height g) 2)  0)
+        up     (p/cross (p/subtract focus camera) (p/subtract (p/point (:width g) 0 0) (p/point 0 (:height g) 0)))
+        projector (projection/projector camera focus up 2 width height)
+        pject (fn [t] (polygon/from-points (map #(projection/project projector %) (polygon/to-points t))))
+        triangles (triangulation g)
+        projected (map pject triangles)]
+    (dorun (map #(draw-polygon graphics % [128 20 128 255] [128 20 128 255]) projected))))</pre>
+			</div>
+			<div class="box section">
+				<p>Render the grid using a triangulation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-triangulation
+  [g config filename width height]
+  (let [[img graphics] (new-image config width height)
+        tmp (draw-triangles g config graphics width height)
+        tmp (.dispose graphics)]
+    (image/write-image filename img)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

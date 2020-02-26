@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.data-structures.matrix</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.data-structures.matrix
+  (:require [somerville.data-structures.array :as a]))</pre>
+			</div>
+			<div class="box section">
+				<p>Transpose a matrix m. Put simply: make rows to columns. A 2x3 matrix will be a 3x2 matrix when transposed.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn transpose
+  [m]
+  (let [w (count m)
+        h (count (first m))
+        mt (make-array Double/TYPE h w)]
+     (loop [i (int 0)]
+       (when (&lt; i w)
+         (loop [j (int 0)]
+           (when (&lt; j h)
+             (do (a/aset! mt j i (a/aget! m i j)))
+             (recur (unchecked-inc j))))
+         (recur (unchecked-inc i))))
+    mt))</pre>
+			</div>
+			<div class="box section">
+				<p>Multiply two matrices. Please note that if the first matix is 3x2 the second has to be 2x3.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn multiply
+  [m n]
+  (let [r1 (count m)
+        r2 (count (first n))
+        r3 (count n)
+        mn (make-array Double/TYPE r1 r2)]
+     (loop [i (int 0)]
+       (when (&lt; i r1)
+         (loop [j (int 0)]
+           (when (&lt; j r2)
+             (loop [k (int 0)]
+               (when (&lt; k r3)
+                 (do (a/aset! mn i j (+ (a/aget! mn i j) (* (a/aget! m i k) (a/aget! n k j)))))
+                 (recur (unchecked-inc k))))
+             (recur (unchecked-inc j))))
+         (recur (unchecked-inc i))))
+  mn))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the matrix L used for LU decomposition. m is the matrix to decompose in this iteration step, l is the matrix in which the lower values are collected and n is the current step.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decompose-lower
+  [m l n]
+  (let [w (count m)
+        ln (make-array Double/TYPE w w)]
+     (loop [i (int 0)]
+       (when (&lt; i w)
+         (loop [j (int 0)]
+           (when (&lt; j w)
+             (let [v (if (= i j) 1.0 (if (and (&gt; i j) (= j n)) (* -1 (/ (a/aget! m i j) (a/aget! m j j))) 0.0))]
+               (do (a/aset! ln i j v))
+               (do (when (= j n)
+                     (when (&gt; i j) (a/aset! l i j (* -1 v)))
+                     (when (= i j) (a/aset! l i j v)))))
+             (recur (unchecked-inc j))))
+         (recur (unchecked-inc i))))
+    ln))</pre>
+			</div>
+			<div class="box section">
+				<p>Decompose a square matrix into lower and upper matrices. Useful for solving linear equations, calculating the determinant and inversion.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lu-decomposition
+  [m]
+  (let [w (count m)
+        l (make-array Double/TYPE w w)]
+     (loop [i (int 0)
+            a m]
+       (let [ln (decompose-lower a l i)
+             an (multiply ln a)]
+         (if (&gt;= i w)
+           {:l l :u a}
+           (recur (unchecked-inc i) an))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the determinant of a square matrix.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn determinant
+  [m]
+  (let [u (:u (lu-decomposition m))
+        n (count u)]
+     (loop [i (int 0)
+            det 1.0]
+       (if (&gt;= i n)
+         det
+         (recur (unchecked-inc i) (* det (a/aget! u i i)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Solve the equation Ly = x where L is a lower triangular matrix and x is a vector.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-lower-array
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n)]
+    (loop [i (int 0)]
+      (when (&lt; i n)
+        (loop [j (int 0)
+               sum (double 0.0)]
+          (when (&lt;= j i)
+            (when (= j i)
+              (a/aset! y i (/ (- (a/aget! x i) sum) (a/aget! l i j))))
+            (recur (unchecked-inc j) (+ sum (* (a/aget! l i j) (a/aget! y j))))))
+        (recur (unchecked-inc i))))
+    y))</pre>
+			</div>
+			<div class="box section">
+				<p>Solve the equation Uy = x where U is a upper triangular matrix and x is a vector.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-upper-array
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n)]
+    (loop [i (- n 1)]
+      (when (&gt;= i 0)
+        (loop [j (- n 1)
+               sum (double 0.0)]
+          (when (&gt;= j i)
+            (when (= j i)
+              (a/aset! y i (/ (- (a/aget! x i) sum) (a/aget! l i j))))
+            (recur (unchecked-dec j) (+ sum (* (a/aget! l i j) (a/aget! y j))))))
+        (recur (unchecked-dec i))))
+    y))</pre>
+			</div>
+			<div class="box section">
+				<p>Solve the linear equation My=x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-array
+  [m x]
+  (let [lu (lu-decomposition m)
+        b (solve-lower-array (:l lu) x)
+        y (solve-upper-array (:u lu) b)]
+    y))</pre>
+			</div>
+			<div class="box section">
+				<p>Solve the equation Ly = x where L is a lower triangular matrix and x is a matrix.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-lower-matrix
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n n)]
+    (loop [k (int 0)]
+        (when (&lt; k n)
+          (loop [i (int 0)]
+            (when (&lt; i n)
+              (loop [j (int 0)
+                     sum (double 0.0)]
+                (when (&lt;= j i)
+                  (when (= j i)
+                    (a/aset! y i k (/ (- (a/aget! x i k) sum) (a/aget! l i j))))
+                  (recur (unchecked-inc j) (+ sum (* (a/aget! l i j) (a/aget! y j k))))))
+              (recur (unchecked-inc i))))
+      (recur (unchecked-inc k))))
+    y))</pre>
+			</div>
+			<div class="box section">
+				<p>Solve the equation Uy = x where U is a upperr triangular matrix and x is a matrix.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-upper-matrix
+  [l x]
+  (let [n (count l)
+        y (make-array Double/TYPE n n)]
+    (loop [k (int 0)]
+        (when (&lt; k n)
+          (loop [i (- n 1)]
+            (when (&gt;= i 0)
+            (loop [j (- n 1)
+                     sum (double 0.0)]
+                (when (&gt;= j i)
+                  (when (= j i)
+                    (a/aset! y i k (/ (- (a/aget! x i k) sum) (a/aget! l i j))))
+                  (recur (unchecked-dec j) (+ sum (* (a/aget! l i j) (a/aget! y j k))))))
+              (recur (unchecked-dec i))))
+      (recur (unchecked-inc k))))
+    y))</pre>
+			</div>
+			<div class="box section">
+				<p>Solve the linear equation My=x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-matrix
+  [m x]
+  (let [lu (lu-decomposition m)
+        b (solve-lower-matrix (:l lu) x)
+        y (solve-upper-matrix (:u lu) b)]
+    y))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the identity matrix of size n</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn identity-matrix
+  [n]
+  (let [m (make-array Double/TYPE n n)]
+    (loop [i (int 0)]
+      (when (&lt; i n)
+        (loop [j (int 0)]
+          (when (&lt; j n)
+            (if (= i j)
+              (a/aset! m i j (double 1.0))
+              (a/aset! m i j (double 0.0)))
+            (recur (unchecked-inc j))))
+        (recur (unchecked-inc i))))
+    m))</pre>
+			</div>
+			<div class="box section">
+				<p>Invert a square matrix.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn invert
+  [m]
+  (solve-matrix m (identity-matrix (count m))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

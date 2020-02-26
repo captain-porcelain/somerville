@@ -7,9 +7,7 @@
   com.taoensso/timbre                {:mvn/version "4.10.0"}
   reagent                            {:mvn/version "0.9.1"}
   dali                               {:mvn/version "0.7.5"}
-  talos                              {:git/url "gitea@git.pinkbubbles.de:chris/talos.git"
-                                      :sha "4271fa4566c2c66ba49bca95140b067ad8a94980"
-                                      :deps/manifest :deps}}
+  talos                              {:mvn/version "RELEASE"}}
 
  :paths ["src/clj" "src/cljc" "src/cljs"]
 

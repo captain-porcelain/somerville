@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.visualization.gaia</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.visualization.gaia
+  (:require
+    [somerville.color.color :as color]
+    [somerville.visualization.commons :as commons]
+    [talos.core :as talos]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def tau (* 2 Math/PI))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def width 1200)
+(def height 800)</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def colors
+  {:background (color/rgba  10  10  10)
+   :heavens    (color/rgba 129 178 154 128)
+   :line       (color/rgba 217  60 110)
+   :fill       (color/rgba  40  40  40 255)
+   :point      (color/rgba   0 204 102)
+   :focus-line (color/rgba 241 196  15)
+   :focus-fill (color/rgba  80  80  80 128)})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Data Handling</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def fsm (reagent/atom nil))
+(def worker (atom nil))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def world (atom []))
+(def fibonacci-size (reagent/atom 100))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def draw-mode (reagent/atom :triangles))
+(def index (reagent/atom 0))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def mouse-position (atom [0 0]))
+(def position (atom [61 -249]))</pre>
+			</div>
+			<div class="box section">
+				<p>get mouse based angle</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn get-mouse-angle-x
+  [width]
+  (let [[x y] @position]
+    (* tau (/ (- x width) width))))</pre>
+			</div>
+			<div class="box section">
+				<p>get mouse based angle</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn get-mouse-angle-y
+  [height]
+  (let [[x y] @position]
+    (* tau (/ (- height y) height))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Drawing Functionality</pre>
+			</div>
+			<div class="box section">
+				<p>Draws one point of the world.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-point
+  [p lc]
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/point (:x p) (:y p) (:z p)))</pre>
+			</div>
+			<div class="box section">
+				<p>Draws one line of the world.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-line
+  [l lc]
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draws one polygon representing an area of the world.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-triangle
+  [t fc lc]
+  (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/begin-shape :triangles)
+  (quil/vertex (:x (:p1 t)) (:y (:p1 t)) (:z (:p1 t)))
+  (quil/vertex (:x (:p2 t)) (:y (:p2 t)) (:z (:p2 t)))
+  (quil/vertex (:x (:p3 t)) (:y (:p3 t)) (:z (:p3 t)))
+  (quil/end-shape))</pre>
+			</div>
+			<div class="box section">
+				<p>Draws one voronoi cell representing an area of the world.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-cell
+  [cell fc lc pc]
+  (if (:closed cell)
+    (quil/fill (:r fc) (:g fc) (:b fc) (:a fc))
+    (quil/fill 255 255 255 0))
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (quil/begin-shape)
+  (dorun (map #(quil/vertex (:x %) (:y %) (:z %)) (:points cell)))
+  (quil/end-shape)
+  (draw-point (:point cell) pc))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw indicator for poles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-heavens
+  []
+  (let [c (:heavens colors)]
+    (do
+      (quil/stroke-weight 3)
+      (quil/fill (:r c) (:g c) (:b c) (:a c))
+      (quil/stroke (:r c) (:g c) (:b c) (:a c))
+      (quil/line 0 0 300 0 0 -300)
+      (quil/torus 300 5 128 128)
+      (quil/with-translation [0 0 -300]
+        (quil/with-rotation [(/ tau 4) 1 0 0]
+          (quil/cone 6 25)))
+      (quil/with-translation [0 0 300]
+        (quil/with-rotation [(/ tau 4) 1 0 0]
+          (quil/cone 6 25)))
+      (quil/stroke-weight 1))))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by processing repeatedly.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw
+  []
+  (let [bg (:background colors)]
+    (quil/background (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/with-rotation [(get-mouse-angle-y width) 1 0 0]
+    (quil/with-rotation [(get-mouse-angle-x height) 0 1 0]
+      (quil/with-rotation [(/ 0 tau) 0 0 1]
+        (dorun
+          (for [l @world]
+            (case @draw-mode
+              :cells (draw-cell l (:fill colors) (:line colors) (:point colors))
+              :triangles (draw-triangle l (:fill colors) (:line colors))
+              :lines (draw-line l (:line colors))
+              :points (draw-point l (:point colors)))))
+        (draw-heavens)
+        (when (&lt; 0 (count @world))
+          (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors)))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">=====================================================================================================================
+Define the FSM that handles gaia</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn idle-callback
+  [my-fsm event]
+  (log/info &quot;Idle state reached.&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Cycle through faces.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cycle-up-callback
+  [my-fsm event]
+  (when (&lt; @index (dec (count @world))) (swap! index inc))
+  (talos/process! @fsm {:event :done}))</pre>
+			</div>
+			<div class="box section">
+				<p>Cycle through faces.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cycle-down-callback
+  [my-fsm event]
+  (when (&gt; @index 0) (swap! index dec))
+  (talos/process! @fsm {:event :done}))</pre>
+			</div>
+			<div class="box section">
+				<p>Increase amount of fibonacci points for next generation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn increase-fibonacci-callback
+  [my-fsm event]
+  (swap! fibonacci-size #(+ % 10))
+  (talos/process! @fsm {:event :done}))</pre>
+			</div>
+			<div class="box section">
+				<p>Decrease amount of fibonacci points for next generation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decrease-fibonacci-callback
+  [my-fsm event]
+  (when (&gt; @fibonacci-size 0) (swap! fibonacci-size #(- % 10)))
+  (talos/process! @fsm {:event :done}))</pre>
+			</div>
+			<div class="box section">
+				<p>Reset world to delaunay of fibonacci sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn request-delaunay-callback
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module &quot;gaia&quot;
+                                                 :command &quot;delaunay&quot;
+                                                 :data {:draw-mode :triangles
+                                                        :scale 200
+                                                        :points @fibonacci-size}}))
+  (talos/process! @fsm {:event :work-requested}))</pre>
+			</div>
+			<div class="box section">
+				<p>Reset world to voronoi of fibonacci sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn request-voronoi-callback
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module &quot;gaia&quot;
+                                                 :command &quot;voronoi&quot;
+                                                 :data {:draw-mode :cells
+                                                        :scale 200
+                                                        :points @fibonacci-size}}))
+  (talos/process! @fsm {:event :work-requested}))</pre>
+			</div>
+			<div class="box section">
+				<p>Reset world to random fibonacci sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn request-fibonacci-callback
+  [my-fsm event]
+  (.postMessage @worker (commons/to-arraybuffer {:module &quot;gaia&quot;
+                                                 :command &quot;fibonacci&quot;
+                                                 :data {:draw-mode :points
+                                                        :scale 200
+                                                        :points @fibonacci-size}}))
+  (talos/process! @fsm {:event :work-requested}))</pre>
+			</div>
+			<div class="box section">
+				<p>Reset world to calculated data.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn got-world-callback
+  [my-fsm event]
+  (reset! index 0)
+  (reset! draw-mode (keyword (:draw-mode (:data (:data event)))))
+  (reset! world (:result (:data event)))
+  (talos/process! @fsm {:event :done}))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def states
+  (list
+    (talos/state :starting             idle-callback)
+    (talos/state :idle                 idle-callback)
+    (talos/state :cycle-up             cycle-up-callback)
+    (talos/state :cycle-down           cycle-down-callback)
+    (talos/state :increase-fib         increase-fibonacci-callback)
+    (talos/state :decrease-fib         decrease-fibonacci-callback)
+    (talos/state :request-delaunay     request-delaunay-callback)
+    (talos/state :request-fibonacci    request-fibonacci-callback)
+    (talos/state :request-voronoi      request-voronoi-callback)
+    (talos/state :wait-world           idle-callback)
+    (talos/state :got-world            got-world-callback)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def transitions
+  (list
+    (talos/transition :done-worker-start       :starting             :idle)
+    (talos/transition :key-pressed             :idle                 :cycle-up            (fn [event data] (= 171 (:data event)))) ;; +
+    (talos/transition :key-pressed             :idle                 :cycle-down          (fn [event data] (= 173 (:data event)))) ;; -
+    (talos/transition :key-pressed             :idle                 :increase-fib        (fn [event data] (=  77 (:data event)))) ;; m
+    (talos/transition :key-pressed             :idle                 :decrease-fib        (fn [event data] (=  76 (:data event)))) ;; l
+    (talos/transition :key-pressed             :idle                 :request-delaunay    (fn [event data] (=  68 (:data event)))) ;; d
+    (talos/transition :work-requested          :request-delaunay     :wait-world)
+    (talos/transition :done-delaunay           :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-fibonacci   (fn [event data] (=  70 (:data event)))) ;; f
+    (talos/transition :work-requested          :request-fibonacci    :wait-world)
+    (talos/transition :done-fibonacci          :wait-world           :got-world)
+    (talos/transition :key-pressed             :idle                 :request-voronoi     (fn [event data] (=  86 (:data event)))) ;; v
+    (talos/transition :work-requested          :request-voronoi      :wait-world)
+    (talos/transition :done-voronoi            :wait-world           :got-world)
+    (talos/transition :done                    :*                    :idle)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Event Handling</pre>
+			</div>
+			<div class="box section">
+				<p>calculate position change and store in atom</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-dragged
+  []
+  (let [x (quil/mouse-x)
+        y (quil/mouse-y)
+        [old-x old-y] @mouse-position
+        [p-x p-y] @position]
+    (reset! mouse-position [x y])
+    (reset! position [(+ p-x (- x old-x)) (+ p-y (- y old-y))])))</pre>
+			</div>
+			<div class="box section">
+				<p>store mouse position in atom</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-pressed
+  []
+  (let [x (quil/mouse-x)
+        y (quil/mouse-y)]
+    (reset! mouse-position [x y])))</pre>
+			</div>
+			<div class="box section">
+				<p>Trigger actions on key presses.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn key-pressed
+  []
+  (talos/process! @fsm {:event :key-pressed :data (quil/key-code)}))</pre>
+			</div>
+			<div class="box section">
+				<p>Receive messages from webworker.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn receive!
+  [msg]
+  (let [message (commons/to-clojurescript (.-data msg))
+        tmp (log/info (str &quot;Received work done message &quot; (:command message)))]
+    (talos/process! @fsm {:event (keyword (str &quot;done-&quot; (:command message)))
+                          :data {:data (:data message)
+                                 :result (:result message)}})))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+App Setup</pre>
+			</div>
+			<div class="box section">
+				<p>Test background worker process.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn start-worker!
+  []
+  (let [w (js/Worker. &quot;cljs-out/somerville-main-worker.js&quot;)
+        tmp (set! (.-onmessage w) receive!)]
+    (reset! worker w)))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil once before drawing</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn setup
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 10))</pre>
+			</div>
+			<div class="box section">
+				<p>Initialize Quil sketch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn init
+  [canvas-id]
+  (let [tmp-fsm (talos/fsm states transitions)
+        state (reagent/atom @(:state tmp-fsm))]
+    (reset! fsm (assoc tmp-fsm :state state)))
+  (start-worker!)
+  (quil/defsketch gaia-sketch
+    :host &quot;hostelement&quot;
+    :setup setup
+    :draw draw
+    :size [width height]
+    :renderer :p3d
+    :mouse-dragged mouse-dragged
+    :mouse-pressed mouse-pressed
+    :key-pressed key-pressed))</pre>
+			</div>
+			<div class="box section">
+				<p>Show information about usage.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn usage
+  [props]
+  [:div
+   [:h2 &quot;Gaia Visualization&quot;]
+   [:h3 &quot;Usage&quot;]
+   [:span
+    &quot;Press&quot;
+    [:ul
+     [:li &quot;+ to cycle up through the surfaces&quot;]
+     [:li &quot;- to cycle down through the surfaces&quot;]
+     [:li &quot;f to recreate an fibonacci sphere&quot;]
+     [:li &quot;d to recreate a delaunay of a fibonacci sphere&quot;]
+     [:li &quot;v to recreate a voronoi of a fibonacci sphere&quot;]
+     [:li &quot;m to increase points on fibonacci sphere&quot;]
+     [:li &quot;l to decrease points on fibonacci sphere&quot;]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Show information current settings.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn settings
+  [props]
+  (let [state (:state @fsm)]
+    [:div
+     [:h3 &quot;Settings&quot;]
+     [:span
+      [:ul
+       [:li (str &quot;State: &quot; (try (:name @state) (catch js/Object e (:state @fsm))))]
+       [:li (str &quot;Surface Count: &quot; (count @world))]
+       [:li (str &quot;Surface Index: &quot; @index)]
+       [:li (str &quot;Draw Mode: &quot; @draw-mode)]
+       [:li (str &quot;Fibonacci Size: &quot; @fibonacci-size)]]]]))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the basic ui for this visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ui
+  [props]
+  [:div {:class &quot;row&quot;}
+   [:div {:id &quot;hostelement&quot; :class &quot;column left&quot; :on-load init}]
+   [:div {:class &quot;column right&quot;}
+    [usage]
+    [settings]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Render html and canvas for terrain visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visualize
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

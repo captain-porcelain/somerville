@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.grammar.l-system</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.grammar.l-system
+  (:require
+    [somerville.geometry.line :as l]))</pre>
+			</div>
+			<div class="box section">
+				<p>Define a formal l-system and rules for it.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Lsystem [axiom rules state])
+(defrecord Rule [match result])</pre>
+			</div>
+			<div class="box section">
+				<p>Create a rule.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn rule
+  [match result]
+  (Rule. match result))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a fresh l-system.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lsystem
+  [axiom rules]
+  (Lsystem. axiom rules (list axiom)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the first matching rule for one symbol.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn matching-rule
+  [sym rules]
+  (first (filter #(= sym (:match %)) rules)))</pre>
+			</div>
+			<div class="box section">
+				<p>Apply the replacement defined by the rules for a symbol.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn replace-symbol
+  [sym rules]
+  (let [r (matching-rule sym rules)]
+    (if (nil? r) (list sym) (:result r))))</pre>
+			</div>
+			<div class="box section">
+				<p>Apply the rules to all symbols in the system.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn apply-rules
+  [system]
+  (reduce concat (map #(replace-symbol % (:rules system)) (:state system))))</pre>
+			</div>
+			<div class="box section">
+				<p>Given an l-system produce the next instance by appling the rules.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn produce
+  [system]
+  (Lsystem. (:axiom system) (:rules system) (apply-rules system)))</pre>
+			</div>
+			<div class="box section">
+				<p>Define an object containing iterated state for rendering</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord RenderState [points angle length])
+(defrecord Renderer [point-fn angle-fn])</pre>
+			</div>
+			<div class="box section">
+				<p>Create holder for render functions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn renderer
+  [pfn afn]
+  (Renderer. pfn afn))</pre>
+			</div>
+			<div class="box section">
+				<p>Update the current state of rendering based on the next symbol.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn translate
+  [render-state sym renderer]
+  (RenderState.
+    ((:point-fn renderer) render-state sym)
+    ((:angle-fn renderer) render-state sym)
+    (:length render-state)))</pre>
+			</div>
+			<div class="box section">
+				<p>Connect a list of points into a list of lines from point to point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn connect-points
+  [points]
+  (map #(l/line %1 %2) (butlast points) (rest points)))</pre>
+			</div>
+			<div class="box section">
+				<p>Given an L system create lines that visualizes it.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-points
+  [lsystem start-point length renderer]
+  (loop [rs (RenderState. (list start-point) 0 length)
+         symbols (:state lsystem)]
+    (if (= 0 (count symbols))
+      (reverse (:points rs))
+      (recur (translate rs (first symbols) renderer) (rest symbols)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Given an L system create lines that visualizes it.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render
+  [lsystem start-point length renderer]
+  (connect-points (render-points lsystem start-point length renderer)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

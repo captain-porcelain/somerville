@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rasterization.rasterize</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>Provides functions for handling geometric objects.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rasterization.rasterize)</pre>
+			</div>
+			<div class="box section">
+				<p>Build a function that calculates the positive y values at x for a circle with a radius of r.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circlefn
+  #?(:clj [^Integer r]
+     :cljs [r])
+  (fn [x] (Math/round (Math/sqrt (- (* r r) (* x x))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Build a function that calculates the y values at x for a line from [x1, y1] to [x2, y2].</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn linefn
+  #?(:clj [[^Integer x1 ^Integer y1] [^Integer x2 ^Integer y2]]
+     :cljs [[x1 y1] [x2 y2]])
+  (let [dx (- x2 x1)
+        dy (- y2 y1)
+        a (/ dy dx)
+        b (- y1 (* a x1))]
+    (fn [x] (Math/round ^Double (+ (* a x) b)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Given a function and a pixel on the graph of that function get the next pixel with potentially growing x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cnext
+  #?(:clj [f ^Integer x ^Integer y]
+     :cljs [f x y])
+  (let [xt (+ x 1)
+        y2 (f xt)
+        dy (- y2 y)
+        y2 (if (&gt; dy 1) (+ y 1) y2)
+        y2 (if (&lt; dy -1) (- y 1) y2)
+        x2 (if (= y y2) xt x)]
+    [x2 y2]))</pre>
+			</div>
+			<div class="box section">
+				<p>A lazy sequence of pixels approximating a given function between two points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn rasterize
+  #?(:clj [[^Integer x1 ^Integer y1] [^Integer x2 ^Integer y2] f]
+     :cljs [[x1 y1] [x2 y2] f])
+  (if (= [x1 y1] [x2 y2])
+    (list [x1 y1])
+    (lazy-seq (concat (list [x1 y1]) (rasterize (cnext f x1 y1) [x2 y2] f)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the pixels constituting a circle in quadrant 2 with a given radius centered in [0, 0].</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circle-q2
+  #?(:clj [^Integer r]
+     :cljs [r])
+  (let [start [(* -1 r) 0]
+        end [0 r]
+        f (circlefn r)]
+    (rasterize start end f)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the pixels of a line from [0, 0] t o [x y].</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line-q1
+  #?(:clj [^Integer x ^Integer y]
+     :cljs [x y])
+  (if (= 0 x)
+    (map (fn [v] [0 v]) (take (+ 1 y) (iterate inc 0)))
+    (rasterize [0 0] [x y] (linefn [0 0] [x y]))))</pre>
+			</div>
+			<div class="box section">
+				<p>Flip the y component of a pixel.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn flip-y
+  #?(:clj [[^Integer x ^Integer y]]
+     :cljs [[x y]])
+  [x (* -1 y)])</pre>
+			</div>
+			<div class="box section">
+				<p>Flip the x component of a pixel.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn flip-x
+  #?(:clj [[^Integer x ^Integer y]]
+     :cljs [[x y]])
+  [(* -1 x) y])</pre>
+			</div>
+			<div class="box section">
+				<p>Move a point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn translate
+  #?(:clj [[^Integer px ^Integer py] [^Integer mx ^Integer my]]
+     :cljs [[px py] [mx my]])
+  [(+ px mx) (+ py my)])</pre>
+			</div>
+			<div class="box section">
+				<p>Move the points of a line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn translate-line
+  #?(:clj [l [^Integer mx ^Integer my]]
+     :cljs [l [mx my]])
+  (map #(translate % [mx my]) l))</pre>
+			</div>
+			<div class="box section">
+				<p>Move the points of a list of lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn translate-lines
+  #?(:clj [l [^Integer mx ^Integer my]]
+     :cljs [l [mx my]])
+  (map #(translate-line % [mx my]) l))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the pixels constituting a full circle with a given radius centered in [0, 0].</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circle
+  #?(:clj [^Integer r]
+     :cljs [r])
+  (let [quarter (circle-q2 r)
+        half1 (concat quarter (reverse (map #(flip-x %) quarter)))
+        half2 (butlast (rest (reverse (map #(flip-y %) half1))))]
+    (concat half1 half2)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the pixels approximating a line from start to end.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line
+  #?(:clj [[^Integer x1 ^Integer y1] [^Integer x2 ^Integer y2]]
+     :cljs [[x1 y1] [x2 y2]])
+  (let [xt (- x2 x1)
+        yt (- y2 y1)
+        flipfn (if (&lt; xt 0) flip-x identity)
+        flipfn (if (&lt; yt 0) (fn [x] (flip-y (flipfn x))) flipfn)
+        [x y] (flipfn [xt yt])]
+    (map (fn [[x y]] [(+ x1 x) (+ y1 y)]) (map flipfn (line-q1 x y)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create the array of sight lines for a circle given by radius r.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sight-lines-internal
+  #?(:clj [^Integer r]
+     :cljs [r])
+  (map #(line [0 0] %) (circle r)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def sight-lines (memoize sight-lines-internal))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">testing functions for creating a tree instead of naive list of lines.</pre>
+			</div>
+			<div class="box section">
+				<p>Create a lazy tree from the list of sightlines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn insert-nodes
+  [sl]
+  (loop [lines sl
+         nodes (list)
+         counter 0]
+    (if (or (nil? lines) (= 0 (count lines)))
+      nodes
+      (let [lines (sort-by #(first %) lines)
+            f (first (first lines))
+            children (map rest (filter #(= f (first %)) lines))
+            rests (filter #(not (= f (first %))) lines)
+            children (if (&lt; 0 (count (first children))) (insert-nodes children) nil)
+            node {:p f :c children}
+            ]
+        (recur rests (cons node nodes) (+ counter 1))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Reduce the duplicates by transforming the list of lists into a tree.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sight-lines-tree
+  [^Integer r]
+  (first (insert-nodes (sight-lines r))))</pre>
+			</div>
+			<div class="box section">
+				<p>Count the pixels in a list of lists of pixels.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn count-pixels
+  [viewlines]
+  (reduce + (map #(count %) viewlines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Count the pixels in a tree.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn count-pixels-tree
+  [t]
+  (+ 1 (if (not (nil? (:c t))) (reduce + (map #(count-pixels-tree %) (:c t))) 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a pixel is contained in the tree.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn in-tree?
+  [t p]
+  (let [isp (= p (:p t))
+        inch (if (not isp) (true? (some true? (map #(in-tree? % p) (:c t)))) isp)]
+    inch))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if all pixels of a line are contained in the tree.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line-full?
+  [t l]
+  (every? true? (map #(in-tree? t %) l)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if all pixels in a list of lists of pixels are contained in the tree.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tree-full?
+  [t sl]
+  (every? true? (map #(line-full? t %) sl)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

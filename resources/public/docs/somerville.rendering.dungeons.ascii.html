@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rendering.dungeons.ascii</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rendering.dungeons.ascii
+  (:require
+    [taoensso.timbre :as log]
+    [somerville.commons :as commons]
+    [somerville.maps.grid :as grid]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+General printing of grids</pre>
+			</div>
+			<div class="box section">
+				<p>Print every element in the grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn print-walker
+  [g e]
+  (log/info &quot;Element at &quot; (:x e) &quot;, &quot; (:y e) &quot;: &quot; e))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Generate ascii representation of rectangular grids</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn wall-top?
+  [g w h e]
+  (or
+    (= 0 h)
+    (and (:masked e) (not (:masked (grid/get-from g w (dec h)))))
+    (and (not (:masked e)) (:masked (grid/get-from g w (dec h))))
+    (and (not (:masked e)) (not (commons/in? :north (:links e))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn wall-left?
+  [g w h e]
+  (or
+    (= 0 w)
+    (and (:masked e) (not (:masked (grid/get-from g (dec w) h))))
+    (and (not (:masked e)) (:masked (grid/get-from g (dec w) h)))
+    (and (not (:masked e)) (not (commons/in? :west (:links e))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn wall-right?
+  [g w h e]
+  (or
+    (= (dec (:width g)) w)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line1
+  [g e]
+  (str
+    &quot;+&quot;
+    (if (wall-top? g (:x e) (:y e) e) &quot;---&quot; &quot;   &quot;)
+    (when (wall-right? g (:x e) (:y e) e) &quot;+&quot;)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line2
+  [g e print-key]
+  (str
+    (if (wall-left? g (:x e) (:y e) e) &quot;|&quot; &quot; &quot;)
+    (cond
+      (:masked e) &quot; x &quot;
+      (and (not (nil? print-key)) (not (nil? (print-key e)))) (if (&lt; (print-key e) 10) (str &quot; &quot; (print-key e) &quot; &quot;) (str &quot; &quot; (print-key e) ))
+      :else &quot;   &quot;)
+    (when (wall-right? g (:x e) (:y e) e) &quot;|&quot;)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn last-line
+  [g]
+  (str (apply str (repeatedly (:width g) #(str &quot;+---&quot;))) &quot;+&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Associated ascii art to each cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-ascii-walker
+  [print-key]
+  (fn [g e] (grid/set-in g (:x e) (:y e) (assoc e :ascii-1 (line1 g e) :ascii-2 (line2 g e print-key)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create partial ASCII representation for one row in the grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ascii-row
+  [g y]
+  (let [a (for [x (range (:width g))]
+            [(:ascii-1 (grid/get-from g x y)) (:ascii-2 (grid/get-from g x y))])]
+    (str (reduce str (map first a)) &quot;\\n&quot; (reduce str (map second a)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create ASCII representation for a grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ascii-rect
+  [g print-key]
+  (let [g2 (grid/walk g (make-ascii-walker print-key))
+        lines (for [y (range (:height g2))] (ascii-row g2 y))]
+    (str
+      (clojure.string/join &quot;\\n&quot; lines)
+      &quot;\\n&quot;
+      (clojure.string/join &quot;&quot; (last-line g2)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Generate ascii representation of hexagonal grids
+Example for hex grids:
+
+  /‾\\     line a
+/‾\\\\ //‾\\  line b
+\\_//‾\\\\_/  line a
+/‾\\\\_//‾\\  line b
+\\_//‾\\\\_/  line a
+  \\_/     line b</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn upper-hex
+  [g c print-key]
+  (if (or (= {} c) (= 0 (count (:links c))))
+    &quot;    &quot;
+    (str (if (commons/in? :north-west (:links c)) &quot; &quot; &quot;/&quot;)
+         (if
+           (commons/in? :north      (:links c))
+           (if (nil? (print-key c)) &quot;  &quot; (if (&lt; 9 (print-key c)) (print-key c) (str &quot; &quot; (print-key c))))
+           (if (nil? (print-key c)) &quot;‾‾&quot; (if (&lt; 9 (print-key c)) (print-key c) (str &quot;‾&quot; (print-key c)))))
+         (if (commons/in? :north-east (:links c)) &quot; &quot; &quot;\\\\&quot;))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lower-hex
+  [g c]
+  (if (or (= {} c) (= 0 (count (:links c))))
+    &quot;    &quot;
+    (str (if (commons/in? :south-west (:links c)) &quot; &quot; &quot;\\\\&quot;)
+         (if (commons/in? :south      (:links c)) &quot;  &quot; &quot;__&quot;)
+         (if (commons/in? :south-east (:links c)) &quot; &quot; &quot;/&quot;))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn hex-line-a
+  [g y print-key]
+  (clojure.string/join 
+    (for [x (range (:width g))]
+      (str (if (= 0 (mod x 2))
+             (lower-hex g (grid/get-from g x (dec y)))
+             (upper-hex g (grid/get-from g x y) print-key))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn hex-line-b
+  [g y print-key]
+  (clojure.string/join 
+    (for [x (range (:width g))]
+      (str (if (= 0 (mod x 2))
+             (upper-hex g (grid/get-from g x y) print-key)
+             (lower-hex g (grid/get-from g x y)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create ASCII representation for a grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ascii-hex
+  [g print-key]
+  (clojure.string/join &quot;\\n&quot;
+    (for [y (range (inc (:height g)))]
+      (str (hex-line-a g y print-key) &quot;\\n&quot; (hex-line-b g y print-key)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Printing integer grids</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn max-length
+  [g]
+  (apply max
+    (for [y (range (:height g))
+          x (range (:width g))]
+      (count (str (grid/get-from g x y))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn whitespace-pad
+  [s l]
+  (cond
+    (&gt; l 1) (whitespace-pad (str &quot; &quot; s &quot; &quot;) (- l 2))
+    (= 1 l) (str &quot; &quot; s)
+    :else s))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ascii-ints
+  [g]
+  (let [l (inc (max-length g))]
+    (clojure.string/join &quot;\\n&quot;
+      (for [y (range (:height g))]
+        (clojure.string/join &quot; &quot;
+          (for [x (range (:width g))]
+            (whitespace-pad (grid/get-from g x y) (- l (count (str (grid/get-from g x y)))))))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+General printing of ascii art</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn out
+  ([g]
+   (out g nil))
+  ([g print-key]
+   (dorun
+     (println
+       (case (:data-type g)
+         :int (ascii-ints g)
+         :map (case (:grid-type g)
+                :rect (ascii-rect g print-key)
+                :hex  (ascii-hex  g print-key)))))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

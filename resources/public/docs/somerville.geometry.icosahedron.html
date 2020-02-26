@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.icosahedron</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.icosahedron
+  (:require
+    [somerville.geometry.commons :as gcommons]
+    [somerville.geometry.point :as point]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.triangle :as triangle]
+    [somerville.geometry.polygon :as polygon]
+    [clojure.set :as s]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def icosahedron-corners
+  (list
+    (point/point -0.26286500  0.0000000   0.42532500)
+    (point/point  0.26286500  0.0000000   0.42532500)
+    (point/point -0.26286500  0.0000000  -0.42532500)
+    (point/point  0.26286500  0.0000000  -0.42532500)
+    (point/point  0.0000000   0.42532500  0.26286500)
+    (point/point  0.0000000   0.42532500 -0.26286500)
+    (point/point  0.0000000  -0.42532500  0.26286500)
+    (point/point  0.0000000  -0.42532500 -0.26286500)
+    (point/point  0.42532500  0.26286500  0.0000000)
+    (point/point -0.42532500  0.26286500  0.0000000)
+    (point/point  0.42532500 -0.26286500  0.0000000)
+    (point/point -0.42532500 -0.26286500  0.0000000)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get a sorted list of distances to all points in ps, excluding p itself.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn distances
+  [p ps]
+  (rest
+    (sort-by first
+             (map #(vector (point/distance p %) %)
+                  ps))))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the points in ps that are closest to a point p.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn all-closest
+  [p ps]
+  (let [dists (distances p ps)
+        ref-dist (first (first dists))]
+    (map second (take-while #(gcommons/close-to ref-dist (first %)) dists))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create lines between p and those points in ps.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lines-to
+  [p ps]
+  (map
+    #(apply line/line (sort (list p %)))
+    ps))</pre>
+			</div>
+			<div class="box section">
+				<p>Create lines from a set of points. Each point is connected to all those that are closest to it.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lines
+  [points]
+  (distinct (sort (reduce concat (map #(lines-to % (all-closest % points)) points)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a set of triangles from a set of lines. If two lines share a point create the triangle from first point to shared to last point and thus back to first.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangles
+  [lines ignore-close]
+  (filter #(not (nil? %))
+    (for [l1 lines
+          l2 lines]
+      (when (not= l1 l2)
+        (when (and
+                (or ignore-close (gcommons/close-to (point/distance (:p1 l1) (:p2 l1)) (point/distance (:p1 l1) (:p2 l2))))
+                (= (:p2 l1) (:p1 l2)))
+          (triangle/triangle (:p1 l1) (:p2 l1) (:p2 l2)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Subdivide each triangle in a list.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn subdivide
+  [ts]
+  (into '() (apply s/union (map #(into #{} (triangle/subdivide %)) ts))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn polygonate
+  [p ts]
+  (let [affected (filter #(or (= (:p1 %) p (= (:p2 %) p)) (= (:p3 %) p)) ts)
+        centers (map #(point/scale (point/add (:p1 %) (point/add (:p2 %) (:p3 %))) 0.3333) affected)]
+    (polygon/from-points centers)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get all unique points from list of triangles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-points
+  [ts]
+  (apply s/union (map #(into #{} (list (:p1 %) (:p2 %) (:p3 %))) ts)))</pre>
+			</div>
+			<div class="box section">
+				<p>Translate triangle surface to polygon for each triangle point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn translate-surface
+  [ts]
+  (map #(polygonate % ts) (triangle-points ts)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a set of triangles that represent an icosahedron.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn icosahedron
+  [scale]
+  (triangles (map #(line/scale % scale) (lines icosahedron-corners)) false))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

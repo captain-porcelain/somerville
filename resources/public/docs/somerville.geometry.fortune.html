@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.fortune</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>See http://blog.ivank.net/fortunes-algorithm-and-implementation.html</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.fortune
+  (:require
+    [clojure.zip :as z]
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.line :as l]
+    [somerville.geometry.parabola :as par]
+    [somerville.geometry.point :as p]))</pre>
+			</div>
+			<div class="box section">
+				<h1></h1>Define a site event type from a point and a type. Types can be :site and :circle
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord SiteEvent [point type]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Event &quot; type &quot; at &quot; (c/out point)))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a new event for a point p with type t.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn event
+  [p t]
+  (SiteEvent. p t))</pre>
+			</div>
+			<div class="box section">
+				<p>Sort points by y position.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sort-points
+  [points]
+  (sort-by #(:y %) points))</pre>
+			</div>
+			<div class="box section">
+				<p>Sort events by y position.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sort-events
+  [events]
+  (sort-by #(:y (:point %)) events))</pre>
+			</div>
+			<div class="box section">
+				<p>Create sorted events for a list of points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn events
+  [points]
+  (sort-events (map #(event % :site) points)))</pre>
+			</div>
+			<div class="box section">
+				<h1></h1>Define the structure for tracking edges of the voronoi diagram
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Edge [start left right end]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Edge start: &quot; (c/out start) &quot; end: &quot;
+                       (if (nil? end) &quot;-&quot; (c/out end)) &quot; left: &quot; (c/out left) &quot; right: &quot; (c/out right)))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn edge
+  ([start left right]
+   &quot;Create an unfinished edge from a start point having left and right defining points.&quot;
+   (Edge. start left right nil))
+  ([p1 p2]
+   &quot;Create an unfinished edge from two points by calculating the start at y = 0.&quot;
+   (let [lp (if (&lt; (:x p1) (:x p2)) p1 p2)
+         rp (if (&lt; (:x p1) (:x p2)) p2 p1)
+         s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
+     (edge s lp rp))))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the intersection of two edges.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn edge-intersection
+  [e1 e2]
+  (when (and
+          (not (nil? (:left e1))) (not (nil? (:right e1)))
+          (not (nil? (:left e2))) (not (nil? (:right e2))))
+    (l/intersect
+      (l/line (:start e1) (p/midpoint (:left e1) (:right e1)))
+      (l/line (:start e2) (p/midpoint (:left e2) (:right e2))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Define the starting point a new edge. It is defined by a newly split parabola's value at x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn start-of-edge
+  [focuspoint event]
+  (p/point
+    (:x (:point event))
+    (par/solve-parabola-at
+      (par/parabola-from-focuspoint-and-directrix-y focuspoint (:y (:point event)))
+      (:x (:point event)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Is this TreeNode a leaf?<h1></h1>Define records and functions for managing a binary search tree.Each tree node contains one site event and represents a part of a parabola for that event.Nodes also contain the edges separating voronoi cells.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn leaf?
+  [node]
+  (and (nil? (:left node)) (nil? (:right node))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord TreeNode [event edge left right]
+  c/Printable
+  (c/out [this i keepfirst]
+    (str (when keepfirst (c/indent i)) &quot;Node for &quot; (c/out event) &quot; has &quot;
+         (if (nil? edge) &quot;no edge yet &quot; (str &quot;\\n&quot; (c/out edge (+ i 2))))
+         (if (not (leaf? this))
+           (str &quot;\\n&quot;
+                (c/indent (+ i 2)) &quot;left:  &quot; (if (nil? left)  &quot;-&quot; (c/out left  (+ i 2) false)) &quot;\\n&quot;
+                (c/indent (+ i 2)) &quot;right: &quot; (if (nil? right) &quot;-&quot; (c/out right (+ i 2) false))))))
+  (c/out [this i] (c/out this i true))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a new TreeNode</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn treenode
+  ([event]
+   (TreeNode. event nil nil nil))
+  ([event edge]
+   (TreeNode. event edge nil nil))
+  ([event edge left right]
+   (TreeNode. event edge left right)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a zipper from the root tree node.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-zipper
+  [root]
+  (z/zipper
+    #(not (leaf? %))
+    #(list (:left %) (:right %))
+    (fn [node children] (treenode (:event node) (:edge node) (first children) (second children)))
+    root))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the child of the current zipper position that is a leaf on the right side. The follow flag is used to track if we should be stepping to the left child.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn right-leaf
+  ([zipper follow?]
+   (if (or (nil? zipper) (leaf? (z/node zipper)))
+     zipper
+     (if follow?
+       (recur (z/down zipper) true)
+       (recur (z/right (z/down zipper)) true))))
+  ([zipper]
+   (right-leaf zipper false)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the child of the current zipper position that is a leaf on the left side. The follow flag is used to track if we should be stepping to the right child.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn left-leaf
+  ([zipper follow?]
+   (if (or (nil? zipper) (leaf? (z/node zipper)))
+     zipper
+     (if follow?
+       (recur (z/right (z/down zipper)) true)
+       (recur (z/down zipper) true))))
+  ([zipper]
+   (left-leaf zipper false)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the parent of the current zipper position so that the current node is not a right child.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn right-parent
+  [zipper]
+  (let [parent (z/up zipper)]
+    (if (nil? parent)
+      nil
+      (if (= (:right (z/node parent)) (z/node zipper))
+        (recur parent)
+        parent))))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the parent of the current zipper position so that the current node is not a left child.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn left-parent
+  [zipper]
+  (let [parent (z/up zipper)]
+    (if (nil? parent)
+      nil
+      (if (= (:left (z/node parent)) (z/node zipper))
+        (recur parent)
+        parent))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a sequence of the tree.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sequence-from-tree
+  [tree]
+  (map z/node (take-while (complement z/end?) (iterate z/next (make-zipper tree)))))</pre>
+			</div>
+			<div class="box section">
+				<h1></h1>Define the data structure we need to represent a voronoi diagram.It contains all the inital points and the event queue created from those points.The tree is initially empty and step is set to 0.
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Voronoi [points events tree step]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Voronoi step &quot; step &quot; for the points\\n&quot;
+                       (reduce str (interpose &quot;\\n&quot; (for [p points] (c/out p (+ i 2)))))
+                       &quot;\\n\\nconsists of queued events\\n&quot;
+                       (reduce str (interpose &quot;\\n&quot; (for [e events] (c/out e (+ i 2)))))
+                       (if (nil? tree)
+                         &quot;\\n\\nand no tree&quot;
+                         (str &quot;\\n\\nand the tree\\n&quot; (c/out tree (+ i 2))))
+                       &quot;\\n\\n&quot;))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find the parabola that is to be split in two by a site event. This is done by walking down the tree, calculating the parabolas for each child node and intersecting the parabolas. Depending if the event is left or right of the intersection the child node is selected for continuing the search until a leaf is found.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn find-parabola-for-insert
+  [zipper event]
+  (if (leaf? (z/node zipper))
+    zipper
+    (let [left-point  (:point (:event (z/node (left-leaf  zipper))))
+          right-point (:point (:event (z/node (right-leaf zipper))))
+          event-point (:point event)
+          parabola-left (par/parabola-from-focuspoint-and-directrix-y left-point (:y event-point))
+          parabola-right (par/parabola-from-focuspoint-and-directrix-y right-point (:y event-point))
+          parabola (par/subtract parabola-left parabola-right)
+          zeros (par/find-zero-of-parabola parabola)
+          x (if (&lt; (:y left-point) (:y right-point)) (second zeros) (first zeros))]
+      (if (&lt; (:x (:point event)) x)
+        (recur (z/down zipper) event)
+        (recur (z/right (z/down zipper)) event)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn find-parabola-for-deletion
+  [zipper event]
+  (first (drop-while #(not= event (:event %)) (repeatedly (z/next zipper)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check that the leafs to the left and the right of a newly created tree node exist and are different.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circle-points-valid?
+  [ll rl]
+  (not (or (nil? ll) (nil? rl) (= (:point (:event (z/node ll))) (:point (:event (z/node rl)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the intersections of the edges of the left and right parents of a new tree node if they exist.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circle-intersection
+  [lp rp ll rl]
+  (when (circle-points-valid? ll rl)
+    (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if the event at the zipper position has a circle event and return it.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn check-circle
+  [zipper sweep-y]
+  (let [lp (left-parent zipper)
+        rp (right-parent zipper)
+        ll (left-leaf lp)
+        rl (right-leaf rp)]
+    (let [intersection (circle-intersection lp rp ll rl)]
+      (when (not (nil? intersection))
+        (let [distance (p/distance (:point (:event (z/node ll))) intersection)
+              circle-y (- (:y intersection) distance)]
+          (when (&lt; circle-y sweep-y)
+            (event (p/point (:x intersection) circle-y) :circle)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create TreeNode structure for representing a new site event. If p1 is the parabola that is to be split the created tree is as follows:                (p1)              //    \\            (p1)    (p1)           //   \\         (p1)   (p2)</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn create-subtree
+  &quot;Create TreeNode structure for representing a new site event.
+  If p1 is the parabola that is to be split the created tree is as follows:
+                 (p1)
+               //    \\\\
+             (p1)    (p1)
+            //   \\\\
+          (p1)   (p2)&quot;
+  [node event parabola]
+  (let [start (start-of-edge (:point (:event (z/node parabola))) event)]
+    (treenode (:event node)
+              (edge start (:point event) (:point (:event node)))
+              (treenode (:event node)
+                        (edge start (:point (:event node)) (:point event))
+                        (treenode (:event node))
+                        (treenode event))
+              (treenode (:event node)))))</pre>
+			</div>
+			<div class="box section">
+				<p>From the zipper where new nodes have been added get the zippers moved to these nodes.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn new-nodes
+  [zipper]
+  (list
+    (z/down  (z/down zipper))
+    (z/right (z/down zipper))))</pre>
+			</div>
+			<div class="box section">
+				<p>A new site event causes the tree to be updated and returns the new nodes to check for circle events.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-parabola
+  [tree event]
+  (if (nil? tree)
+    [(treenode event) (list)]
+    (let [parabola (find-parabola-for-insert (make-zipper tree) event)
+          updated (z/edit parabola (fn [n] (create-subtree n event parabola)))]
+      [(z/root updated) (new-nodes updated)])))</pre>
+			</div>
+			<div class="box section">
+				<p>TODO this needs to be implemented</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn remove-parabola
+  [tree point]
+  [tree (list)])</pre>
+			</div>
+			<div class="box section">
+				<p>Process first event in events and update event queue and tree.</p><p>TODO loop this for all events</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn step
+  [v]
+  (let [e (first (:events v))
+        events (rest (:events v))
+        tree (:tree v)
+        [new-tree new-nodes] (if (= :site (:type e))
+                               (add-parabola tree e)
+                               (remove-parabola tree e))
+        new-events (filter #(not (nil? %)) (map #(check-circle % (:y (:point e))) new-nodes))]
+    (Voronoi.
+      (:points v)
+      (sort-events (concat events new-events))
+      new-tree
+      (+ 1 (:step v)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi
+  [points]
+  (Voronoi. (sort-points points) (events points) nil 0))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

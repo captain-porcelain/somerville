@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.triangle</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.triangle
+  (:require
+    [somerville.commons :as sc]
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.point :as point]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.circle :as circle]
+    [taoensso.timbre :as log]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Triangle [p1 p2 p3]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Triangle of points\\n&quot;
+                              (c/out p1 (inc i)) &quot;\\n&quot; (c/out p2 (inc i)) &quot;\\n&quot; (c/out p3 (inc i))))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle
+  [p1 p2 p3]
+  (Triangle. p1 p2 p3))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the area of a 2d triangle.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn area
+  [t]
+  (/
+    (Math/abs
+      (-
+       (* (- (:x (:p1 t)) (:x (:p3 t)))
+          (- (:y (:p2 t)) (:y (:p1 t))))
+       (* (- (:x (:p1 t)) (:x (:p2 t)))
+          (- (:y (:p3 t)) (:y (:p1 t))))))
+    2))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the height of the triangle. Considers the line from p1 to p2 the base.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn height
+  [t]
+  (/ (* 2 (area t)) (point/distance (:p1 t) (:p2 t))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create 4 new triangles from one triangle, each havin half the side length. Works on 3d triangles and utilizes spherical interpolation for the new points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn subdivide
+  [t]
+  (let [m1 (point/slerp (:p1 t) (:p2 t) 0.5)
+        m2 (point/slerp (:p2 t) (:p3 t) 0.5)
+        m3 (point/slerp (:p3 t) (:p1 t) 0.5)]
+    (list (triangle (:p1 t) m1 m3) (triangle (:p2 t) m2 m1) (triangle (:p3 t) m3 m2) (triangle m1 m2 m3))))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the circumcenter of a triangle </p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circumcenter
+  [t]
+  (let [i1 (line/intersect (line/bisector (:p1 t) (:p2 t)) (line/bisector (:p2 t) (:p3 t)))
+        i2 (line/intersect (line/bisector (:p1 t) (:p2 t)) (line/bisector (:p3 t) (:p1 t)))
+        i3 (line/intersect (line/bisector (:p2 t) (:p3 t)) (line/bisector (:p3 t) (:p1 t)))]
+    (if (nil? i1) (if (nil? i2) i3 i2) i1)))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the circumcircle of a triangle </p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn circumcircle
+  [t]
+  (let [center (circumcenter t)]
+    (do (when (nil? center) (log/info (str &quot;Can't calculate circumcenter for &quot; (c/out t)))))
+    (circle/circle center (point/distance center (:p1 t)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Helper for check if point is inside triangle.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sign
+  [p1 p2 p3]
+  (- (* (- (:x p1) (:x p3)) (- (:y p2) (:y p3))) (* (- (:x p2) (:x p3)) (- (:y p1) (:y p3)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if point is inside triangle. See https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn inside?
+  [t p]
+  (let [d1 (sign p (:p1 t) (:p2 t))
+        d2 (sign p (:p2 t) (:p3 t))
+        d3 (sign p (:p3 t) (:p1 t))
+        has-neg (or (&lt; d1 0) (&lt; d2 0) (&lt; d3 0))
+        has-pos (or (&gt; d1 0) (&gt; d2 0) (&gt; d3 0))]
+    (not (and has-pos has-neg))))</pre>
+			</div>
+			<div class="box section">
+				<p>Move all points of triangle</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn move
+  [t p]
+  (triangle (point/add (:p1 t) p) (point/add (:p2 t) p) (point/add (:p3 t) p)))</pre>
+			</div>
+			<div class="box section">
+				<p>Scale all points of triangle</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn scale
+  [t s]
+  (triangle (point/scale (:p1 t) s) (point/scale (:p2 t) s) (point/scale (:p3 t) s)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

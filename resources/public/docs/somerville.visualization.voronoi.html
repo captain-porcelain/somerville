@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.visualization.voronoi</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.visualization.voronoi
+  (:require
+    [somerville.geometry.line :as line]
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.voronoi :as voronoi]
+    [somerville.color.color :as color]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def width 1200)
+(def height 800)</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def colors
+  {:background     (color/rgba  10  10  10)
+   :point-voronoi  (color/rgba   0 204 102)
+   :point-delaunay (color/rgba 247  92   3)
+   :line-voronoi   (color/rgba 241 196  15)
+   :line-delaunay  (color/rgba 217  60 110)})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Data Handling</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def p1 (p/point 200 250))
+(def p2 (p/point 500 450))
+(def p3 (p/point 100 500))
+(def p4 (p/point 250 50))
+(def points (reagent/atom (list p1 p2 p3 p4)))
+(def sites (atom (voronoi/voronoi @points 0 0 width height)))
+(def highlighted (atom nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Add another point to the diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-point!
+  [point]
+  (reset! points (cons point @points))
+  (reset! sites (voronoi/voronoi @points 0 0 width height)))</pre>
+			</div>
+			<div class="box section">
+				<p>Clear the diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn clear!
+  []
+  (reset! points (list))
+  (reset! sites (voronoi/voronoi @points 0 0 width height)))</pre>
+			</div>
+			<div class="box section">
+				<p>Print debugging informantion</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn debug!
+  []
+  (log/info (c/out @sites)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Drawing Functionality</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-intersection
+  [i]
+  (quil/stroke 0 0 255)
+  (quil/fill 0 0 255)
+  (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-bisector
+  [bisector]
+  (let [y0 (line/solve-line-at (:line bisector) 0)
+        y1 (line/solve-line-at (:line bisector) width)]
+    (quil/stroke 0 255 0)
+    (quil/fill 0 255 0)
+    (quil/line 0 y0 width y1)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-site
+  [site]
+  (quil/stroke 255 0 0)
+  (quil/fill 255 0 0)
+  (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4)
+  ;(dorun
+  ;  (for [b (:bisectors site)]
+  ;    (draw-bisector b)))
+  (dorun
+      (for [i (:intersections site)]
+        (draw-intersection i))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-cell
+  [cell]
+  (dorun
+    (when (&gt; 5 (p/distance (:point cell) (p/point (quil/mouse-x) (quil/mouse-y))))
+      (reset! highlighted cell)))
+  (dorun
+    (for [l (:lines cell)]
+      (let []
+        (quil/stroke 255 255 0)
+        (quil/fill 255 255 0)
+        (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))
+  (dorun
+    (when (not (nil? @highlighted))
+     (for [l (:lines @highlighted)]
+        (let []
+          (quil/stroke 255 255 255)
+          (quil/fill 255 255 255)
+          (quil/rect (- (:x (:point @highlighted)) 2) (- (:y (:point @highlighted)) 2) 4 4)
+          (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l))))))))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil repeatedly.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw
+  []
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
+  (dorun
+    (for [site (:points @sites)]
+      (draw-site site)))
+  (dorun
+    (for [site (:cells @sites)]
+      (draw-cell site))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Event Handling</pre>
+			</div>
+			<div class="box section">
+				<p>Handle releasing mouse buttons.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-released
+  []
+  (add-point! (p/point (quil/mouse-x) (quil/mouse-y))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn key-pressed []
+  &quot;Trigger actions on key presses.&quot;
+  (case (quil/key-as-keyword)
+    :c (clear!)
+    :d (debug!)
+    (log/info (str &quot;pressed key &quot; (quil/key-as-keyword)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+App Setup</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil once before drawing</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn setup
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 10))</pre>
+			</div>
+			<div class="box section">
+				<p>Initialize Quil sketch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn init
+  [canvas-id]
+  (quil/defsketch voronoi-sketch
+    :host &quot;hostelement&quot;
+    :setup setup
+    :draw draw
+    :size [width height]
+    :mouse-released mouse-released
+    :key-pressed key-pressed))</pre>
+			</div>
+			<div class="box section">
+				<p>Show information about usage.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn usage
+  [props]
+  [:div
+   [:h2 &quot;Voronoi by intersecting&quot;]
+   [:h3 &quot;Usage&quot;]
+   [:span
+    &quot;Press&quot;
+    [:ul
+     [:li &quot;left mouse button to add point&quot;]
+     [:li &quot;c to clear diagram&quot;]
+     [:li &quot;d to print debugging info&quot;]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Show information current settings.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn settings
+  [props]
+  [:div
+   [:h3 &quot;Settings&quot;]
+   [:span
+    [:ul
+     [:li (str &quot;Count points: &quot; (count @points))]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the basic ui for this visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ui
+  [props]
+  [:div {:class &quot;row&quot;}
+   [:div {:id &quot;hostelement&quot; :class &quot;column left&quot; :on-load init}]
+   [:div {:class &quot;column right&quot;}
+    [usage]
+    [settings]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Render html and canvas for terrain visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visualize
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

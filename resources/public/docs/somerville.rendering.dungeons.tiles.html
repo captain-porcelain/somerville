@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rendering.dungeons.tiles</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>Provides the facilities to manipulate images</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rendering.dungeons.tiles
+  (:import
+    [java.awt Graphics2D]
+    [java.awt.image BufferedImage])
+  (:require
+    [taoensso.timbre :as log]
+    [somerville.commons :as commons]
+    [somerville.rendering.resources :as resources]
+    [somerville.rendering.image :as image]
+    [somerville.maps.grid :as grid]))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate size of resulting image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn image-size-rect
+  [tile-names tileset]
+  (let [tile-size (image/size-resource (str &quot;tiles/rect/&quot; tileset &quot;/00000000.png&quot;))]
+    [(* (count (first tile-names)) (:width tile-size))
+    (* (count tile-names) (:height tile-size))
+    (:width tile-size)
+    (:height tile-size)]))</pre>
+			</div>
+			<div class="box section">
+				<p>Get size of one hex tile.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tile-size-hex
+  [tileset]
+  (image/size-resource (str &quot;tiles/hex/&quot; tileset &quot;/000000.png&quot;)))</pre>
+			</div>
+			<div class="box section">
+				<p>List available tilesets.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tilesets
+  [grid-type]
+  (resources/list-resources (str &quot;tiles/&quot; grid-type)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tile-type
+  [filename]
+  (first (clojure.string/split (first (clojure.string/split filename #&quot;\\.&quot;)) #&quot;-&quot;)))</pre>
+			</div>
+			<div class="box section">
+				<p>Load all tiles in a tileset.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn load-tile-types
+  [tileset grid-type]
+  (map #(vector (tile-type %) (str &quot;tiles/&quot; grid-type &quot;/&quot; tileset &quot;/&quot; %)) (sort (resources/list-resources (str &quot;tiles/&quot; grid-type &quot;/&quot; tileset)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Load all tiles in a tileset.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn load-tiles-map
+  [tileset grid-type]
+  (into {} (map #(vector (first (first %)) (map second %)) (partition-by first (load-tile-types tileset grid-type)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Load all tiles in a tileset.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn load-tiles
+  [tileset grid-type]
+  (into {} (map (fn [[k v]] [k (map #(image/load-image-resource %) v)]) (load-tiles-map tileset grid-type))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a new image to hold the finished tiles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn new-image
+  [width height]
+  (BufferedImage. width height BufferedImage/TYPE_INT_ARGB))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn place-tiles-rect
+  [tiles tile-names ^Graphics2D graphics ^Integer width ^Integer height]
+  (for [y (range (count tile-names))
+        x (range (count (first tile-names)))]
+    (let [w (int (* x width))
+          h (int (* y height))
+          tn (nth (nth tile-names y) x)
+          t (rand-nth (get tiles tn))]
+      (if (nil? t)
+        (log/info (str &quot;Missing tile &quot; tn))
+        (.drawImage graphics t w h nil)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Render rect tiles into one image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-tiles-rect
+  [tile-names tileset imagename]
+  (let [tiles (load-tiles tileset &quot;rect&quot;)
+        [width height tw th] (image-size-rect tile-names tileset)
+        img ^BufferedImage (new-image width height)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (dorun (place-tiles-rect tiles tile-names graphics tw th))
+        tmp (.dispose graphics)]
+    (image/write-image imagename img)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn place-tiles-hex
+  [tiles tile-names ^Graphics2D graphics ^Integer width ^Integer height]
+  (for [y (range (count tile-names))
+        x (range (count (first tile-names)))]
+    (let [w (int (* x 3 (/ width 4)))
+          h (int (* y height))
+          h (if (even? x) (int (+ h (/ height 2))) h)
+          tn (nth (nth tile-names y) x)
+          t (rand-nth (get tiles tn))]
+      (if (nil? t)
+        (log/info (str &quot;Missing tile &quot; tn))
+        (.drawImage graphics t w h nil)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Render hex tiles into one image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-tiles-hex
+  [tile-names tileset imagename]
+  (let [tiles (load-tiles tileset &quot;hex&quot;)
+        tilesize (tile-size-hex tileset)
+        iw (* (:width tilesize) (count (first tile-names)))
+        ih (* (:height tilesize) (inc (count tile-names)))
+        img ^BufferedImage (new-image iw ih)
+        graphics ^Graphics2D (.createGraphics img)
+        tmp (dorun (place-tiles-hex tiles tile-names graphics (:width tilesize) (:height tilesize)))
+        tmp (.dispose graphics)]
+    (image/write-image imagename img)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create the name of the tile file to draw this cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tile-name-rect
+  [g c]
+  (let [ce (grid/linked-cell g c :east)
+        cn (grid/linked-cell g c :north)
+        cw (grid/linked-cell g c :west)
+        cs (grid/linked-cell g c :south)]
+    (str
+      (if (or (not (commons/in? :south (:links c))) (not (commons/in? :west  (:links c))) (not (commons/in? :west (:links cs))) (not (commons/in? :south (:links cw)))) &quot;1&quot; &quot;0&quot;)
+      (if (commons/in? :west  (:links c)) &quot;0&quot; &quot;1&quot;)
+      (if (or (not (commons/in? :west  (:links c))) (not (commons/in? :north (:links c))) (not (commons/in? :west (:links cn))) (not (commons/in? :north (:links cw)))) &quot;1&quot; &quot;0&quot;)
+      (if (commons/in? :north (:links c)) &quot;0&quot; &quot;1&quot;)
+      (if (or (not (commons/in? :north (:links c))) (not (commons/in? :east  (:links c))) (not (commons/in? :east (:links cn))) (not (commons/in? :north (:links ce)))) &quot;1&quot; &quot;0&quot;)
+      (if (commons/in? :east  (:links c)) &quot;0&quot; &quot;1&quot;)
+      (if (or (not (commons/in? :east  (:links c))) (not (commons/in? :south (:links c))) (not (commons/in? :east (:links cs))) (not (commons/in? :south (:links ce)))) &quot;1&quot; &quot;0&quot;)
+      (if (commons/in? :south (:links c)) &quot;0&quot; &quot;1&quot;))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create the name of the tile file to draw this cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tile-name-hex
+  [g c]
+  (str
+    (if (commons/in? :south-west  (:links c)) &quot;0&quot; &quot;1&quot;)
+    (if (commons/in? :south       (:links c)) &quot;0&quot; &quot;1&quot;)
+    (if (commons/in? :south-east  (:links c)) &quot;0&quot; &quot;1&quot;)
+    (if (commons/in? :north-east  (:links c)) &quot;0&quot; &quot;1&quot;)
+    (if (commons/in? :north       (:links c)) &quot;0&quot; &quot;1&quot;)
+    (if (commons/in? :north-west  (:links c)) &quot;0&quot; &quot;1&quot;)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create the tile names for each cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tile-name-walker
+  [g c]
+  (grid/set-in g (:x c) (:y c) (assoc c :tile (if (= :rect (:grid-type g)) (tile-name-rect g c) (tile-name-hex g c)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create representation of grid with tiles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn tiles
+  [g]
+  (let [g2 (grid/walk g tile-name-walker)]
+    (for [y (range (:height g2))]
+      (for [x (range (:width g2))]
+        (:tile (grid/get-from g2 x y))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Render grid with tiles to image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn render-grid
+  [g tileset imagename]
+  (if (= :rect (:grid-type g))
+    (render-tiles-rect (tiles g) tileset imagename)
+    (render-tiles-hex  (tiles g) tileset imagename)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.polygon</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.polygon
+  (:require
+    [somerville.commons :as commons]
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as l]
+    [taoensso.timbre :as log]))</pre>
+			</div>
+			<div class="box section">
+				<p>Define a polygon as a list of lines and an optional center. This polygon is specifically used for calculating visibility.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Polygon2 [lines center]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Polygon of lines:\\n&quot; (clojure.string/join &quot;\\n&quot; (map #(if (nil? %) &quot;NIL&quot; (c/out % (inc i))) lines))))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get a line from two points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn polygon
+  ([lines center]
+   (Polygon2. lines center))
+  ([lines]
+   (Polygon2. lines nil)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a polygon from a list of points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn from-points
+  ([points center]
+   (polygon (map #(l/line %1 %2) points (concat (rest points) (list (first points)))) center))
+  ([points]
+   (from-points points nil)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create list of points in polygon.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-points
+  [poly]
+  (map :p1 (:lines poly)))</pre>
+			</div>
+			<div class="box section">
+				<p>Scale polygon by factor.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn scale
+  [poly factor]
+  (from-points (map #(p/scale % factor) (to-points poly))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================================================================
+General Helpers</pre>
+			</div>
+			<div class="box section">
+				<p>Intersect a polygon with a line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect
+  [polygon line]
+  (filter #(not (nil? %)) (map #(l/intersect % line) (:lines polygon))))</pre>
+			</div>
+			<div class="box section">
+				<p>Intersect a polygon with a line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect-segments
+  [polygon line]
+  (distinct (sort (filter #(not (nil? %)) (map #(l/intersect-segments % line) (:lines polygon))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a point is on some line of a polygon.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn on-polygon?
+  [polygon point]
+  (&lt; 0 (count (filter #(l/point-on-segment? % point) (:lines polygon)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if point is inside the polygon.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn point-inside-polygon?
+  [polygon point]
+  (or
+    (on-polygon? polygon point)
+    (= 0 (count (intersect-segments polygon (l/line (:center polygon) point))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn shorten-line-int
+  [polygon line]
+  (let [intersections (intersect-segments polygon line)]
+    (case (count intersections)
+      0 (if (and (point-inside-polygon? polygon (:p1 line)) (point-inside-polygon? polygon (:p2 line))) line nil)
+      1 (l/line (first (filter #(point-inside-polygon? polygon %) (list (:p1 line) (:p2 line)))) (first intersections))
+      2 (l/line (nth intersections 0) (nth intersections 1))
+      line)))</pre>
+			</div>
+			<div class="box section">
+				<p>Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn shorten-line
+  [polygon line]
+  (let [s (shorten-line-int polygon line)]
+    (when-not (= (:p1 s) (:p2 s)) s)))</pre>
+			</div>
+			<div class="box section">
+				<p>Worker function for recursively calculating the signed area of a 2d polygon.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn- signed-area-impl
+  [points area]
+  (if (&lt; (count points) 2)
+    (/ area 2)
+    (let [xiyi1 (* (:x (first points)) (:y (second points)))
+          xi1yi (* (:x (second points)) (:y (first points)))
+          a (- xiyi1 xi1yi)]
+      (recur (rest points) (+ area a)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate signed area of a 2d polygon.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn signed-area
+  [poly]
+  (let [points (to-points poly)]
+    (signed-area-impl (conj points (first points)) 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate the centroid of a 2d polygon.</p><p>The algorithm was found at http://paulbourke.net/geometry/polyarea/</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn- centroid-x-y
+  [points cx cy]
+  (if (&lt; (count points) 2)
+    [cx cy]
+    (let [xiyi1 (* (:x (first points)) (:y (second points)))
+          xi1yi (* (:x (second points)) (:y (first points)))
+          sub (- xiyi1 xi1yi)
+          xixi1 (+ (:x (first points)) (:x (second points)))
+          yiyi1 (+ (:y (first points)) (:y (second points)))]
+      (recur (rest points) (+ cx (* xixi1 sub)) (+ cy (* yiyi1 sub))))))</pre>
+			</div>
+			<div class="box section">
+				<p>calculate the centroid of a 2 dimensional polygon</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn centroid-2d
+  [poly]
+  (let [points (to-points poly)
+        a (signed-area poly)
+        [cx cy] (centroid-x-y (conj points (first points)) 0 0)]
+    (p/point (/ cx (* 6 a)) (/ cy (* 6 a)))))</pre>
+			</div>
+			<div class="box section">
+				<p>calculate the centroid of a 3 dimensional polygon</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn centroid-3d
+  [polygon]
+  (let [points (to-points polygon)
+        xs (map :x points)
+        ys (map :y points)
+        zs (map :z points)]
+    (p/point (c/avg xs) (c/avg ys) (c/avg zs))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================================================================
+adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-combine-complex-polygons</pre>
+			</div>
+			<div class="box section">
+				<p>Sort points on a line with the start and end points that line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sort-points-on-line
+  [l ps]
+  (concat (cons (:p1 l) (sort-by #(p/distance (:p1 l) %) ps)) (list (:p2 l))))</pre>
+			</div>
+			<div class="box section">
+				<p>Given a line and points on that line create a map holding all points as keys and a list of one point that is next to that point as values.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn outline-split
+  [l ps]
+  (loop [ps (sort-points-on-line l ps)
+         m {}]
+    (if (&lt;= (count ps) 1)
+      m
+      (recur (rest ps) (assoc m (first ps) (list (first (rest ps))))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a graph that reflects the outline of two polygons with all intersections between them.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn outline-graph
+  [poly1 poly2]
+  (apply merge-with concat
+         (concat
+           (map #(outline-split % (intersect-segments poly2 %)) (:lines poly1))
+           (map #(outline-split % (intersect-segments poly1 %)) (:lines poly2)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Sort the outline candidates by angle.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn outline-angle-candidates
+  [previous current candidates]
+  (sort-by second (map #(vector % (p/angle-dot current previous %)) candidates)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the next point in the outline.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn next-outline-point
+  [previous current candidates]
+  (if (nil? previous)
+    (first candidates)
+    (first (last (outline-angle-candidates previous current candidates)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Iterate through graph to get the outline.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn build-outline
+  [graph start]
+  (loop [g graph
+         p (next-outline-point nil start (get graph start))
+         ps (vector start)]
+    (if (= start p)
+      {:outline (from-points ps) :remaining g}
+      (recur (dissoc g p) (next-outline-point (last ps) p (get g p)) (conj ps p)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a polygon that outlines two polygons.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn outline
+  [poly1 poly2]
+  (let [graph (outline-graph poly1 poly2)
+        points (concat (to-points poly1) (to-points poly2))
+        start (p/low-left points)]
+    (:outline (build-outline graph start))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

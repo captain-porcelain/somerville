@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rendering.image</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>Provides the facilities to manipulate images</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rendering.image
+  (:import
+    [java.awt Color]
+    [java.awt.image BufferedImage]
+    [javax.imageio ImageIO]
+    [java.io File])
+  (:require
+    [somerville.color.color :as color]
+    [clojure.java.io :as io]))</pre>
+			</div>
+			<div class="box section">
+				<p>try to improve performance by having hints when reflection is needed.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(set! *warn-on-reflection* true)</pre>
+			</div>
+			<div class="box section">
+				<p>Load an image file containing a map from disc.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn load-image
+  [^String filename]
+  (ImageIO/read (File. filename)))</pre>
+			</div>
+			<div class="box section">
+				<p>Load an image file containing a map from jar resources.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn load-image-resource
+  [^String filename]
+  (ImageIO/read (io/resource filename)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get size of image from disc.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn size
+  [^String filename]
+  (let [i ^BufferedImage (load-image filename)]
+    {:width (.getWidth i) :height (.getHeight i)}))</pre>
+			</div>
+			<div class="box section">
+				<p>Get size of image from jar resources.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn size-resource
+  [^String filename]
+  (let [i ^BufferedImage (load-image-resource filename)]
+    {:width (.getWidth i) :height (.getHeight i)}))</pre>
+			</div>
+			<div class="box section">
+				<p>Create new BufferedImage of given size.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-image
+  [width height]
+  (BufferedImage. width height BufferedImage/TYPE_INT_ARGB))</pre>
+			</div>
+			<div class="box section">
+				<p>Write an image file containing a map to disc.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn write-image
+  [^String filename ^BufferedImage img]
+  (ImageIO/write img &quot;png&quot; (File. filename)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a pixel is inside an image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn in-bounds-raw?
+  [^BufferedImage img [^Integer x ^Integer y]]
+  (and
+    (&lt; x (.getWidth img))
+    (&gt; x -1)
+    (&lt; y (.getHeight img))
+    (&gt; y -1)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a pixel is inside an image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn in-bounds?
+  [^BufferedImage img p]
+  (in-bounds-raw? img [(:x p) (:y p)]))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a pixel represents a free space.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn free?
+  [^BufferedImage img [^Integer x ^Integer y]]
+  (if (in-bounds-raw? img [x y])
+    (= Color/WHITE (Color. (.getRGB img x y)))
+    false))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn convert-awt
+  [^Integer c]
+  (let [col (java.awt.Color. c)]
+    (color/rgba (.getRed col) (.getGreen col) (.getBlue col) (.getAlpha col))))</pre>
+			</div>
+			<div class="box section">
+				<p>Convert rgba color into java awt Color.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn to-awt
+  [c]
+  (Color. ^Integer (int (:r c)) ^Integer (int (:g c)) ^Integer (int (:b c)) ^Integer (int (:a c))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

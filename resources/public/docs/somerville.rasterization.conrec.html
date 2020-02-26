@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.rasterization.conrec</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>See http://paulbourke.net/papers/conrec/</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.rasterization.conrec
+  (:require [somerville.maps.grid :as grid]
+            [somerville.geometry.point :as p]
+            [somerville.geometry.line :as l]
+            [somerville.geometry.commons :as c]
+            [taoensso.timbre :as log]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord TriangleHeights [p0 p1 p2 p3 p4]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Triangulation of points\\n&quot;
+                       (c/out p1 (inc i)) &quot;\\n&quot;
+                       (c/out p2 (inc i)) &quot;\\n&quot;
+                       (c/out p3 (inc i)) &quot;\\n&quot;
+                       (c/out p4 (inc i)) &quot;\\nwith center\\n&quot;
+                       (c/out p0 (inc i)) &quot;\\n&quot;))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>For a point the the 3 neighboring points with increasing x and y and create 4 triangles. The center point receives the average height value.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-heights
+  [g x y]
+  (let [z1 (:z (grid/get-from g x y))
+        z2 (:z (grid/get-from g (inc x) y))
+        z3 (:z (grid/get-from g (inc x) (inc y)))
+        z4 (:z (grid/get-from g x (inc y)))
+        z0 (/ (+ z1 z2 z3 z4) 4)
+        p0 (p/point (+ x 0.5) (+ y 0.5) z0)
+        p1 (p/point x y z1)
+        p2 (p/point (inc x) y z2)
+        p3 (p/point (inc x) (inc y) z3)
+        p4 (p/point x (inc y) z4)]
+    (TriangleHeights. p0 p1 p2 p3 p4)))</pre>
+			</div>
+			<div class="box section">
+				<p>Triangulate grid by creating 4 triangles for each point and its three neighbors.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangulation
+  [g]
+  (let [size (dec (:width g))]
+    (for [y (range size)
+          x (range size)]
+      (triangle-heights g x y))))</pre>
+			</div>
+			<div class="box section">
+				<p>Convert TriangleHeights to be relative to given height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn relative-heights
+  [triangle-heights height]
+  (let [hp (p/point 0 0 height)]
+    (map #(TriangleHeights.
+            (p/subtract (:p0 %) hp)
+            (p/subtract (:p1 %) hp)
+            (p/subtract (:p2 %) hp)
+            (p/subtract (:p3 %) hp)
+            (p/subtract (:p4 %) hp))
+         triangle-heights)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn h-case
+  [p]
+  (cond
+    (&gt; (:z p) 0) :above
+    (&lt; (:z p) 0) :below
+    :else        :on))</pre>
+			</div>
+			<div class="box section">
+				<p>Create list of case indices for each point of triangle heights.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-case-indices
+  [triangle]
+  [(h-case (:p0 triangle))
+   (h-case (:p1 triangle))
+   (h-case (:p2 triangle))
+   (h-case (:p3 triangle))
+   (h-case (:p4 triangle))])</pre>
+			</div>
+			<div class="box section">
+				<p>Collapse case indices for one triangle in the triangle heights for better comparability in case statement.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-case-old
+  [case-indices]
+  (case case-indices
+    [0 0 0] 0
+    [0 0 1] 0
+    [0 0 2] 8
+    [0 1 0] 0
+    [0 1 1] 2
+    [0 1 2] 5
+    [0 2 0] 7
+    [0 2 1] 6
+    [0 2 2] 9
+    [1 0 0] 0
+    [1 0 1] 3
+    [1 0 2] 4
+    [1 1 0] 1
+    [1 1 1] 3
+    [1 1 2] 1
+    [1 2 0] 4
+    [1 2 1] 3
+    [1 2 2] 0
+    [2 0 0] 9
+    [2 0 1] 6
+    [2 0 2] 7
+    [2 1 0] 5
+    [2 1 1] 2
+    [2 1 2] 0
+    [2 2 0] 8
+    [2 2 1] 0
+    [2 2 2] 0))</pre>
+			</div>
+			<div class="box section">
+				<p>Collapse case indices for one triangle in the triangle heights for better comparability in case statement.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-case
+  [case-indices]
+  (case case-indices
+    [:below :below :below] :no-line
+    [:below :below :on]    :no-line
+    [:below :below :above] :l2-&gt;l3
+    [:below :on    :below] :no-line
+    [:below :on    :on]    :p2-&gt;p3
+    [:below :on    :above] :p2-&gt;l3
+    [:below :above :below] :l1-&gt;l2
+    [:below :above :on]    :p3-&gt;l1
+    [:below :above :above] :l3-&gt;l1
+    [:on    :below :below] :no-line
+    [:on    :below :on]    :p3-&gt;p1
+    [:on    :below :above] :p1-&gt;l2
+    [:on    :on    :below] :p1-&gt;p2
+    [:on    :on    :on]    :p3-&gt;p1
+    [:on    :on    :above] :p1-&gt;p2
+    [:on    :above :below] :p1-&gt;l2
+    [:on    :above :on]    :p3-&gt;p1
+    [:on    :above :above] :no-line
+    [:above :below :below] :l3-&gt;l1
+    [:above :below :on]    :p3-&gt;l1
+    [:above :below :above] :l1-&gt;l2
+    [:above :on    :below] :p2-&gt;l3
+    [:above :on    :on]    :p2-&gt;p3
+    [:above :on    :above] :no-line
+    [:above :above :below] :l2-&gt;l3
+    [:above :above :on]    :no-line
+    [:above :above :above] :no-line))</pre>
+			</div>
+			<div class="box section">
+				<p>Create cases for corners of each triangle in the TriangleHeights.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-corner-cases
+  [triangle-heights]
+  (let [is (triangle-case-indices triangle-heights)
+        tc1 [(nth is 1) (nth is 0) (nth is 2)]
+        tc2 [(nth is 2) (nth is 0) (nth is 3)]
+        tc3 [(nth is 3) (nth is 0) (nth is 4)]
+        tc4 [(nth is 4) (nth is 0) (nth is 1)]]
+    [tc1 tc2 tc3 tc4]))</pre>
+			</div>
+			<div class="box section">
+				<p>Create case for each triangle in the triangle heights.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-cases
+  [triangle-heights]
+  (map triangle-case (triangle-corner-cases triangle-heights)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn x-sect
+  ; (h[p2] * xh[p1] - h[p1] * xh[p2]) / (h[p2] - h[p1])
+  [p1 p2]
+  (/
+   (- (* (:z p2) (:x p1)) (* (:z p1) (:x p2)))
+   (- (:z p2) (:z p1))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn y-sect
+  ; (h[p2] * yh[p1] - h[p1] * yh[p2]) / (h[p2] - h[p1]);
+  [p1 p2]
+  (/
+   (- (* (:z p2) (:y p1)) (* (:z p1) (:y p2)))
+   (- (:z p2) (:z p1))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect
+  [p1 p2]
+  (p/point (x-sect p1 p2) (y-sect p1 p2)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create lines for one triangle in a TriangleHeights by case.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn case-line
+  [p1 p2 p3 c]
+  (case c
+    :p1-&gt;p2 (l/line p1 p2)
+    :p2-&gt;p3 (l/line p2 p3)
+    :p3-&gt;p1 (l/line p3 p1)
+    :p1-&gt;l2 (l/line p1 (intersect p2 p3))
+    :p2-&gt;l3 (l/line p2 (intersect p3 p1))
+    :p3-&gt;l1 (l/line p3 (intersect p1 p2))
+    :l1-&gt;l2 (l/line (intersect p1 p2) (intersect p2 p3))
+    :l2-&gt;l3 (l/line (intersect p2 p3) (intersect p3 p1))
+    :l3-&gt;l1 (l/line (intersect p3 p1) (intersect p1 p2))
+    nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Get lines for each triangle inside a TriangleHeights.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn triangle-lines
+  [t]
+  (let [cases (triangle-cases t)]
+    [(case-line (:p1 t) (:p0 t) (:p2 t) (nth cases 0))
+     (case-line (:p2 t) (:p0 t) (:p3 t) (nth cases 1))
+     (case-line (:p3 t) (:p0 t) (:p4 t) (nth cases 2))
+     (case-line (:p4 t) (:p0 t) (:p1 t) (nth cases 3))]))</pre>
+			</div>
+			<div class="box section">
+				<p>Get lines for one height value from triangulation.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn height-lines
+  [triangles height]
+  (filter #(not (nil? %))
+    (loop [sets (map #(triangle-lines %) (relative-heights triangles height))
+           lines (list)]
+      (if (= 0 (count sets))
+        lines
+        (recur (rest sets) (conj lines (nth (first sets) 0) (nth (first sets) 1) (nth (first sets) 2) (nth (first sets) 3)))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn heights
+  [g]
+  (let [size (:width g)]
+    (for [y (range size)
+          x (range size)]
+      (:z (grid/get-from g x y)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line-heights
+  [g min-distance max-lines]
+  (let [hs (heights g)
+        min-value (apply min hs)
+        max-value (apply max hs)
+        distance (- max-value min-value)
+        tmp (log/info (str &quot;Distance: &quot; distance))
+        tmp (log/info (str &quot;Max Lines: &quot; max-lines))
+        step (int (/ distance max-lines))
+        step (if (&lt; step min-distance) min-distance step)
+        tmp (log/info (str &quot;Step: &quot; step))]
+    (for [i (range max-lines)]
+      (+ min-value (* (inc i) step)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get contours of preselected height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn contour-preselected
+  [g hs]
+  (let [triangles (triangulation g)]
+    (map #(hash-map :height % :lines (height-lines triangles %)) hs)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get contours of heights in given steps apart.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn contour
+  [g steps]
+  (contour-preselected g (line-heights g 1 steps)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

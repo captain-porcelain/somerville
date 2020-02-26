@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.line</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.line
+  (:require
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.point :as p]
+    [taoensso.timbre :as log]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">#?(:clj
+   (defrecord Line2 [p1 p2]
+     java.lang.Comparable
+     (java.lang.Comparable/compareTo
+       [this other]
+       (if
+         (= 0 (.compareTo (:p1 this) (:p1 other)))
+         (.compareTo (:p2 this) (:p2 other))
+         (.compareTo (:p1 this) (:p1 other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) &quot;Line from &quot; (if (nil? p1) &quot;NIL&quot; (c/out p1)) &quot; to &quot; (if (nil? p2) &quot;NIL&quot; (c/out p2))))
+     (c/out [this] (c/out this 0))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get a line from two points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">#?(:cljs
+   (defrecord Line2 [p1 p2]
+     IComparable
+     (-compare
+       [this other]
+       (if
+         (= 0 (compare (:p1 this) (:p1 other)))
+         (compare (:p2 this) (:p2 other))
+         (compare (:p1 this) (:p1 other))))
+     c/Printable
+     (c/out [this i] (str (c/indent i) &quot;Line from &quot; (if (nil? p1) &quot;NIL&quot; (c/out p1)) &quot; to &quot; (if (nil? p2) &quot;NIL&quot; (c/out p2))))
+     (c/out [this] (c/out this 0))))
+(defn line
+  [p1 p2]
+  ;(when (or (nil? p1) (nil? p2)) (throw (Exception. &quot;Can't create line with null as point.&quot;)))
+  (Line2. p1 p2))</pre>
+			</div>
+			<div class="box section">
+				<p>Get a line from two points and sort points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sorted-line
+  ([p1 p2]
+   (let [ps (sort [p1 p2])]
+     (Line2. (first ps) (second ps))))
+  ([l]
+   (sorted-line (:p1 l) (:p2 l))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get a line from the slope intercept form a * x + b.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line-from-slope
+  [a b]
+  (line (p/point 0 b) (p/point 1 (+ a b))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get line in slope intercept form f(x) = a*x + b</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn slope-intercept
+  [line]
+  (let [s (p/slope (:p1 line) (:p2 line))]
+    {:a s :b (- (:y (:p1 line)) (* s (:x (:p1 line))))}))</pre>
+			</div>
+			<div class="box section">
+				<p>A line is given by y = a*x + b. This function solves this for a given x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-line-at-sloped
+  [line x]
+  (let [si (if (nil? (:a line)) (slope-intercept line) line)]
+    (+ (* (:a si) x) (:b si))))</pre>
+			</div>
+			<div class="box section">
+				<p>For a line in parameterized form find the parameter value representing x</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parameter-by-x
+  [line x]
+  (if (= (:x (:p1 line)) (:x (:p2 line)))
+    nil
+    (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))</pre>
+			</div>
+			<div class="box section">
+				<p>For a parameterized line solve it for a given parameter</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn x-by-t
+  [line t]
+  (+ (:x (:p1 line)) (* t (- (:x (:p2 line)) (:x (:p1 line))))))</pre>
+			</div>
+			<div class="box section">
+				<p>For a parameterized line solve it for a given parameter</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn y-by-t
+  [line t]
+  (+ (:y (:p1 line)) (* t (- (:y (:p2 line)) (:y (:p1 line))))))</pre>
+			</div>
+			<div class="box section">
+				<p>For a line given by two points this function solves this for a given x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn solve-line-at
+  [line x]
+  (let [t (parameter-by-x line x)]
+    (if (nil? t)
+      nil
+      (y-by-t line t))))</pre>
+			</div>
+			<div class="box section">
+				<p>For a line given by two points this function returns the point at x.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn point-at
+  [line x]
+  (p/point x (solve-line-at line x)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if given point is on the segment of line given by the lines defining points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn point-on-segment?
+  [line point]
+  (if (c/close-to (:x (:p1 line)) (:x (:p2 line)))
+    (and
+      (c/close-to (:x (:p1 line)) (:x point))
+      (&lt;= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
+      (&gt;= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point)))
+    (and
+      (&lt;= (- (min (:x (:p1 line)) (:x (:p2 line))) 0) (:x point))
+      (&gt;= (+ (max (:x (:p1 line)) (:x (:p2 line))) 0) (:x point))
+      (&lt;= (- (min (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
+      (&gt;= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
+      (c/close-to (:y point) (solve-line-at line (:x point))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
+ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
+(and
+(&lt;= (- (first xs) c/epsilon) (:x p)) (&gt;= (+ (last xs) c/epsilon) (:x p))
+(&lt;= (- (first ys) c/epsilon) (:y p)) (&gt;= (+ (last ys) c/epsilon) (:y p)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a line is vertical.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn vertical?
+  [l]
+  (= (:x (:p1 l)) (:x (:p2 l))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if two lines are parallel.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parallel?
+  [l1 l2]
+  (try
+    (if (or (vertical? l1) (vertical? l2))
+      (and (vertical? l1) (vertical? l2))
+      (let [s1 (p/slope (:p1 l1) (:p2 l1))
+            s1 (if (nil? s1) s1 (+ 0.0 s1))
+            s2 (p/slope (:p1 l2) (:p2 l2))
+            s2 (if (nil? s2) s2 (+ 0.0 s2))]
+        (if
+          (or (nil? s1) (nil? s2))
+          (= s1 s2)
+          (c/close-to s1 s2))))
+    (catch #?(:clj Exception :cljs js/Object) e
+      (log/error &quot;Exception while checking if lines are parallel:\\n\\t&quot; l1 &quot;\\n\\t&quot; l2))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a line for the normal of a line on the first point of the line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn normal
+  [line]
+  (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
+    (Line2. (:p1 line) (p/point-at (:p1 line) (+ angle (/ Math/PI 2)) 1.0))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a line for the normal of a line on the second point of the line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn normal2
+  [line]
+  (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
+    (Line2. (:p2 line) (p/point-at (:p2 line) (+ angle (/ Math/PI 2)) 1.0))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a line parallel to the given one dist away.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parallel
+  [line dist]
+  (let [n1 (normal  line)
+        n2 (normal2 line)
+        x1 (x-by-t n1 dist)
+        y1 (y-by-t n1 dist)
+        x2 (x-by-t n2 dist)
+        y2 (y-by-t n2 dist)]
+    (Line2. (p/point x1 y1) (p/point x2 y2))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the line that bisects two points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn bisector-internal
+  [p1 p2]
+  (let [s (* -1 (/ 1 (p/slope p1 p2)))
+        m (p/midpoint p1 p2)
+        t (- (:y m) (* s (:x m)))]
+    (Line2. (p/point 0 t) (p/point 1 (+ s t)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the line that bisects two points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn bisector
+  ([p1 p2]
+   (if (= (:x p1) (:x p2))
+     (if (= (:y p1) (:y p2))
+       nil
+       (Line2. (p/point (:x p1) (/ (+ (:y p1) (:y p2)) 2)) (p/point (+ 1 (:x p1)) (/ (+ (:y p1) (:y p2)) 2))))
+     (if (= (:y p1) (:y p2))
+       (Line2. (p/point (/ (+ (:x p1) (:x p2)) 2) (:y p1)) (p/point (/ (+ (:x p1) (:x p2)) 2) (+ 1 (:y p1))))
+       (bisector-internal p1 p2))))
+  ([l]
+   (bisector (:p1 l) (:p2 l))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get intersection point of two lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect-sloped
+  [l1 l2]
+  (let [si1 (slope-intercept l1)
+        si2 (slope-intercept l2)]
+    (if (= (:a si1) (:a si2))
+      nil
+      (let [x (/ (- (:b si2) (:b si1)) (- (:a si1) (:a si2)))
+            y (solve-line-at l1 x)]
+        (p/point x y)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get intersection point of two parameterized lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect-parameterized
+  [l1 l2]
+  (let [p11x (:x (:p1 l1))
+        p11y (:y (:p1 l1))
+        p12x (:x (:p2 l1))
+        p12y (:y (:p2 l1))
+        p21x (:x (:p1 l2))
+        p21y (:y (:p1 l2))
+        p22x (:x (:p2 l2))
+        p22y (:y (:p2 l2))
+        d2y (- p22y p21y)
+        d2y (if (or (= 0.0 d2y) (= 0 d2y)) 0.000000001 d2y)
+        g (+ (- (/ (* (- p11y p21y) (- p22x p21x)) d2y) p11x) p21x)
+        h (/ (- (* (- p12x p11x) (- p22y p21y)) (* (- p12y p11y) (- p22x p21x))) d2y)
+        h (if (or (= 0.0 h) (= 0 h)) 0.00000001 h)
+        t (/ g h)]
+    (p/point (x-by-t l1 t) (y-by-t l1 t))))</pre>
+			</div>
+			<div class="box section">
+				<p>Intersect two lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect
+  [l1 l2]
+  (if (parallel? l1 l2)
+    nil
+    (if (parallel? l2 (line (p/point 0 0) (p/point 1 0)))
+      (intersect-parameterized l2 l1)
+      (intersect-parameterized l1 l2))))</pre>
+			</div>
+			<div class="box section">
+				<p>Intersect two line segments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect-segments
+  [l1 l2]
+  (let [i (intersect l1 l2)]
+    (if (not (nil? i))
+      (when (and (point-on-segment? l1 i) (point-on-segment? l2 i)) i)
+      ;nil
+      (cond
+        (= (:p1 l1) (:p1 l2)) (:p1 l1)
+        (= (:p1 l1) (:p2 l2)) (:p1 l1)
+        (= (:p2 l1) (:p1 l2)) (:p2 l1)
+        (= (:p2 l1) (:p2 l2)) (:p2 l1)
+        :else nil))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get list of intersections of one line with a list of lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cuts
+  [line lines]
+  (filter #(not (nil? %)) (map #(intersect line %) lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get list of intersections of one line with a list of lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cuts-segments
+  [line lines]
+  (filter #(not (nil? %)) (map #(intersect-segments line %) lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Scale a line by factor.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn scale
+  [l factor]
+  (line (p/scale (:p1 l) factor) (p/scale (:p2 l) factor)))</pre>
+			</div>
+			<div class="box section">
+				<p>Move all points of line</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn move
+  [t p]
+  (line (p/add (:p1 t) p) (p/add (:p2 t) p)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

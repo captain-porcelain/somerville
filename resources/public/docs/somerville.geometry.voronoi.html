@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.geometry.voronoi</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.geometry.voronoi
+  (:require
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.line :as l]
+    [somerville.geometry.point :as p]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">-----------------------------------------------------------------------------
+Section for bisector handling specific to voronoi calculation.</pre>
+			</div>
+			<div class="box section">
+				<p>Define a structure for a bisector given by the two points and the bisecting line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Bisector [p1 p2 line]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Bisector between &quot; (c/out p1) &quot; and &quot; (c/out p2) &quot; is\\n&quot;
+                       (c/out line (+ i 2)) &quot;\\n&quot;))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate all bisectors for a list of points. For each point a map with that point and the bisectors with the other points is returned.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn bisectors
+  [points]
+  (for [p1 points]
+    {:point p1
+     :bisectors (filter
+                  #(not (nil? %))
+                  (for [p2 points]
+                    (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2)))))}))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">-----------------------------------------------------------------------------
+Section for intersection handling specific to voronoi calculation.</pre>
+			</div>
+			<div class="box section">
+				<p>Define a structure for intersections of bisectors.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Intersection [intersection bisector1 bisector2]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Intersections between\\n&quot;
+                       (c/out bisector1 (+ i 2))
+                       (c/indent i) &quot;and\\n&quot;
+                       (c/out bisector2 (+ i 2))
+                       (c/indent i) &quot;is &quot; (c/out intersection) &quot;\\n&quot;))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate all intersections of one bisector with a set of bisectors.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect
+  [bisector bisectors]
+  (filter
+    #(not (nil? %))
+    (for [l1 bisectors]
+      (when-not (= bisector l1)
+        (let [i (l/intersect (:line bisector) (:line l1))]
+          (if (nil? i)
+            nil
+            (Intersection. i bisector l1)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Sort intersections by angle.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sort-intersections
+  [intersections]
+  (sort-by #(p/angle (:p1 (:bisector1 %)) (p/point 0 0) (:intersection %)) intersections))</pre>
+			</div>
+			<div class="box section">
+				<p>Given a point and its bisectors calculates all intersections of the bisectors.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn intersect-bisectors
+  [p bbox]
+  (let [bisectors (concat (:bisectors p) bbox)]
+    (assoc p :intersections (sort-intersections (reduce concat (map #(intersect % bisectors) bisectors))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Count the intersections with bisectors that are more relevant than the given one.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn count-intersections
+  [point intersection bisectors]
+  (let [dist (p/distance point intersection)
+        distances (map
+                    #(hash-map :dp (p/distance point %) :di (p/distance intersection %))
+                    (l/cuts (l/line point intersection) bisectors))
+        closer (filter #(and (&lt; (:dp %) dist) (&lt; (:di %) dist)) distances)]
+    (count closer)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if the intersection is relevant for the voronoi cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn relevant?
+  [point intersection bisectors]
+  (= 0 (count-intersections point intersection bisectors)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create lines that describe the bounding box for the voronoi</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn bounding-box
+  [bx1 by1 bx2 by2]
+  (list
+    (Bisector. (p/point bx1 (- by1 1)) (p/point bx1 (+ by1 1)) (l/line (p/point bx1 by1) (p/point bx2 by1)))
+    (Bisector. (p/point (- bx1 1) by1) (p/point (+ bx1 1) by1) (l/line (p/point bx1 by1) (p/point bx1 by2)))
+    (Bisector. (p/point (- bx2 1) by2) (p/point (+ bx2 1) by2) (l/line (p/point bx2 by1) (p/point bx2 by2)))
+    (Bisector. (p/point bx1 (- by2 1)) (p/point bx1 (+ by2 1)) (l/line (p/point bx1 by2) (p/point bx2 by2)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">-----------------------------------------------------------------------------
+Main section for creating voronois.</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Cell [point lines]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Voronoicell for the &quot; (c/out point) &quot; has the following lines:\\n&quot;
+                       (reduce str (interpose &quot;\\n&quot; (for [l lines] (c/out l (+ i 2)))))
+                       &quot;\\n&quot;))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defrecord Voronoi [points cells bx1 by1 bx2 by2]
+  c/Printable
+  (c/out [this i] (str (c/indent i) &quot;Voronoi for the points\\n&quot;
+                       (reduce str (interpose &quot;\\n&quot; (for [p points] (c/out (:point p) (+ i 2)))))
+                       &quot;\\n\\nconsists of bisectors\\n&quot;
+                       (reduce str (for [p points] (reduce str (for [b (:bisectors p)] (c/out b (+ i 2))))))
+                       &quot;\\nwith intersections at\\n&quot;
+                       (reduce str (for [p points] (reduce str (for [b (:intersections p)] (c/out b (+ i 2))))))
+                       &quot;\\nwith cells\\n&quot;
+                       (reduce str (for [cell cells] (c/out cell (+ i 2))))
+                       &quot;\\n\\n&quot;))
+  (c/out [this] (c/out this 0)))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate voronoi cell corner points from intersected bisectors.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cell-corners
+  [site]
+  (sort-by
+    #(p/angle (:point site) (p/point 0 0) %)
+    (distinct
+      (map :intersection
+           (filter
+             #(relevant? (:point site) (:intersection %) (map :line (:bisectors site)))
+             (:intersections site))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Connect a list of points into a list of lines from point to point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn connect-cell
+  [cell]
+  (map #(l/line %1 %2) cell (concat (rest cell) (list (first cell)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create cell instance from point and edges of cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cell
+  [point lines]
+  (Cell. point lines))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate a set of voronoi cells when given a set of points and a bounding box.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn voronoi
+  [points bx1 by1 bx2 by2]
+  (let [bbox (bounding-box bx1 by1 bx2 by2)
+        intersected (map #(intersect-bisectors % bbox) (bisectors points))
+        cell-edges (map connect-cell (map cell-corners intersected))
+        cells (map cell points cell-edges)]
+    (Voronoi. intersected cells bx1 by1 bx2 by2)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

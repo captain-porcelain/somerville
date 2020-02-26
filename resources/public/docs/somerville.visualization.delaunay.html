@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.visualization.delaunay</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.visualization.delaunay
+  (:require
+    [somerville.commons :as sc]
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.point :as p]
+    [somerville.geometry.sphere :as sphere]
+    [somerville.geometry.polygon :as polygon]
+    [somerville.geometry.delaunay :as delaunay]
+    [somerville.geometry.projection.stereographic :as proj]
+    [somerville.color.color :as color]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]
+    [somerville.geometry.triangle :as triangle]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def width 1200)
+(def height 800)
+(def mouse-position (atom [0 0]))
+(def position (atom [0 0]))
+(def offset-width (atom (/ width 2)))
+(def offset-height (atom (/ height 2)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def colors
+  {:background      (color/rgba  40  40  40)
+   :point-voronoi   (color/rgba 158   0  83)
+   :line-voronoi    (color/rgba 255   0 128)
+   :line-cell       (color/rgba   0 204 102)
+   :area-cell       (color/rgba   0 204 102  50)
+   :point-delaunay  (color/rgba 254  78   0)
+   :line-delaunay   (color/rgba 230 127  13)
+   :point-invalid   (color/rgba  18  53  91)
+   :line-invalid    (color/rgba  27 153 139)
+   :line-highlight  (color/rgba 255 255 255)
+   :point-highlight (color/rgba 255 255 255)
+   :point-next      (color/rgba  57   0 153)})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Data Handling</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def points (reagent/atom (list)))
+(def delaunay-triangles (atom (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height))))
+(def voronoi-lines (atom (delaunay/voronoi @delaunay-triangles)))
+(def voronoi-cells (atom (delaunay/to-cells @voronoi-lines)))
+(def draw-delaunay (reagent/atom true))
+(def draw-voronoi (reagent/atom true))
+(def draw-cells (reagent/atom false))
+(def last-point (reagent/atom nil))
+(def info (reagent/atom []))
+(def zoom (reagent/atom 1))
+(def fib-detail (reagent/atom 10))
+(def fib-points (reagent/atom []))
+(def invalidated (reagent/atom []))
+(def highlight-triangle (reagent/atom nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Increase amount of fibonacci points</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn increase-fib!
+  []
+  (swap! fib-detail inc))</pre>
+			</div>
+			<div class="box section">
+				<p>Decrease amount of fibonacci points</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decrease-fib!
+  []
+  (swap! fib-detail #(if (&lt; 2 %) (dec %) %)))</pre>
+			</div>
+			<div class="box section">
+				<p>Add another point to the diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn add-point!
+  [point]
+  (reset! points (cons point @points))
+  (reset! last-point point)
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (reset! delaunay-triangles (delaunay/add-point @delaunay-triangles point))
+  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))
+  (reset! voronoi-cells (delaunay/to-cells @voronoi-lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Remove last point</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unadd-point!
+  []
+  (reset! points (rest @points))
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
+  (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))
+  (reset! voronoi-cells (delaunay/to-cells @voronoi-lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>Cycle through triangles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn next-triangle!
+  []
+  (swap! highlight-triangle
+         #(let [c (count (:triangles @delaunay-triangles))]
+            (cond
+              (= % (dec c)) nil
+              (and (nil? %) (&lt; 0 c)) 0
+              (&lt; 0 c) (inc %)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create points for the projected fibonacci sphere.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-fibonacci-sphere!
+  []
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (reset! fib-points (map #(p/scale % 10) (map proj/to-plane (sphere/fibonacci @fib-detail)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add next fibonacci point to diagram</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn next-fibonacci-point!
+  []
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (when (&lt; 0 (count @fib-points))
+    (do
+      (add-point! (first @fib-points))
+      (swap! fib-points rest))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add remaining fibonacci points to diagram</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn remaining-fibonacci-points!
+  []
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (dorun (map add-point! @fib-points))
+  (reset! fib-points []))</pre>
+			</div>
+			<div class="box section">
+				<p>Highlight the triangles that are invalidated by the next fibonacci point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn highlight-invalidated!
+  []
+  (let [p (first @fib-points)
+        classified (map (fn [t] [(delaunay/invalidates? t p) t]) (:triangles @delaunay-triangles))
+        nok (map second (filter first classified))]
+    (reset! invalidated nok)))</pre>
+			</div>
+			<div class="box section">
+				<p>Clear the diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn clear!
+  []
+  (reset! fib-points [])
+  (reset! invalidated [])
+  (reset! highlight-triangle nil)
+  (reset! points (list))
+  (reset! voronoi-cells (list))
+  (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
+  (reset! voronoi-lines (list)))</pre>
+			</div>
+			<div class="box section">
+				<p>Reset zoom.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn reset-zoom!
+  []
+  (reset! offset-width (/ width 2))
+  (reset! offset-height (/ height 2))
+  (reset! zoom 1))</pre>
+			</div>
+			<div class="box section">
+				<p>Zoom the points</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn zoom!
+  [direction]
+  (reset! zoom (if (pos? direction) (* 0.9 @zoom) (* 1.1 @zoom))))</pre>
+			</div>
+			<div class="box section">
+				<p>Toggle drawing the delaunay triangles.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn toggle-drawing-delaunay!
+  []
+  (reset! draw-delaunay (not @draw-delaunay)))</pre>
+			</div>
+			<div class="box section">
+				<p>Toggle drawing the voronoi diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn toggle-drawing-voronoi-cells!
+  []
+  (reset! draw-cells (not @draw-cells)))</pre>
+			</div>
+			<div class="box section">
+				<p>Toggle drawing the voronoi diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn toggle-drawing-voronoi-lines!
+  []
+  (reset! draw-voronoi (not @draw-voronoi)))</pre>
+			</div>
+			<div class="box section">
+				<p>Print the points of the diagram.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn print-points!
+  []
+  (log/info &quot;Points:&quot;)
+  (dorun (map #(log/info (c/out %)) @points))
+  (log/info &quot;Cells:&quot;)
+  (dorun (map #(log/info (c/out %) &quot; angle &quot; (p/angle (:point %) (first (:points %)) (second (:points %)))) @voronoi-cells)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn debug!
+  []
+  (let [pa (p/point (quil/mouse-x) (quil/mouse-y))
+        pr (p/point (- (quil/mouse-x) @offset-width) (- (quil/mouse-y) @offset-height))
+        t (first (filter #(triangle/inside? (:t %) pr) (:triangles @delaunay-triangles)))]
+    (reset! info [(str &quot;Absolute mouse: &quot; (c/out pa))
+                  (str &quot;Relative mouse: &quot; (c/out pr))
+                  (str &quot;Triangle: &quot; (c/out t))])))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Drawing Functionality</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-point
+  [point col]
+  (let [p (p/scale point @zoom)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
+      (quil/stroke-weight 5)
+      (quil/point (+ (:x p) @offset-width) (+ (:y p) @offset-height))
+      (quil/stroke-weight 1))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a cirlce.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-circle
+  [c col]
+  (let [p (p/scale (:p c) @zoom)
+        d (* (:r c) @zoom 2)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) 40)
+      (quil/ellipse (+ (:x p) @offset-width) (+ (:y p) @offset-height) d d))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-line
+  [line col]
+  (let [l (line/scale line @zoom)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
+      (quil/line (+ (:x (:p1 l)) @offset-width) (+ (:y (:p1 l)) @offset-height) (+ (:x (:p2 l)) @offset-width) (+ (:y (:p2 l)) @offset-height)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a triangle</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-triangle
+  [t pcol lcol]
+  (draw-point (:p (:c t)) pcol)
+  (draw-line (line/line (:p1 (:t t)) (:p2 (:t t))) lcol)
+  (draw-line (line/line (:p2 (:t t)) (:p3 (:t t))) lcol)
+  (draw-line (line/line (:p3 (:t t)) (:p1 (:t t))) lcol))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a voronoi cell</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-cell
+  [cell lc la]
+  (quil/stroke-weight 2)
+  (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
+  (if (:closed cell)
+    (quil/fill (:r la) (:g la) (:b la) (:a la))
+    (quil/fill 255 255 255 0))
+  (quil/begin-shape)
+  (dorun (map #(quil/vertex (+ (:x %) @offset-width) (+ (:y %) @offset-height)) (map #(p/scale % @zoom) (:points cell))))
+  (quil/end-shape)
+  (quil/stroke-weight 1))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if the invalidated should be drawn.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-invalidated?
+  []
+  (and
+    @draw-delaunay
+    (not (nil? (first @fib-points)))
+    (&lt; 0 (count @invalidated))))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil repeatedly.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw
+  []
+  (quil/background (:r (:background colors)) (:g (:background colors)) (:b (:background colors)) (:a (:background colors)))
+  (dorun
+    (map #(draw-point % (:point-voronoi colors)) @points))
+  (when @draw-delaunay
+    (dorun
+      (map #(draw-triangle % (:point-delaunay colors) (:line-delaunay colors)) (:triangles @delaunay-triangles))))
+  (when (draw-invalidated?)
+    (do
+      (draw-point (first @fib-points) (:next-point colors))
+      (dorun
+        (map #(draw-triangle % (:line-invalid colors) (:point-invalid colors)) @invalidated))))
+  (when @draw-voronoi
+    (dorun
+      (map #(draw-line (:line %) (:line-voronoi colors)) @voronoi-lines)))
+  (when @draw-cells
+    (dorun
+      (map #(draw-cell % (:line-cell colors) (:area-cell colors)) @voronoi-cells)))
+  (when-not (nil? @highlight-triangle)
+    (do
+      (draw-circle (:c (nth (:triangles @delaunay-triangles) @highlight-triangle)) (:line-highlight colors))
+      (draw-triangle (nth (:triangles @delaunay-triangles) @highlight-triangle) (:line-highlight colors) (:point-highlight colors)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Event Handling</pre>
+			</div>
+			<div class="box section">
+				<p>calculate position change and store in atom</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-dragged
+  []
+  (case (quil/mouse-button)
+    :right (let [x (quil/mouse-x)
+                y (quil/mouse-y)
+                [old-x old-y] @mouse-position
+                p-x @offset-width
+                p-y @offset-height]
+            (reset! mouse-position [x y])
+            (reset! offset-width (+ p-x (- x old-x)))
+            (reset! offset-height (+ p-y (- y old-y))))
+    nil))</pre>
+			</div>
+			<div class="box section">
+				<p>store mouse position in atom</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-pressed
+  []
+  (case (quil/mouse-button)
+    :right (let [x (quil/mouse-x)
+                y (quil/mouse-y)]
+            (reset! mouse-position [x y]))
+    nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Handle releasing mouse buttons.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-released
+  []
+  (case (quil/mouse-button)
+    :left (add-point!
+             (p/scale
+               (p/point (- (quil/mouse-x) @offset-width) (- (quil/mouse-y) @offset-height))
+               (/ 1 @zoom)))
+    nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Handle mouse wheel events.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn mouse-wheel
+  [direction]
+  (zoom! direction))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn key-pressed []
+  &quot;Trigger actions on key presses.&quot;
+  (case (quil/key-as-keyword)
+    :c (clear!)
+    :u (unadd-point!)
+    :f (make-fibonacci-sphere!)
+    :n (next-fibonacci-point!)
+    :a (remaining-fibonacci-points!)
+    :+ (increase-fib!)
+    :- (decrease-fib!)
+    :p (print-points!)
+    :i (debug!)
+    :h (highlight-invalidated!)
+    :r (reset-zoom!)
+    :t (next-triangle!)
+    :d (toggle-drawing-delaunay!)
+    :v (toggle-drawing-voronoi-lines!)
+    :o (toggle-drawing-voronoi-cells!)
+    (log/info (str &quot;pressed key &quot; (quil/key-as-keyword)))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+App Setup</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil once before drawing</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn setup
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 10))</pre>
+			</div>
+			<div class="box section">
+				<p>Initialize Quil sketch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn init
+  [canvas-id]
+  (quil/defsketch delaunay-sketch
+    :host &quot;hostelement&quot;
+    :setup setup
+    :draw draw
+    :size [width height]
+    :mouse-dragged mouse-dragged
+    :mouse-pressed mouse-pressed
+    :mouse-released mouse-released
+    :mouse-wheel mouse-wheel
+    :key-pressed key-pressed))</pre>
+			</div>
+			<div class="box section">
+				<p>Show information about usage.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn usage
+  [props]
+  [:div
+   [:h2 &quot;Voronoi by Delaunay&quot;]
+   [:h3 &quot;Usage&quot;]
+   [:span
+    &quot;Press&quot;
+    [:ul
+     [:li &quot;left mouse button to add point&quot;]
+     [:li &quot;right mouse to move view&quot;]
+     [:li &quot;u to remove last point&quot;]
+     [:li &quot;mouse wheel to zoom&quot;]
+     [:li &quot;r to reset zoom&quot;]
+     [:li &quot;c to clear diagram&quot;]
+     [:li &quot;f to create projected fibonacci points&quot;]
+     [:li &quot;+ to increase amount of fibonacci points&quot;]
+     [:li &quot;- to decrease amount of fibonacci points&quot;]
+     [:li &quot;a to add all projected fibonacci points&quot;]
+     [:li &quot;n to add next projected fibonacci point&quot;]
+     [:li &quot;h to highlight triangles invalidated by next fibonacci point&quot;]
+     [:li &quot;i to fetch debugging information&quot;]
+     [:li &quot;p to print the points&quot;]
+     [:li &quot;t to cycle through the triangles&quot;]
+     [:li &quot;d to toggle drawing delaunay&quot;]
+     [:li &quot;v to toggle drawing voronoi lines&quot;]
+     [:li &quot;o to toggle drawing voronoi cells&quot;]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Show information current settings.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn settings
+  [props]
+  [:div
+   [:h3 &quot;Settings&quot;]
+   [:span
+    (into []
+          (concat
+            [:ul
+             [:li (str &quot;Count points: &quot; (count @points))]
+             [:li (str &quot;fibonacci details: &quot; @fib-detail)]
+             [:li (str &quot;invalidated points: &quot; (count @invalidated))]
+             [:li (str &quot;Count fibonacci points: &quot; (count @fib-points))]
+             [:li (str &quot;Last point: &quot; (if (nil? @last-point) &quot;none&quot; (c/out @last-point)))]
+             [:li (str &quot;Drawing delaunay: &quot; @draw-delaunay)]
+             [:li (str &quot;Drawing voronoi lines: &quot; @draw-voronoi)]
+             [:li (str &quot;Drawing voronoi cells: &quot; @draw-cells)]
+             [:li (str &quot;Drawing zoom: &quot; @zoom)]
+             [:li (str &quot;Highlighted: &quot; @highlight-triangle)]]
+            (map (fn [i] [:li i]) @info)))]])</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the basic ui for this visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ui
+  [props]
+  [:div {:class &quot;row&quot;}
+   [:div {:id &quot;hostelement&quot; :class &quot;column left&quot; :on-load init}]
+   [:div {:class &quot;column right&quot;}
+    [usage]
+    [settings]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Render html and canvas for terrain visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visualize
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

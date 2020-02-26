@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.maps.grid</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>Provides two dimensional grids and functions to manipulate them</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.maps.grid
+  (:require
+    [somerville.commons :as commons]
+    [taoensso.timbre :as log]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Grid Cell Access</pre>
+			</div>
+			<div class="box section">
+				<p>Check if cell is in grid and not masked.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn in-bounds?
+  ([g x y]
+   (and
+     (&lt; y (:height g))
+     (&lt; x (:width g))
+     (&lt;= 0 x)
+     (&lt;= 0 y))
+     (not (:masked (try (aget (:array g) x y) (catch #?(:clj Exception :cljs js/Object) e {:masked true})))))
+  ([g c]
+   (in-bounds? g (:x c) (:y c))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get an element from grid array.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn get-from
+  ([g w h]
+   (if (and (not (nil? w)) (not (nil? h)) (&lt; -1 w) (&lt; w (:width g)) (&lt; -1 h) (&lt; h (:height g)))
+     (aget (:array g) w h)
+     {}))
+  ([g [x y]]
+   (get-from g x y)))</pre>
+			</div>
+			<div class="box section">
+				<p>Update an element in grid array.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn set-in
+  [g w h e]
+  (aset (:array g) w h e))</pre>
+			</div>
+			<div class="box section">
+				<p>Update an element in grid array.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn set-integer
+  [g w h e]
+  (aset (:array g) w h (int e)))</pre>
+			</div>
+			<div class="box section">
+				<p>Update a cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn update-cell
+  ([g w h f]
+   (set-in g w h (f (get-from g w h))))
+  ([g c f]
+   (set-in g (:x c) (:y c) (f (get-from g (:x c) (:y c))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Grid Cell Filters</pre>
+			</div>
+			<div class="box section">
+				<p>Get all cells from grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn all-cells
+  [g]
+  (for [y (range (:height g))
+        x (range (:width g))]
+    (get-from g x y)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the dead ends in the grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn dead-ends
+  [g]
+  (filter #(= 1 (count (:links %))) (all-cells g)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the cells without neighbors in the grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn blocked-cells
+  [g]
+  (filter #(= 0 (count (:links %))) (all-cells g)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get all cell coordinates that are not masked.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unmasked-cell-coordinates
+  [g]
+  (map #(vector (:x %) (:y %)) (filter #(not (:masked %)) (all-cells g))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get all cell coordinates that are not masked.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn masked-cell-coordinates
+  [g]
+  (map #(vector (:x %) (:y %)) (filter #(:masked %) (all-cells g))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get all cell coordinates that are not masked.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unmasked-cells
+  [g]
+  (filter #(not (:masked %)) (all-cells g)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get all cell coordinates that are on the grid border and not masked</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unmasked-border-coordinates
+  [g]
+  (filter #(or (= 0 (first %)) (= 0 (second %)) (= (dec (:width g)) (first %)) (= (dec (:height g)) (second %)))
+    (unmasked-cell-coordinates g)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Grid based on two dimensional array</pre>
+			</div>
+			<div class="box section">
+				<p>Create a two dimensional grid of rectangles sized width x height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn grid-map
+  [^Integer width ^Integer height grid-type]
+  {:width width
+   :height height
+   :grid-type grid-type
+   :data-type :map
+   :array (to-array-2d (repeat width (repeat height {})))})</pre>
+			</div>
+			<div class="box section">
+				<p>Create a two dimensional grid of integers.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn integer-grid-map
+  [^Integer width ^Integer height grid-type]
+  {:width width
+   :height height
+   :grid-type grid-type
+   :data-type :int
+   :array (make-array Integer/TYPE width height)})</pre>
+			</div>
+			<div class="box section">
+				<p>Create a two dimensional grid with cells of rectangles sized width x height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn int-grid
+  [^Integer width ^Integer height grid-type]
+  (let [g (grid-map width height grid-type)
+        tmp (dorun
+              (for [y (range (:height g))
+                    x (range (:width g))]
+                (set-in g x y {:links [] :x x :y y})))]
+    g))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a two dimensional grid with cells of rectangles sized width x height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn grid
+  [^Integer width ^Integer height]
+  (int-grid width height :rect))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a two dimensional grid with cells of rectangles sized width x height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn hex-grid
+  [^Integer width ^Integer height]
+  (int-grid width height :hex))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a two dimensional grid of Integers of width x height.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn integer-grid
+  [^Integer width ^Integer height]
+  (integer-grid-map width height :rect))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Maze Building Helpers</pre>
+			</div>
+			<div class="box section">
+				<p>Get the coordinates for the linked cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn linked-cell
+  [g c link]
+  (get-from g
+    (case link
+      :east       [(inc (:x c)) (:y c)]
+      :west       [(dec (:x c)) (:y c)]
+      :south      [(:x c)       (inc (:y c))]
+      :north      [(:x c)       (dec (:y c))]
+      :north-west (if (odd? (:x c)) [(dec (:x c)) (dec (:y c))] [(dec (:x c)) (:y c)])
+      :south-west (if (odd? (:x c)) [(dec (:x c)) (:y c)]       [(dec (:x c)) (inc (:y c))])
+      :north-east (if (odd? (:x c)) [(inc (:x c)) (dec (:y c))] [(inc (:x c)) (:y c)])
+      :south-east (if (odd? (:x c)) [(inc (:x c)) (:y c)]       [(inc (:x c)) (inc (:y c))]))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the link from the coordinates of two cells.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn link-from-coordinates
+  [[x1 y1] [x2 y2] grid-type]
+  (case grid-type
+    :rect (cond
+            (and (= x1 x2) (= y1 (inc y2))) :north
+            (and (= x1 x2) (= y1 (dec y2))) :south
+            (and (= x1 (inc x2)) (= y1 y2)) :west
+            (and (= x1 (dec x2)) (= y1 y2)) :east)
+    :hex  (cond
+            (and            (= x1 x2)       (= y1 (inc y2))) :north
+            (and            (= x1 x2)       (= y1 (dec y2))) :south
+            (and (odd? x1)  (= x1 (inc x2)) (= y1 (inc y2))) :north-west
+            (and (odd? x1)  (= x1 (inc x2)) (= y1 y2))       :south-west
+            (and (odd? x1)  (= x1 (dec x2)) (= y1 (inc y2))) :north-east
+            (and (odd? x1)  (= x1 (dec x2)) (= y1 y2))       :south-east
+            (and (even? x1) (= x1 (inc x2)) (= y1 y2))       :north-west
+            (and (even? x1) (= x1 (inc x2)) (= y1 (dec y2))) :south-west
+            (and (even? x1) (= x1 (dec x2)) (= y1 y2))       :north-east
+            (and (even? x1) (= x1 (dec x2)) (= y1 (dec y2))) :south-east)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get accessible neighbors of a cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn neighbor-cells
+  [g c]
+  (if (= {} c)
+    (list)
+    (filter #(and (not (= {} (:cell %))) (in-bounds? g (:cell %)))
+    (case (:grid-type g)
+      :rect (list
+              {:direction :east  :cell (linked-cell g c :east)}
+              {:direction :west  :cell (linked-cell g c :west)}
+              {:direction :north :cell (linked-cell g c :north)}
+              {:direction :south :cell (linked-cell g c :south)})
+      :hex  (list
+              {:direction :north-east  :cell (linked-cell g c :north-east)}
+              {:direction :south-east  :cell (linked-cell g c :south-east)}
+              {:direction :north-west  :cell (linked-cell g c :north-west)}
+              {:direction :south-west  :cell (linked-cell g c :south-west)}
+              {:direction :north       :cell (linked-cell g c :north)}
+              {:direction :south       :cell (linked-cell g c :south)})))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get neighbors that have not been visited before.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unvisited-neighbors
+  [g c]
+  (filter #(and (= 0 (count (:links (:cell %)))) (not (:masked (:cell %))))
+          (neighbor-cells g c)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get neighbors that have been visited before.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visited-neighbors
+  [g c]
+  (filter #(and (&lt; 0 (count (:links (:cell %)))) (not (:masked (:cell %))))
+          (neighbor-cells g c)))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the coordinates of surrounding cells.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn surrounding-coordinates
+  [g x y]
+  (filter
+    #(in-bounds? g (first %) (second %))
+    (case (:grid-type g)
+      :rect (list [(dec x) (dec y)]
+                  [x (dec y)]
+                  [(inc x) (inc y)]
+                  [(dec x) y]
+                  [(inc x) y]
+                  [(dec x) (inc y)]
+                  [x (inc y)]
+                  [(inc x) (inc y)])
+      :hex (map #(vector (:x (:cell %)) (:y (:cell %))) (neighbor-cells g (get-from g x y))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Get the reverse of a link direction.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn reverse-link
+  [link]
+  (case link
+    :east       :west
+    :west       :east
+    :south      :north
+    :north      :south
+    :north-west :south-east
+    :south-west :north-east
+    :north-east :south-west
+    :south-east :north-west
+    nil         nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Connect grid cells.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn place-link-to
+  [g c c2]
+  (let [link (link-from-coordinates  [(:x c) (:y c)] [(:x c2) (:y c2)] (:grid-type g))]
+    [(update-cell g c  #(assoc % :links (conj (:links %) link)))
+     (update-cell g c2 #(assoc % :links (conj (:links %) (reverse-link link))))]))</pre>
+			</div>
+			<div class="box section">
+				<p>Connect grid cell to the one indicated by the link.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn place-link
+  [g c link]
+  (when-not (nil? link) (place-link-to g c (linked-cell g c link))))</pre>
+			</div>
+			<div class="box section">
+				<p>Unconnect grid cell from the on indicated by the link.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unlink
+  [g c link]
+  (when-not (nil? link)
+    (let [c2 (linked-cell g c link)
+          l1 (update-cell g c #(assoc % :links (remove #{link} (:links %))))
+          l2 (update-cell g c2 #(assoc % :links (remove #{(reverse-link link)} (:links %))))])))</pre>
+			</div>
+			<div class="box section">
+				<p>Unconnect grid cell from all connected neighbors.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn unlink-all
+  [g c]
+  (map #(unlink g c %) (:links c)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a cells should be masked.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn masked?
+  [mask c]
+  (= \\X (nth (nth mask (:y c) &quot; &quot;) (:x c) &quot; &quot;)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a walker that marks cells as masked based on a text. Each line of text represents one grid row. A X marks the cell as masked.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-mask-walker
+  [text]
+  (let [mask (clojure.string/split text #&quot;\\n&quot;)]
+    (fn [g e]
+      (update-cell g e #(assoc % :masked (masked? mask e))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Ensure that the start cell connects to outside of the grid.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-entrance
+  [g c]
+  (case (:grid-type g)
+    :rect (cond
+            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
+            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
+            (= (:x c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :west)))
+            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (conj (:links %) :east))))
+    :hex (cond
+            (= (:y c) 0)                 (update-cell g c #(assoc % :links (conj (:links %) :north)))
+            (= (:y c) (dec (:height g))) (update-cell g c #(assoc % :links (conj (:links %) :south)))
+            (= (:x c) 0)                 (update-cell g c #(assoc % :links (concat (:links %) (list :south-west :north-west))))
+            (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (concat (:links %) (list :south-east :north-east)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Make a grid sparse by eliminating dead ends until the factor of rock cells to path cells reaches the given factor.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn sparse
+  [g factor]
+  (loop [des (dead-ends g)]
+    (if (or (&gt; (/ (count (blocked-cells g)) (* (:width g) (:height g))) factor) (= 0 (count des)))
+      g
+      (let [tmp (dorun (map #(dorun (unlink-all g %)) des))]
+        (recur (dead-ends g))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">==================================================================================================================
+Grid Iterators</pre>
+			</div>
+			<div class="box section">
+				<p>Execute function for every element in grid and return grid. The function should take the grid and the current element as arguments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn walk
+  [g f]
+  (dorun
+    (for [y (range (:height g))
+          x (range (:width g))]
+      (f g (get-from g x y))))
+  g)</pre>
+			</div>
+			<div class="box section">
+				<p>Execute function for every element in grid and return walking result. The function should take the grid and the current element as arguments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn walk-result
+  [g f]
+  (for [y (range (:height g))
+        x (range (:width g))]
+    (f g (get-from g x y))))</pre>
+			</div>
+			<div class="box section">
+				<p>Execute function for every line in grid. The function should take the grid and the current row of elements as arguments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn walk-lines
+  [g f]
+  (dorun
+    (for [y (range (:height g))]
+      (f g (map #(get-from g % y) (range (:width g))))))
+  g)</pre>
+			</div>
+			<div class="box section">
+				<p>Execute function for every unmasked cell in grid. The function should take the grid, current cell and the remaining cells as arguments and return the next cell.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn iterate-all
+  [g start f]
+  (loop [remaining (unmasked-cell-coordinates g)
+         [x y] start]
+    (if (= 0 (count remaining))
+      g
+      (let [next-cell (f g (get-from g x y) remaining)]
+        (recur (remove #{next-cell} remaining) next-cell)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Build a set of new frontier cells for grid based from position w, h ignoring walls.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn frontier-in-bounds
+  [g [x y] visited]
+  (into #{}
+    (filter #(not (commons/in? % visited))
+            (map #(vector (:x (:cell %)) (:y (:cell %)))
+                 (neighbor-cells g (get-from g x y))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Build a set of new frontier cells for grid based from position w, h ignoring walls.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn frontier-rect-in-bounds
+  [g [x y] visited]
+  (into #{}
+    (filter #(not (commons/in? % visited))
+      (surrounding-coordinates g x y))))</pre>
+			</div>
+			<div class="box section">
+				<p>Build a set of new frontier cells for grid based from position w, h and ignore already visited cells.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn frontier-no-wall
+  [g [x y] visited]
+  (into #{}
+    (filter #(not (commons/in? % visited))
+            (map #(vector (:x (:cell %)) (:y (:cell %)))
+                 (filter
+                   #(commons/in? (:direction %) (:links (get-from g x y)))
+                   (neighbor-cells g (get-from g x y)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Execute funtion for every element in the grid by building a frontier set from a starting node outwards. The function should take the grid, the current element and the distance to the first cell as arguments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn flood
+  ([g f start max-distance frontier-fn]
+    (loop [frontier #{start}
+           visited #{}
+           distance 0]
+      (if (or (= 0 (count frontier)) (= distance max-distance))
+        g
+        (let [new-frontier (reduce concat (map #(frontier-fn g % visited) frontier))
+              new-visited (clojure.set/union visited frontier)
+              new-distance (inc distance)
+              tmp (dorun (map #(f g (get-from g (first %) (second %)) distance) frontier))]
+          (recur new-frontier new-visited new-distance)))))
+  ([g f start max-distance]
+   (flood g f start max-distance frontier-no-wall))
+  ([g f start]
+   (flood g f start -1 frontier-no-wall))
+  ([g f]
+   (flood g f (first (unmasked-cell-coordinates g)) -1 frontier-no-wall)))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

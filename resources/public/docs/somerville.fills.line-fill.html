@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.fills.line-fill</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				<p>Provides a simple algorithm to flood fill an area</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.fills.line-fill
+  (:require
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as l]))</pre>
+			</div>
+			<div class="box section">
+				<p>Check that itm is not in itms.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn is-not-in
+  [itm itms]
+  (nil? (some #(= itm %) itms)))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a function that can be used to partition one line into segments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn partition-fn
+  [decider-fn seed]
+  (fn [p]
+    (let [r (decider-fn @seed p)
+          tmp (if r nil (reset! seed p))]
+      r)))</pre>
+			</div>
+			<div class="box section">
+				<p>Given a point make a line with all following points up to the max value.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-line
+  [p max-x]
+  (map #(p/point % (:y p)) (take-while #(&lt;= % max-x) (iterate inc (:x p)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Given a point make a column with all following points up to the max value.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn make-column
+  [p max-y]
+  (map #(p/point (:x p) %) (take-while #(&lt;= % max-y) (iterate inc (:y p)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Take points of a line while decider-fn accepts the points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn filter-line
+  [p max-x decider-fn]
+  (let [seed (atom p)]
+    (partition-by
+      #((partition-fn decider-fn seed) %)
+      (make-line p max-x))))</pre>
+			</div>
+			<div class="box section">
+				<p>Reduce the points of a list of lines to a list of line segments.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn reduce-line
+  [line]
+  (map #(l/line (first %) (last %)) line))</pre>
+			</div>
+			<div class="box section">
+				<p>Create lines from p to max-x and max-y and map each line to a list of line segments that are acceptable.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn lineify
+  [p max-x max-y decider-fn]
+  (map
+    #(reduce-line
+       (filter-line % max-x decider-fn))
+    (make-column p max-y)))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if two lines overlap on the x axis.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn overlaps?
+  [l1 l2]
+  (let [x11 (:x (:p1 l1))
+        x12 (:x (:p2 l1))
+        x21 (:x (:p1 l2))
+        x22 (:x (:p2 l2))]
+    (or
+      (and (&lt;= x11 x21) (&lt;= x12 x22) (&gt;= x12 x21))
+      (and (&lt;= x11 x21) (&gt;= x12 x22))
+      (and (&gt;= x11 x21) (&gt;= x12 x22) (&lt;= x11 x22))
+      (and (&gt;= x11 x21) (&lt;= x12 x22)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Find first matching line from candidates that overlap line and are accepted by the decider-fn.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn select-line
+  [line candidates decider-fn]
+  (first
+    (filter
+      #(and
+         (overlaps? line %)
+         (decider-fn (:p1 line) (:p1 %)))
+      candidates)))</pre>
+			</div>
+			<div class="box section">
+				<p>From a list of candidates select the matching one and add it to a cluster.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn grow-cluster
+  [cluster lines decider-fn]
+  (let [matched (select-line (first cluster) lines decider-fn)]
+    (if (nil? matched)
+      cluster
+      (conj cluster matched))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add lines to clusters if they match or create new clusters from them otherwise.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn grow-clusters-old
+  [clusters lines decider-fn]
+  (let [updated (map #(grow-cluster % lines decider-fn) clusters)
+        matched (map first updated)
+        unmatched (filter #(is-not-in % matched) lines)]
+    (concat updated (map #(list %) unmatched))))</pre>
+			</div>
+			<div class="box section">
+				<p>Add lines to clusters if they match or create new clusters from them otherwise.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn grow-clusters
+  [clusters lines decider-fn]
+  (loop [updated-clusters (list)
+         remaining-clusters clusters
+         candidates lines]
+    (if (= 0 (count remaining-clusters))
+      (concat (reverse updated-clusters) (map #(list %) candidates))
+      (let [updated-cluster (grow-cluster (first remaining-clusters) candidates decider-fn)
+            found (first updated-cluster)]
+        (recur (conj updated-clusters updated-cluster) (rest remaining-clusters) (remove #(= found %) candidates))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate size of cluster in points.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cluster-size
+  [c]
+  (reduce + (map #(+ 1 (- (:x (:p2 %)) (:x (:p1 %)))) c)))</pre>
+			</div>
+			<div class="box section">
+				<p>Find clusters of line segments that are accepted by the decider function.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn clusters
+  [p max-x max-y decider-fn]
+  (let [lined (lineify p max-x max-y decider-fn)]
+    (loop [clusters (map #(list %) (first lined))
+           candidates (rest lined)]
+      (if (= 0 (count candidates))
+        clusters
+        (recur (grow-clusters clusters (first candidates) decider-fn) (rest candidates))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a point is in a line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn in-line?
+  [p line]
+  (and
+    (=  (:y p) (:y (:p1 line)))
+    (&gt;= (:x p) (:x (:p1 line)))
+    (&lt;= (:x p) (:x (:p2 line)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Check if a point is in a cluster.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn in-cluster?
+  [p cluster]
+  (= true (some true? (map #(in-line? p %) cluster))))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate weight of one line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn line-weight
+  [line]
+  (let [length (+ 1 (- (:x (:p2 line)) (:x (:p1 line))))
+        wx (reduce + (take length (iterate inc (:x (:p1 line)))))
+        wy (* length (:y (:p1 line)))]
+    {:wx wx :wy wy}))</pre>
+			</div>
+			<div class="box section">
+				<p>Calculate center point for a cluster.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn cluster-center
+  [cluster]
+  (let [weights (map line-weight cluster)
+        wx (reduce + (map :wx weights))
+        wy (reduce + (map :wy weights))
+        c (cluster-size cluster)]
+    (p/point (int (/ wx c)) (int (/ wy c)))))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

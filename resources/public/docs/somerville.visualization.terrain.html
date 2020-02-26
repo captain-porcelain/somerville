@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.visualization.terrain</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.visualization.terrain
+  (:require
+    [somerville.geometry.commons :as c]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.point :as point]
+    [somerville.color.color :as color]
+    [somerville.maps.terrain.loki :as loki]
+    [somerville.rasterization.conrec :as conrec]
+    [taoensso.timbre :as log]
+    [quil.core :as quil :include-macros true]
+    [reagent.core :as reagent]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def width 1200)
+(def height 800)</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def colors
+  {:background  (color/rgba  10  10  10)
+   :line-low    (color/rgba 241 196  15)
+   :line-high   (color/rgba 217  60 110)})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Data Handling</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def loki-detail (reagent/atom 3))
+(def loki-config (atom (loki/default-config @loki-detail)))
+(def world (atom nil))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def contour-steps (reagent/atom 5))
+(def contours (atom nil))
+(def line-colors (reagent/atom (list (:line-low colors) (:line-high colors))))</pre>
+			</div>
+			<div class="box section">
+				<p>Recreate list of line colors fitting to contour lines.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn recreate-line-colors!
+  []
+  (reset! line-colors (color/color-steps (:line-low colors) (:line-high colors) (count @contours))))</pre>
+			</div>
+			<div class="box section">
+				<p>Recreate the world.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn recreate-world!
+  []
+  (log/info &quot;Create terrain&quot;)
+  (reset! loki-config (loki/default-config @loki-detail))
+  (reset! world (loki/world @loki-config))
+  (reset! contours (conrec/contour @world @contour-steps))
+  (recreate-line-colors!)
+  (log/info &quot;Done&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Recreate the contouring.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn recreate-contour!
+  []
+  (log/info &quot;Create contour&quot;)
+  (reset! contours (conrec/contour @world @contour-steps))
+  (recreate-line-colors!)
+  (log/info &quot;Done&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Increase the detail settings for loki.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn increase-detail!
+  []
+  (swap! loki-detail inc)
+  (log/info &quot;Loki details set to&quot; @loki-detail))</pre>
+			</div>
+			<div class="box section">
+				<p>Decrease the detail settings for loki.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decrease-detail!
+  []
+  (when (&gt; @loki-detail 1)
+    (do
+      (swap! loki-detail dec)
+      (log/info &quot;Loki details set to&quot; @loki-detail))))</pre>
+			</div>
+			<div class="box section">
+				<p>Increase the step settings for conrec.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn increase-steps!
+  []
+  (swap! contour-steps inc)
+  (log/info &quot;Conrec steps set to&quot; @contour-steps))</pre>
+			</div>
+			<div class="box section">
+				<p>Decrease the detail settings for loki.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn decrease-steps!
+  []
+  (when (&gt; @contour-steps 1)
+    (do
+      (swap! contour-steps dec)
+      (log/info &quot;Conrec steps set to&quot; @contour-steps))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Drawing Functionality</pre>
+			</div>
+			<div class="box section">
+				<p>Draw one line in the given color.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-line
+  [line width height line-color]
+  (quil/stroke (:r line-color) (:g line-color) (:b line-color) (:a line-color))
+  (quil/fill (:r line-color) (:g line-color) (:b line-color) (:a line-color))
+  (quil/line
+    (- width  (:x (:p1 line)))
+    (- height (:y (:p1 line)))
+    (- width  (:x (:p2 line)))
+    (- height (:y (:p2 line)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw all lines at scale.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-height-lines
+  [lines scale width height line-color]
+  (dorun (map #(draw-line (line/scale % scale) width height line-color) lines)))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil repeatedly.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw
+  []
+  (let [bg (:background colors)]
+    (quil/background (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/stroke-weight 2)
+  (let [scale (/ width (:width @world))]
+    (dorun
+      (map #(draw-height-lines (:lines %1) scale width height %2) @contours @line-colors))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Event Handling</pre>
+			</div>
+			<div class="box section">
+				<p>Trigger actions on key presses.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn key-pressed
+  []
+  (case (quil/key-code)
+    171 (increase-detail!) ;; +
+    173 (decrease-detail!) ;; -
+    76  (decrease-steps!) ;; l
+    77  (increase-steps!) ;; m
+    67  (recreate-contour!) ;; c
+    84  (recreate-world!) ;; s
+    (log/info &quot;Pressed unhandled key with code&quot; (quil/key-code))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+App Setup</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil once before drawing</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn setup
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 10))</pre>
+			</div>
+			<div class="box section">
+				<p>Initialize Quil sketch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn init
+  [canvas-id]
+  (quil/defsketch terrain-sketch
+    :host &quot;hostelement&quot;
+    :setup setup
+    :draw draw
+    :size [width height]
+    :key-pressed key-pressed))</pre>
+			</div>
+			<div class="box section">
+				<p>Show information about usage.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn usage
+  [props]
+  [:div
+   [:h2 &quot;Terrain Visualization&quot;]
+   [:h3 &quot;Usage&quot;]
+   [:span
+    &quot;Press&quot;
+    [:ul
+     [:li &quot;t to create a new terrain&quot;]
+     [:li &quot;c to recreate contours&quot;]
+     [:li &quot;+ to increase terrain detail level&quot;]
+     [:li &quot;- to decrease terrain detail level&quot;]
+     [:li &quot;m to increase contour steps&quot;]
+     [:li &quot;p to decrease contour steps&quot;]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Show information current settings.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn settings
+  [props]
+  [:div
+   [:h3 &quot;Settings&quot;]
+   [:span
+    [:ul
+     [:li (str &quot;Loki detail: &quot; @loki-detail)]
+     [:li (str &quot;World size: &quot; (:width @world) &quot;x&quot; (:height @world))]
+     [:li (str &quot;Contour steps: &quot; @contour-steps)]
+     [:li (str &quot;Contour lines: &quot; (count @contours))]
+     [:li (str &quot;Line colors: &quot; (count @line-colors))]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the basic ui for this visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ui
+  [props]
+  [:div {:class &quot;row&quot;}
+   [:div {:id &quot;hostelement&quot; :class &quot;column left&quot; :on-load init}]
+   [:div {:class &quot;column right&quot;}
+    [usage]
+    [settings]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Render html and canvas for terrain visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visualize
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>
