@@ -7,6 +7,7 @@
     [somerville.visualization.fortune :as fortune]
     [somerville.visualization.voronoi :as voronoi]
     [somerville.visualization.tracer :as tracer]
+    [somerville.visualization.doc-image :as doc-image]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))
@@ -25,7 +26,8 @@
     [:li {:on-click #(reset! current-view "tracer")} "Tracer"]
     [:li {:on-click #(reset! current-view "delaunay")} "Voronoi by Delaunay"]
     [:li {:on-click #(reset! current-view "fortune")} "Voronoi by Fortune"]
-    [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]]
+    [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]
+    [:li {:on-click #(reset! current-view "doc-image")} "Documentation Images"]]
    [:div
     [:a {:href "docs/toc.html"} "Documentation"]]])
 
@@ -40,6 +42,7 @@
     "delaunay" [delaunay/visualize]
     "fortune" [fortune/visualize]
     "voronoi" [voronoi/visualize]
+    "doc-image" [doc-image/visualize]
     [index]))
 
 (defn framing
