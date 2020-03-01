@@ -1,4 +1,4 @@
-(ns somerville.rendering.dungeons.ascii
+(ns somerville.rendering.dungeons.grid-ascii
   (:require
     [taoensso.timbre :as log]
     [somerville.commons :as commons]
