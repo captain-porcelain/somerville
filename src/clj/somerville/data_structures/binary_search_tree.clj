@@ -2,7 +2,7 @@
 
 ;;===========================================================================================================================
 ;; Variant 1
-;; See http://eddmann.com/posts/binary-search-trees-in-clojure/<Paste>
+;; See http://eddmann.com/posts/binary-search-trees-in-clojure/
 
 (defrecord Node [el left right])
 
