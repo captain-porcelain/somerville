@@ -22,8 +22,5 @@
   "Create an arc by intersecting two line segments with a circle."
   [c l1 l2]
   (let [i1 (first (circle/intersect-line-segment c l1))
-        i2 (first (circle/intersect-line-segment c l2))
-        tmp (log/info (c/out i1))
-        tmp (log/info (c/out i2))
-        ]
+        i2 (first (circle/intersect-line-segment c l2))]
    (arc c i1 i2)))

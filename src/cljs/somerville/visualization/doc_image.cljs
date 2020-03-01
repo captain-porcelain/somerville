@@ -38,34 +38,79 @@
 ;;====================================================================================================
 ;; Data Handling
 
-(def definitions
-  (atom
-    [{:name "l1" :type :line  :object (line/line (p/point 100 100) (p/point 250 200)) :text-offset [ 10  10]}
-     {:name "l2" :type :line  :object (line/line (p/point 100 100) (p/point 200 300)) :text-offset [ 10  10]}
-     {:name "p0" :type :point :object (p/point 100 100) :text-offset [-10 -10]}
-     {:name "p1" :type :point :object (p/point 250 200) :text-offset [ 10 -10]}
-     {:name "p2" :type :point :object (p/point 200 300) :text-offset [ 10  10]}]))
+;; A flag to indicate that the user wants to download the rendered image.
+(def save? (atom false))
 
+(defn request-save
+  "Set the flag to trigger saving the image."
+  []
+  (reset! save? true))
+
+;; The atom to hold the parsed rendering definitions.
+(def definitions (atom []))
+
+;; Hold the result of parsing the definitions.
 (def error (reagent/atom "No Error"))
 
 (defn parse-object
   "Recursively parse objects. Assume that an object is defined as a vector with a keyword and parameters
   which can be translated into function calls."
-  [o]
-  (if (vector? o)
-    (case (first o)
-      :point (apply p/point (map parse-object (rest o)))
-      :line (apply line/line (map parse-object (rest o)))
-      :circle (apply circle/circle (map parse-object (rest o)))
-      :arc (apply arc/arc (map parse-object (rest o)))
-      :arc-lines (apply arc/from-lines (map parse-object (rest o)))
-      o)
-    o))
+  [o objects]
+  (cond
+    (vector? o) (case (first o)
+                  :point (apply p/point (map #(parse-object % objects) (rest o)))
+                  :line (apply line/line (map #(parse-object % objects) (rest o)))
+                  :circle (apply circle/circle (map #(parse-object % objects) (rest o)))
+                  :arc (apply arc/arc (map #(parse-object % objects) (rest o)))
+                  :arc-lines (apply arc/from-lines (map #(parse-object % objects) (rest o)))
+                  o)
+    (not (nil? (get objects o))) (get objects o)
+    :else o))
+
+(defn parse-objects
+  "Parse the object definitions and resolve references."
+  [definitions]
+  (loop [ds definitions
+         objects {}]
+    (if (= 0 (count ds))
+      objects
+      (let [[k o] (first ds)
+            po (parse-object o objects)]
+        (recur (rest ds) (assoc objects k po))))))
+
+(defn parse-renderings
+  "Parse the rendering definitions based on defined objects."
+  [renderings objects]
+  (map #(assoc % :object ((:object %) objects)) renderings))
 
 (defn parse
-  "Parse the text into definitions to draw."
+  "Parse the given text into definitions and resolve references to previous objects."
   [text]
-  (map #(update-in % [:object] parse-object) (edn/read-string text)))
+  (let [raw (edn/read-string text)
+        objects (parse-objects (:definitions raw))]
+    (parse-renderings (:renderings raw) objects)))
+
+;; The default text to display after loading the visualization.
+(def default-text
+  "{:definitions
+ {
+  :p1 [:point 100 100]
+  :p2 [:point 250 200]
+  :p3 [:point 200 300]
+  :l1 [:line :p1 :p2]
+  :l2 [:line :p1 :p3]
+  :a [:arc-lines [:circle :p1 100] :l1 :l2]
+ }
+ :renderings
+ [
+  {:name \"\" :type :line  :object :l1 :text-offset [ 10  10]}
+  {:name \"\" :type :line  :object :l2 :text-offset [ 10  10]}
+  {:name \"p1\" :type :point :object :p1 :text-offset [-10 -10]}
+  {:name \"p2\" :type :point :object :p2 :text-offset [ 10 -10]}
+  {:name \"p3\" :type :point :object :p3 :text-offset [ 10  10]}
+  {:name \"a\"  :type :arc   :object :a  :text-offset [ 45  60]}
+ ]
+}")
 
 (defn update-definitions
   "Update the definitions from text area."
@@ -115,13 +160,20 @@
   "Draw a line."
   [object]
   (let [line (:object object)
-        col (:line colors)]
+        col (:line colors)
+        tcol (:ui colors)
+        tp (p/midpoint (:p1 line) (:p2 line))
+        x (+ (:x tp) @offset-width)
+        y (+ (:y tp) @offset-height)]
     (do
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill (:r col) (:g col) (:b col) (:a col))
       (quil/stroke-weight 2)
       (quil/line (+ (:x (:p1 line)) @offset-width) (+ (:y (:p1 line)) @offset-height) (+ (:x (:p2 line)) @offset-width) (+ (:y (:p2 line)) @offset-height))
-      (quil/stroke-weight 1))))
+      (quil/stroke-weight 1)
+      (quil/stroke (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/fill (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/text (:name object) (+ x (first (:text-offset object))) (+ y (second (:text-offset object)))))))
 
 (defn draw-circle
   "Draw an arc."
@@ -168,6 +220,14 @@
     :arc (draw-arc o)
     nil))
 
+(defn handle-save
+  "Handle a request to save the image."
+  []
+  (when @save?
+    (do
+      (quil/save "doc-image.png")
+      (reset! save? false))))
+
 (defn draw
   "This function is called by quil repeatedly."
   []
@@ -175,8 +235,8 @@
   (quil/stroke 0 255 0)
   (quil/fill 0 255 0)
   (do (draw-axis))
-  (dorun (map draw-object @definitions)))
-
+  (dorun (map draw-object @definitions))
+  (handle-save))
 
 
 ;;====================================================================================================
@@ -205,9 +265,12 @@
   [:div
    [:h2 "Documentation Rendering"]
    [:h3 "Usage"]
-   [:span
-    "Nothing to do..."
-    ]])
+   [:div
+    [:ul
+    [:li "Enter definitions of geometric objects in the textbox below and press"]
+    [:li "'Render Image' to show the results of rendering your inputs"]
+    [:li "'Save Image' to download the image"]
+    [:li "See 'Parse Status' below for errors in your input"]]]])
 
 (defn settings
   "Show information current settings."
@@ -228,19 +291,10 @@
      [settings]]]
    [:div {:class "row"}
     [:div {:class "column left"}
-     [:textarea {:id "desc-input"}
-      "
-      [
-      {:name \"l1\" :type :line  :object [:line [:point 100 100] [:point 250 200]] :text-offset [10  10]}
-      {:name \"l2\" :type :line  :object [:line [:point 100 100] [:point 200 300]] :text-offset [10  10]}
-      {:name \"p1\" :type :point :object [:point 100 100] :text-offset [-10 -10]}
-      {:name \"p2\" :type :point :object [:point 250 200] :text-offset [ 10 -10]}
-      {:name \"p3\" :type :point :object [:point 200 300] :text-offset [ 10  10]}
-      {:name \"a\" :type :arc :object [:arc-lines [:circle [:point 100 100] 100] [:line [:point 100 100] [:point 250 200]] [:line [:point 100 100] [:point 200 300]]] :text-offset [45 60]}
-      ]
-      "]]
+     [:textarea {:id "desc-input" :default-value default-text}]]
     [:div {:class "column right"}
-     [:div {:class "button" :on-click update-definitions} "Render Image"]]
+     [:div {:class "button" :on-click update-definitions} "Render Image"]
+     [:div {:class "button" :on-click request-save} "Save Image"]]
     ]])
 
 (defn visualize
