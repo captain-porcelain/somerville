@@ -33,6 +33,7 @@
     [somerville.visualization.fortune :as fortune]
     [somerville.visualization.voronoi :as voronoi]
     [somerville.visualization.tracer :as tracer]
+    [somerville.visualization.doc-image :as doc-image]
     [taoensso.timbre :as log]
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))</pre>
@@ -58,7 +59,8 @@
     [:li {:on-click #(reset! current-view &quot;tracer&quot;)} &quot;Tracer&quot;]
     [:li {:on-click #(reset! current-view &quot;delaunay&quot;)} &quot;Voronoi by Delaunay&quot;]
     [:li {:on-click #(reset! current-view &quot;fortune&quot;)} &quot;Voronoi by Fortune&quot;]
-    [:li {:on-click #(reset! current-view &quot;voronoi&quot;)} &quot;Voronoi by intersecting&quot;]]
+    [:li {:on-click #(reset! current-view &quot;voronoi&quot;)} &quot;Voronoi by intersecting&quot;]
+    [:li {:on-click #(reset! current-view &quot;doc-image&quot;)} &quot;Documentation Images&quot;]]
    [:div
     [:a {:href &quot;docs/toc.html&quot;} &quot;Documentation&quot;]]])</pre>
 			</div>
@@ -76,6 +78,7 @@
     &quot;delaunay&quot; [delaunay/visualize]
     &quot;fortune&quot; [fortune/visualize]
     &quot;voronoi&quot; [voronoi/visualize]
+    &quot;doc-image&quot; [doc-image/visualize]
     [index]))</pre>
 			</div>
 			<div class="box section">

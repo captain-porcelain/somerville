@@ -10,8 +10,8 @@
     [taoensso.timbre :as log]
     [reagent.core :as reagent]))
 
-(def width 1200)
-(def height 800)
+(def width 600)
+(def height 400)
 
 (def offset-width (atom (/ width 2)))
 (def offset-height (atom (/ height 2)))
@@ -94,17 +94,17 @@
 (def default-text
   "{:definitions
  {
-  :p1 [:point 100 100]
-  :p2 [:point 250 200]
-  :p3 [:point 200 300]
+  :p1 [:point 50 50]
+  :p2 [:point 150 100]
+  :p3 [:point 100 150]
   :l1 [:line :p1 :p2]
   :l2 [:line :p1 :p3]
-  :a [:arc-lines [:circle :p1 100] :l1 :l2]
+  :a [:arc-lines [:circle :p1 50] :l1 :l2]
  }
  :renderings
  [
-  {:name \"\" :type :line  :object :l1 :text-offset [ 10  10]}
-  {:name \"\" :type :line  :object :l2 :text-offset [ 10  10]}
+  {:name \"\"   :type :line  :object :l1 :text-offset [ 10  10]}
+  {:name \"\"   :type :line  :object :l2 :text-offset [ 10  10]}
   {:name \"p1\" :type :point :object :p1 :text-offset [-10 -10]}
   {:name \"p2\" :type :point :object :p2 :text-offset [ 10 -10]}
   {:name \"p3\" :type :point :object :p3 :text-offset [ 10  10]}
@@ -136,7 +136,12 @@
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill (:r col) (:g col) (:b col) (:a col))
       (quil/line 0 @offset-height width @offset-height)
-      (quil/line @offset-width 0 @offset-width height))))
+      (quil/line @offset-width 0 @offset-width height)
+      (quil/line width @offset-height (- width 10) (- @offset-height 10))
+      (quil/line width @offset-height (- width 10) (+ @offset-height 10))
+      (quil/line @offset-width height (- @offset-width 10) (- height 10))
+      (quil/line @offset-width height (+ @offset-width 10) (- height 10))
+      )))
 
 (defn draw-point
   "Draw a point."

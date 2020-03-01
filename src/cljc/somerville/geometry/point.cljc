@@ -162,7 +162,9 @@
     a))
 
 (defn angle
-  "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3."
+  "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3.
+  
+  ![angle ref](../images/point-angle.png)"
   [p1 p2 p3]
   (- (angle-to-x (subtract p3 p1)) (angle-to-x (subtract p2 p1))))
 
