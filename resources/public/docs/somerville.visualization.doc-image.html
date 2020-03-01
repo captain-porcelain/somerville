@@ -31,8 +31,8 @@
     [somerville.geometry.circle :as circle]
     [somerville.geometry.arc :as arc]
     [somerville.color.color :as color]
+    [somerville.parsers.doc-image-parser :as parser]
     [quil.core :as quil :include-macros true]
-    [clojure.edn :as edn]
     [taoensso.timbre :as log]
     [reagent.core :as reagent]))</pre>
 			</div>
@@ -56,16 +56,7 @@
 			<div class="box section">
 				<pre class="brush: clojure">(def colors
   {:background      (color/rgba  40  40  40)
-   :ui              (color/rgba 200 200 200)
-   :point           (color/rgba 158   0  83)
-   :line            (color/rgba 230 127  13)
-   :circle          (color/rgba 254  78   0)
-   :line-delaunay   (color/rgba 230 127  13)
-   :point-invalid   (color/rgba  18  53  91)
-   :line-invalid    (color/rgba  27 153 139)
-   :line-highlight  (color/rgba 255 255 255)
-   :point-highlight (color/rgba 255 255 255)
-   :point-next      (color/rgba  57   0 153)})</pre>
+   :ui              (color/rgba 200 200 200)})</pre>
 			</div>
 			<div class="box section">
 				
@@ -101,60 +92,13 @@ Data Handling</pre>
 				<pre class="brush: clojure">(def error (reagent/atom &quot;No Error&quot;))</pre>
 			</div>
 			<div class="box section">
-				<p>Recursively parse objects. Assume that an object is defined as a vector with a keyword and parameters which can be translated into function calls.</p>
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(defn parse-object
-  [o objects]
-  (cond
-    (vector? o) (case (first o)
-                  :point (apply p/point (map #(parse-object % objects) (rest o)))
-                  :line (apply line/line (map #(parse-object % objects) (rest o)))
-                  :circle (apply circle/circle (map #(parse-object % objects) (rest o)))
-                  :arc (apply arc/arc (map #(parse-object % objects) (rest o)))
-                  :arc-lines (apply arc/from-lines (map #(parse-object % objects) (rest o)))
-                  o)
-    (not (nil? (get objects o))) (get objects o)
-    :else o))</pre>
-			</div>
-			<div class="box section">
-				<p>Parse the object definitions and resolve references.</p>
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(defn parse-objects
-  [definitions]
-  (loop [ds definitions
-         objects {}]
-    (if (= 0 (count ds))
-      objects
-      (let [[k o] (first ds)
-            po (parse-object o objects)]
-        (recur (rest ds) (assoc objects k po))))))</pre>
-			</div>
-			<div class="box section">
-				<p>Parse the rendering definitions based on defined objects.</p>
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(defn parse-renderings
-  [renderings objects]
-  (map #(assoc % :object ((:object %) objects)) renderings))</pre>
-			</div>
-			<div class="box section">
-				<p>Parse the given text into definitions and resolve references to previous objects.</p>
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(defn parse
-  [text]
-  (let [raw (edn/read-string text)
-        objects (parse-objects (:definitions raw))]
-    (parse-renderings (:renderings raw) objects)))</pre>
-			</div>
-			<div class="box section">
 				<p>The default text to display after loading the visualization.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def default-text
-  &quot;{:definitions
+  &quot;{
+ :name \\&quot;point-angle\\&quot;
+ :definitions
  {
   :p1 [:point  50  50]
   :p2 [:point 150 100]
@@ -163,14 +107,19 @@ Data Handling</pre>
   :l2 [:line  :p1 :p3]
   :a  [:arc-lines [:circle :p1 50] :l1 :l2]
  }
+ :colors {
+  :point  [222  60  75]
+  :line   [135 245 251]
+  :circle [166  99 204]
+ }
  :renderings
  [
-  {:name \\&quot;\\&quot;   :type :line  :object :l1 :text-offset [ 10  10]}
-  {:name \\&quot;\\&quot;   :type :line  :object :l2 :text-offset [ 10  10]}
-  {:name \\&quot;p1\\&quot; :type :point :object :p1 :text-offset [-10 -10]}
-  {:name \\&quot;p2\\&quot; :type :point :object :p2 :text-offset [ 10 -10]}
-  {:name \\&quot;p3\\&quot; :type :point :object :p3 :text-offset [ 10  10]}
-  {:name \\&quot;a\\&quot;  :type :arc   :object :a  :text-offset [ 45  60]}
+  {:name \\&quot;\\&quot;   :type :line  :object :l1 :text-offset [ 10  10] :color :line}
+  {:name \\&quot;\\&quot;   :type :line  :object :l2 :text-offset [ 10  10] :color :line}
+  {:name \\&quot;p1\\&quot; :type :point :object :p1 :text-offset [-10 -10] :color :point}
+  {:name \\&quot;p2\\&quot; :type :point :object :p2 :text-offset [ 10 -10] :color :point}
+  {:name \\&quot;p3\\&quot; :type :point :object :p3 :text-offset [ 10  10] :color :point}
+  {:name \\&quot;a\\&quot;  :type :arc   :object :a  :text-offset [ 45  60] :color :circle}
  ]
 }&quot;)</pre>
 			</div>
@@ -181,7 +130,7 @@ Data Handling</pre>
 				<pre class="brush: clojure">(defn update-definitions
   []
   (try
-    (let [nd (parse (.-value (.getElementById js/document &quot;desc-input&quot;)))
+    (let [nd (parser/parse (.-value (.getElementById js/document &quot;desc-input&quot;)))
           tmp (dorun nd)
           tmp (reset! definitions nd)]
       (reset! error &quot;No error&quot;))
@@ -221,7 +170,7 @@ Drawing Functionality</pre>
 				<pre class="brush: clojure">(defn draw-point
   [object]
   (let [point (:object object)
-        col (:point colors)
+        col (:color object)
         tcol (:ui colors)
         x (+ (:x point) @offset-width)
         y (+ (:y point) @offset-height)]
@@ -242,7 +191,7 @@ Drawing Functionality</pre>
 				<pre class="brush: clojure">(defn draw-line
   [object]
   (let [line (:object object)
-        col (:line colors)
+        col (:color object)
         tcol (:ui colors)
         tp (p/midpoint (:p1 line) (:p2 line))
         x (+ (:x tp) @offset-width)
@@ -266,7 +215,7 @@ Drawing Functionality</pre>
   (let [c (:object object)
         cp (:p c)
         r (:r c)
-        col (:circle colors)]
+        col (:color object)]
     (do
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill 255 255 255 0)
@@ -283,7 +232,7 @@ Drawing Functionality</pre>
   (let [arc (:object object)
         cp (:p (:c arc))
         r (:r (:c arc))
-        col (:circle colors)
+        col (:color object)
         tcol (:ui colors)
         a1 (p/angle cp (p/point (inc (:x cp)) (:y cp)) (:p1 arc))
         a2 (p/angle cp (p/point (inc (:x cp)) (:y cp)) (:p2 arc))
@@ -300,7 +249,7 @@ Drawing Functionality</pre>
       (quil/text (:name object) (+ x (first (:text-offset object))) (+ y (second (:text-offset object)))))))</pre>
 			</div>
 			<div class="box section">
-				
+				<p>Dispatch drawing objects by their type.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn draw-object
@@ -320,7 +269,7 @@ Drawing Functionality</pre>
   []
   (when @save?
     (do
-      (quil/save &quot;doc-image.png&quot;)
+      (quil/save (str (:name @definitions) &quot;.png&quot;))
       (reset! save? false))))</pre>
 			</div>
 			<div class="box section">
@@ -333,7 +282,7 @@ Drawing Functionality</pre>
   (quil/stroke 0 255 0)
   (quil/fill 0 255 0)
   (do (draw-axis))
-  (dorun (map draw-object @definitions))
+  (dorun (map draw-object (:renderings @definitions)))
   (handle-save))</pre>
 			</div>
 			<div class="box section">

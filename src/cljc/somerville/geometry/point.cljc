@@ -4,6 +4,7 @@
     [taoensso.timbre :as log]
     [somerville.geometry.commons :as c]))
 
+
 ;; Define a two dimensional point
 ;; Implementing Comparable in Clojure so sorting points is easy.
 #?(:clj
@@ -19,6 +20,7 @@
      (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
      (c/out [this] (c/out this 0))))
 
+
 ;; Define a two dimensional point
 ;; Implementing IComparable in ClojureScript so sorting points is easy.
 #?(:cljs
@@ -33,6 +35,7 @@
      c/Printable
      (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
      (c/out [this] (c/out this 0))))
+
 
 ;; Define a three dimensional point
 ;; Implementing Comparable in Clojure so sorting points is easy.

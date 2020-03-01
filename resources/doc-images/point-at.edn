@@ -1,4 +1,6 @@
-{:definitions
+{
+ :name "point-at"
+ :definitions
  {
   :p1 [:point  10 -20]
   :px [:point 100 -20]
@@ -7,11 +9,16 @@
   :lx [:line  :p1 :px]
   :a  [:arc-lines [:circle :p1 50] :lx :l1]
  }
+ :colors {
+  :point  [222  60  75]
+  :line   [135 245 251]
+  :circle [166  99 204]
+ }
  :renderings
  [
-  {:name ""     :type :line  :object :l1 :text-offset [ 10  10]}
-  {:name "p"    :type :point :object :p1 :text-offset [ -5 -10]}
-  {:name "point at PI/2 200" :type :point :object :p2 :text-offset [ 10  0]}
-  {:name "PI/2" :type :arc   :object :a  :text-offset [ 12  10]}
+  {:name ""     :type :line  :object :l1 :text-offset [ 10  10] :color :line}
+  {:name "p"    :type :point :object :p1 :text-offset [ -5 -10] :color :point}
+  {:name "point at PI/2 200" :type :point :object :p2 :text-offset [ 10  0] :color :point}
+  {:name "PI/2" :type :arc   :object :a  :text-offset [ 12  10] :color :circle}
  ]
 }

@@ -5,8 +5,8 @@
     [somerville.geometry.circle :as circle]
     [somerville.geometry.arc :as arc]
     [somerville.color.color :as color]
+    [somerville.parsers.doc-image-parser :as parser]
     [quil.core :as quil :include-macros true]
-    [clojure.edn :as edn]
     [taoensso.timbre :as log]
     [reagent.core :as reagent]))
 
@@ -18,22 +18,7 @@
 
 (def colors
   {:background      (color/rgba  40  40  40)
-   :ui              (color/rgba 200 200 200)
-
-   :point           (color/rgba 158   0  83)
-   :line            (color/rgba 230 127  13)
-   :circle          (color/rgba 254  78   0)
-
-   :line-delaunay   (color/rgba 230 127  13)
-
-   :point-invalid   (color/rgba  18  53  91)
-   :line-invalid    (color/rgba  27 153 139)
-
-   :line-highlight  (color/rgba 255 255 255)
-   :point-highlight (color/rgba 255 255 255)
-
-   :point-next      (color/rgba  57   0 153)})
-
+   :ui              (color/rgba 200 200 200)})
 
 ;;====================================================================================================
 ;; Data Handling
@@ -52,47 +37,11 @@
 ;; Hold the result of parsing the definitions.
 (def error (reagent/atom "No Error"))
 
-(defn parse-object
-  "Recursively parse objects. Assume that an object is defined as a vector with a keyword and parameters
-  which can be translated into function calls."
-  [o objects]
-  (cond
-    (vector? o) (case (first o)
-                  :point (apply p/point (map #(parse-object % objects) (rest o)))
-                  :line (apply line/line (map #(parse-object % objects) (rest o)))
-                  :circle (apply circle/circle (map #(parse-object % objects) (rest o)))
-                  :arc (apply arc/arc (map #(parse-object % objects) (rest o)))
-                  :arc-lines (apply arc/from-lines (map #(parse-object % objects) (rest o)))
-                  o)
-    (not (nil? (get objects o))) (get objects o)
-    :else o))
-
-(defn parse-objects
-  "Parse the object definitions and resolve references."
-  [definitions]
-  (loop [ds definitions
-         objects {}]
-    (if (= 0 (count ds))
-      objects
-      (let [[k o] (first ds)
-            po (parse-object o objects)]
-        (recur (rest ds) (assoc objects k po))))))
-
-(defn parse-renderings
-  "Parse the rendering definitions based on defined objects."
-  [renderings objects]
-  (map #(assoc % :object ((:object %) objects)) renderings))
-
-(defn parse
-  "Parse the given text into definitions and resolve references to previous objects."
-  [text]
-  (let [raw (edn/read-string text)
-        objects (parse-objects (:definitions raw))]
-    (parse-renderings (:renderings raw) objects)))
-
 ;; The default text to display after loading the visualization.
 (def default-text
-  "{:definitions
+  "{
+ :name \"point-angle\"
+ :definitions
  {
   :p1 [:point  50  50]
   :p2 [:point 150 100]
@@ -101,14 +50,19 @@
   :l2 [:line  :p1 :p3]
   :a  [:arc-lines [:circle :p1 50] :l1 :l2]
  }
+ :colors {
+  :point  [222  60  75]
+  :line   [135 245 251]
+  :circle [166  99 204]
+ }
  :renderings
  [
-  {:name \"\"   :type :line  :object :l1 :text-offset [ 10  10]}
-  {:name \"\"   :type :line  :object :l2 :text-offset [ 10  10]}
-  {:name \"p1\" :type :point :object :p1 :text-offset [-10 -10]}
-  {:name \"p2\" :type :point :object :p2 :text-offset [ 10 -10]}
-  {:name \"p3\" :type :point :object :p3 :text-offset [ 10  10]}
-  {:name \"a\"  :type :arc   :object :a  :text-offset [ 45  60]}
+  {:name \"\"   :type :line  :object :l1 :text-offset [ 10  10] :color :line}
+  {:name \"\"   :type :line  :object :l2 :text-offset [ 10  10] :color :line}
+  {:name \"p1\" :type :point :object :p1 :text-offset [-10 -10] :color :point}
+  {:name \"p2\" :type :point :object :p2 :text-offset [ 10 -10] :color :point}
+  {:name \"p3\" :type :point :object :p3 :text-offset [ 10  10] :color :point}
+  {:name \"a\"  :type :arc   :object :a  :text-offset [ 45  60] :color :circle}
  ]
 }")
 
@@ -116,7 +70,7 @@
   "Update the definitions from text area."
   []
   (try
-    (let [nd (parse (.-value (.getElementById js/document "desc-input")))
+    (let [nd (parser/parse (.-value (.getElementById js/document "desc-input")))
           tmp (dorun nd)
           tmp (reset! definitions nd)]
       (reset! error "No error"))
@@ -147,7 +101,7 @@
   "Draw a point."
   [object]
   (let [point (:object object)
-        col (:point colors)
+        col (:color object)
         tcol (:ui colors)
         x (+ (:x point) @offset-width)
         y (+ (:y point) @offset-height)]
@@ -165,7 +119,7 @@
   "Draw a line."
   [object]
   (let [line (:object object)
-        col (:line colors)
+        col (:color object)
         tcol (:ui colors)
         tp (p/midpoint (:p1 line) (:p2 line))
         x (+ (:x tp) @offset-width)
@@ -186,7 +140,7 @@
   (let [c (:object object)
         cp (:p c)
         r (:r c)
-        col (:circle colors)]
+        col (:color object)]
     (do
       (quil/stroke (:r col) (:g col) (:b col) (:a col))
       (quil/fill 255 255 255 0)
@@ -200,7 +154,7 @@
   (let [arc (:object object)
         cp (:p (:c arc))
         r (:r (:c arc))
-        col (:circle colors)
+        col (:color object)
         tcol (:ui colors)
         a1 (p/angle cp (p/point (inc (:x cp)) (:y cp)) (:p1 arc))
         a2 (p/angle cp (p/point (inc (:x cp)) (:y cp)) (:p2 arc))
@@ -217,6 +171,7 @@
       (quil/text (:name object) (+ x (first (:text-offset object))) (+ y (second (:text-offset object)))))))
 
 (defn draw-object
+  "Dispatch drawing objects by their type."
   [o]
   (case (:type o)
     :point (draw-point o)
@@ -230,7 +185,7 @@
   []
   (when @save?
     (do
-      (quil/save "doc-image.png")
+      (quil/save (str (:name @definitions) ".png"))
       (reset! save? false))))
 
 (defn draw
@@ -240,7 +195,7 @@
   (quil/stroke 0 255 0)
   (quil/fill 0 255 0)
   (do (draw-axis))
-  (dorun (map draw-object @definitions))
+  (dorun (map draw-object (:renderings @definitions)))
   (handle-save))
 
 
