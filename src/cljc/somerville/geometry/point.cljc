@@ -4,7 +4,8 @@
     [taoensso.timbre :as log]
     [somerville.geometry.commons :as c]))
 
-;; define a two dimensional point
+;; Define a two dimensional point
+;; Implementing Comparable in Clojure so sorting points is easy.
 #?(:clj
    (defrecord Point2 [x y]
      java.lang.Comparable
@@ -18,6 +19,8 @@
      (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
      (c/out [this] (c/out this 0))))
 
+;; Define a two dimensional point
+;; Implementing IComparable in ClojureScript so sorting points is easy.
 #?(:cljs
    (defrecord Point2 [x y]
      IComparable
@@ -31,7 +34,8 @@
      (c/out [this i] (str (c/indent i) "Point (" x "," y ")"))
      (c/out [this] (c/out this 0))))
 
-;; define a three dimensional point
+;; Define a three dimensional point
+;; Implementing Comparable in Clojure so sorting points is easy.
 #?(:clj
    (defrecord Point3 [x y z]
      java.lang.Comparable
@@ -48,6 +52,8 @@
      (c/out [this i] (str (c/indent i) "Point (" x "," y "," z ")"))
      (c/out [this] (c/out this 0))))
 
+;; Define a three dimensional point
+;; Implementing IComparable in ClojureScript so sorting points is easy.
 #?(:cljs
    (defrecord Point3 [x y z]
      IComparable
@@ -72,12 +78,12 @@
    (Point3. x y z)))
 
 (defn ensure-3d
-  "Ensure point has three dimensions."
+  "Ensure point has three dimensions. If the third component is missing we assume 0."
   [p]
   (if (nil? (:z p)) (point (:x p) (:y p) 0) p))
 
 (defn midpoint
-  "Get the midpoint of two points."
+  "Get the midpoint of two points. Both points should either be 2d or 3d."
   [p1 p2]
   (if (and (not (nil? (:z p1))) (not (nil? (:z p2))))
     (point (/ (+ (:x p1) (:x p2)) 2) (/ (+ (:y p1) (:y p2)) 2) (/ (+ (:z p1) (:z p2)) 2))
@@ -147,7 +153,9 @@
           (and (>= (:x p) 0) (<  (:y p) 0)) 4)))
 
 (defn angle-to-x
-  "Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p."
+  "Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p.
+
+  ![angle to x](../images/point-angle-to-x.png)"
   [p]
   (let [p1 (point 0 0)
         p2 (point 1 0)
@@ -163,7 +171,7 @@
 
 (defn angle
   "Calculate the angle that is opened by the lines from p1 to p2 and p1 to p3.
-  
+
   ![angle ref](../images/point-angle.png)"
   [p1 p2 p3]
   (- (angle-to-x (subtract p3 p1)) (angle-to-x (subtract p2 p1))))
@@ -187,7 +195,9 @@
     vdot))
 
 (defn point-at
-  "Given a point find another one in dist at angle."
+  "Given a point find another one in dist at angle.
+
+  ![point at](../images/point-at.png)"
   [p angle dist]
   (point
     (+ (:x p) (* dist (Math/cos angle)))

@@ -30,7 +30,7 @@
     [somerville.geometry.commons :as c]))</pre>
 			</div>
 			<div class="box section">
-				<p>define a two dimensional point</p>
+				<p>Define a two dimensional point Implementing Comparable in Clojure so sorting points is easy.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">#?(:clj
@@ -47,7 +47,7 @@
      (c/out [this] (c/out this 0))))</pre>
 			</div>
 			<div class="box section">
-				
+				<p>Define a two dimensional point Implementing IComparable in ClojureScript so sorting points is easy.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">#?(:cljs
@@ -62,7 +62,8 @@
      c/Printable
      (c/out [this i] (str (c/indent i) &quot;Point (&quot; x &quot;,&quot; y &quot;)&quot;))
      (c/out [this] (c/out this 0))))
-;; define a three dimensional point
+;; Define a three dimensional point
+;; Implementing Comparable in Clojure so sorting points is easy.
 #?(:clj
    (defrecord Point3 [x y z]
      java.lang.Comparable
@@ -80,7 +81,7 @@
      (c/out [this] (c/out this 0))))</pre>
 			</div>
 			<div class="box section">
-				<p>Create a point in either 2 or 3 dimensions.</p>
+				<p>Create a point in either 2 or 3 dimensions.</p><p>Define a three dimensional point Implementing IComparable in ClojureScript so sorting points is easy.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">#?(:cljs
@@ -105,7 +106,7 @@
    (Point3. x y z)))</pre>
 			</div>
 			<div class="box section">
-				<p>Ensure point has three dimensions.</p>
+				<p>Ensure point has three dimensions. If the third component is missing we assume 0.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn ensure-3d
@@ -113,7 +114,7 @@
   (if (nil? (:z p)) (point (:x p) (:y p) 0) p))</pre>
 			</div>
 			<div class="box section">
-				<p>Get the midpoint of two points.</p>
+				<p>Get the midpoint of two points. Both points should either be 2d or 3d.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn midpoint
@@ -207,7 +208,7 @@
           (and (&gt;= (:x p) 0) (&lt;  (:y p) 0)) 4)))</pre>
 			</div>
 			<div class="box section">
-				<p>Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p.</p>
+				<p>Calculate the angle that is opened by the lines from (0,0) to (1,0) and (0,0) to p.</p><p><img src="../images/point-angle-to-x.png" alt="angle to x" /></p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn angle-to-x
@@ -257,7 +258,7 @@
     vdot))</pre>
 			</div>
 			<div class="box section">
-				<p>Given a point find another one in dist at angle.</p>
+				<p>Given a point find another one in dist at angle.</p><p><img src="../images/point-at.png" alt="point at" /></p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn point-at

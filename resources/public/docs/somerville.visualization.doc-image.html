@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" content="text/html" http-equiv="Content-Type" />
+		<meta content="Implementation of some mathematical functions." name="description" />
+		<title>Somerville</title>
+		<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/sidenotes.css" />
+ 		<link rel="stylesheet" type="text/css" href="css/shCore.css" />
+		<link rel="stylesheet" type="text/css" href="css/shThemeSidenotes.css" />
+		<style type="text/css">.syntaxhighlighter{overflow:hidden !important;}</style>
+		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/xregexp-min.js"></script>
+		<script type="text/javascript" src="js/shCore.js"></script>
+		<script type="text/javascript" src="js/shBrushClojure.js"></script>
+	</head>
+	<body>
+		<div class="gridlayout">
+			<div class="box header">
+				<h1 class="project-name">somerville.visualization.doc-image</h1>
+				<a class="toc-link" href="toc.html">table of contents</a>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(ns somerville.visualization.doc-image
+  (:require
+    [somerville.geometry.point :as p]
+    [somerville.geometry.line :as line]
+    [somerville.geometry.circle :as circle]
+    [somerville.geometry.arc :as arc]
+    [somerville.color.color :as color]
+    [quil.core :as quil :include-macros true]
+    [clojure.edn :as edn]
+    [taoensso.timbre :as log]
+    [reagent.core :as reagent]))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def width 600)
+(def height 400)</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def offset-width (atom (/ width 2)))
+(def offset-height (atom (/ height 2)))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def colors
+  {:background      (color/rgba  40  40  40)
+   :ui              (color/rgba 200 200 200)
+   :point           (color/rgba 158   0  83)
+   :line            (color/rgba 230 127  13)
+   :circle          (color/rgba 254  78   0)
+   :line-delaunay   (color/rgba 230 127  13)
+   :point-invalid   (color/rgba  18  53  91)
+   :line-invalid    (color/rgba  27 153 139)
+   :line-highlight  (color/rgba 255 255 255)
+   :point-highlight (color/rgba 255 255 255)
+   :point-next      (color/rgba  57   0 153)})</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Data Handling</pre>
+			</div>
+			<div class="box section">
+				<p>A flag to indicate that the user wants to download the rendered image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def save? (atom false))</pre>
+			</div>
+			<div class="box section">
+				<p>Set the flag to trigger saving the image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn request-save
+  []
+  (reset! save? true))</pre>
+			</div>
+			<div class="box section">
+				<p>The atom to hold the parsed rendering definitions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def definitions (atom []))</pre>
+			</div>
+			<div class="box section">
+				<p>Hold the result of parsing the definitions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def error (reagent/atom &quot;No Error&quot;))</pre>
+			</div>
+			<div class="box section">
+				<p>Recursively parse objects. Assume that an object is defined as a vector with a keyword and parameters which can be translated into function calls.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parse-object
+  [o objects]
+  (cond
+    (vector? o) (case (first o)
+                  :point (apply p/point (map #(parse-object % objects) (rest o)))
+                  :line (apply line/line (map #(parse-object % objects) (rest o)))
+                  :circle (apply circle/circle (map #(parse-object % objects) (rest o)))
+                  :arc (apply arc/arc (map #(parse-object % objects) (rest o)))
+                  :arc-lines (apply arc/from-lines (map #(parse-object % objects) (rest o)))
+                  o)
+    (not (nil? (get objects o))) (get objects o)
+    :else o))</pre>
+			</div>
+			<div class="box section">
+				<p>Parse the object definitions and resolve references.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parse-objects
+  [definitions]
+  (loop [ds definitions
+         objects {}]
+    (if (= 0 (count ds))
+      objects
+      (let [[k o] (first ds)
+            po (parse-object o objects)]
+        (recur (rest ds) (assoc objects k po))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Parse the rendering definitions based on defined objects.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parse-renderings
+  [renderings objects]
+  (map #(assoc % :object ((:object %) objects)) renderings))</pre>
+			</div>
+			<div class="box section">
+				<p>Parse the given text into definitions and resolve references to previous objects.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn parse
+  [text]
+  (let [raw (edn/read-string text)
+        objects (parse-objects (:definitions raw))]
+    (parse-renderings (:renderings raw) objects)))</pre>
+			</div>
+			<div class="box section">
+				<p>The default text to display after loading the visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(def default-text
+  &quot;{:definitions
+ {
+  :p1 [:point  50  50]
+  :p2 [:point 150 100]
+  :p3 [:point 100 150]
+  :l1 [:line  :p1 :p2]
+  :l2 [:line  :p1 :p3]
+  :a  [:arc-lines [:circle :p1 50] :l1 :l2]
+ }
+ :renderings
+ [
+  {:name \\&quot;\\&quot;   :type :line  :object :l1 :text-offset [ 10  10]}
+  {:name \\&quot;\\&quot;   :type :line  :object :l2 :text-offset [ 10  10]}
+  {:name \\&quot;p1\\&quot; :type :point :object :p1 :text-offset [-10 -10]}
+  {:name \\&quot;p2\\&quot; :type :point :object :p2 :text-offset [ 10 -10]}
+  {:name \\&quot;p3\\&quot; :type :point :object :p3 :text-offset [ 10  10]}
+  {:name \\&quot;a\\&quot;  :type :arc   :object :a  :text-offset [ 45  60]}
+ ]
+}&quot;)</pre>
+			</div>
+			<div class="box section">
+				<p>Update the definitions from text area.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn update-definitions
+  []
+  (try
+    (let [nd (parse (.-value (.getElementById js/document &quot;desc-input&quot;)))
+          tmp (dorun nd)
+          tmp (reset! definitions nd)]
+      (reset! error &quot;No error&quot;))
+    (catch js/Object e
+      (do
+        (log/error e)
+        (reset! error (str e))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+Drawing Functionality</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the axis</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-axis
+  []
+  (let [col (:ui colors)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
+      (quil/line 0 @offset-height width @offset-height)
+      (quil/line @offset-width 0 @offset-width height)
+      (quil/line width @offset-height (- width 10) (- @offset-height 10))
+      (quil/line width @offset-height (- width 10) (+ @offset-height 10))
+      (quil/line @offset-width height (- @offset-width 10) (- height 10))
+      (quil/line @offset-width height (+ @offset-width 10) (- height 10)))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a point.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-point
+  [object]
+  (let [point (:object object)
+        col (:point colors)
+        tcol (:ui colors)
+        x (+ (:x point) @offset-width)
+        y (+ (:y point) @offset-height)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
+      (quil/stroke-weight 6)
+      (quil/point x y)
+      (quil/stroke-weight 1)
+      (quil/stroke (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/fill (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/text (:name object) (+ x (first (:text-offset object))) (+ y (second (:text-offset object)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw a line.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-line
+  [object]
+  (let [line (:object object)
+        col (:line colors)
+        tcol (:ui colors)
+        tp (p/midpoint (:p1 line) (:p2 line))
+        x (+ (:x tp) @offset-width)
+        y (+ (:y tp) @offset-height)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill (:r col) (:g col) (:b col) (:a col))
+      (quil/stroke-weight 2)
+      (quil/line (+ (:x (:p1 line)) @offset-width) (+ (:y (:p1 line)) @offset-height) (+ (:x (:p2 line)) @offset-width) (+ (:y (:p2 line)) @offset-height))
+      (quil/stroke-weight 1)
+      (quil/stroke (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/fill (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/text (:name object) (+ x (first (:text-offset object))) (+ y (second (:text-offset object)))))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw an arc.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-circle
+  [object]
+  (let [c (:object object)
+        cp (:p c)
+        r (:r c)
+        col (:circle colors)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill 255 255 255 0)
+      (quil/stroke-weight 2)
+      (quil/ellipse (+ (:x cp) @offset-width) (+ (:y cp) @offset-height) (* 2 r) (* 2 r))
+      (quil/stroke-weight 1))))</pre>
+			</div>
+			<div class="box section">
+				<p>Draw an arc.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-arc
+  [object]
+  (let [arc (:object object)
+        cp (:p (:c arc))
+        r (:r (:c arc))
+        col (:circle colors)
+        tcol (:ui colors)
+        a1 (p/angle cp (p/point (inc (:x cp)) (:y cp)) (:p1 arc))
+        a2 (p/angle cp (p/point (inc (:x cp)) (:y cp)) (:p2 arc))
+        x (+ (:x cp) @offset-width)
+        y (+ (:y cp) @offset-height)]
+    (do
+      (quil/stroke (:r col) (:g col) (:b col) (:a col))
+      (quil/fill 255 255 255 0)
+      (quil/stroke-weight 2)
+      (quil/arc x y (* 2 r) (* 2 r) a1 a2 :open)
+      (quil/stroke-weight 1)
+      (quil/stroke (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/fill (:r tcol) (:g tcol) (:b tcol) (:a tcol))
+      (quil/text (:name object) (+ x (first (:text-offset object))) (+ y (second (:text-offset object)))))))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw-object
+  [o]
+  (case (:type o)
+    :point (draw-point o)
+    :line  (draw-line o)
+    :circle (draw-circle o)
+    :arc (draw-arc o)
+    nil))</pre>
+			</div>
+			<div class="box section">
+				<p>Handle a request to save the image.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn handle-save
+  []
+  (when @save?
+    (do
+      (quil/save &quot;doc-image.png&quot;)
+      (reset! save? false))))</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil repeatedly.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn draw
+  []
+  (quil/background 0)
+  (quil/stroke 0 255 0)
+  (quil/fill 0 255 0)
+  (do (draw-axis))
+  (dorun (map draw-object @definitions))
+  (handle-save))</pre>
+			</div>
+			<div class="box section">
+				
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">====================================================================================================
+App Setup</pre>
+			</div>
+			<div class="box section">
+				<p>This function is called by quil once before drawing</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn setup
+  []
+  (quil/smooth)
+  (let [bg (:background colors)]
+    (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
+  (quil/frame-rate 10))</pre>
+			</div>
+			<div class="box section">
+				<p>Initialize Quil sketch.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn init
+  [canvas-id]
+  (quil/defsketch lsystem-sketch
+    :host &quot;hostelement&quot;
+    :setup setup
+    :draw draw
+    :size [width height]))</pre>
+			</div>
+			<div class="box section">
+				<p>Show information about usage.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn usage
+  [props]
+  [:div
+   [:h2 &quot;Documentation Rendering&quot;]
+   [:h3 &quot;Usage&quot;]
+   [:div
+    [:ul
+    [:li &quot;Enter definitions of geometric objects in the textbox below and press&quot;]
+    [:li &quot;'Render Image' to show the results of rendering your inputs&quot;]
+    [:li &quot;'Save Image' to download the image&quot;]
+    [:li &quot;See 'Parse Status' below for errors in your input&quot;]]]])</pre>
+			</div>
+			<div class="box section">
+				<p>Show information current settings.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn settings
+  [props]
+  [:div
+   [:h3 &quot;Settings&quot;]
+   [:div &quot;Parse Status:&quot;]
+   [:div @error]])</pre>
+			</div>
+			<div class="box section">
+				<p>Draw the basic ui for this visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn ui
+  [props]
+  [:div
+   [:div {:class &quot;row&quot;}
+    [:div {:id &quot;hostelement&quot; :class &quot;column left&quot; :on-load init}]
+    [:div {:class &quot;column right&quot;}
+     [usage]
+     [settings]]]
+   [:div {:class &quot;row&quot;}
+    [:div {:class &quot;column left&quot;}
+     [:textarea {:id &quot;desc-input&quot; :default-value default-text}]]
+    [:div {:class &quot;column right&quot;}
+     [:div {:class &quot;button&quot; :on-click update-definitions} &quot;Render Image&quot;]
+     [:div {:class &quot;button&quot; :on-click request-save} &quot;Save Image&quot;]]
+    ]])</pre>
+			</div>
+			<div class="box section">
+				<p>Render html and canvas for terrain visualization.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn visualize
+  [props]
+  (reagent/create-class
+    {:reagent-render ui
+     :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
+			</div>
+			<div class="box footer">
+				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
+				&nbsp;&nbsp;
+				Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>
+			</div>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>

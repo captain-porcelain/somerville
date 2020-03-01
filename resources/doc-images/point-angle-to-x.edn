@@ -1,0 +1,16 @@
+{:definitions
+ {
+  :p0 [:point   0   0]
+  :px [:point 100   0]
+  :p  [:point 100 150]
+  :l1 [:line  :p0 :px]
+  :l2 [:line  :p0 :p]
+  :a  [:arc-lines [:circle :p0 50] :l1 :l2]
+ }
+ :renderings
+ [
+  {:name ""  :type :line  :object :l2 :text-offset [ 10  10]}
+  {:name "p" :type :point :object :p  :text-offset [ 10  10]}
+  {:name "a" :type :arc   :object :a  :text-offset [ 25  20]}
+ ]
+}

@@ -94,12 +94,12 @@
 (def default-text
   "{:definitions
  {
-  :p1 [:point 50 50]
+  :p1 [:point  50  50]
   :p2 [:point 150 100]
   :p3 [:point 100 150]
-  :l1 [:line :p1 :p2]
-  :l2 [:line :p1 :p3]
-  :a [:arc-lines [:circle :p1 50] :l1 :l2]
+  :l1 [:line  :p1 :p2]
+  :l2 [:line  :p1 :p3]
+  :a  [:arc-lines [:circle :p1 50] :l1 :l2]
  }
  :renderings
  [
