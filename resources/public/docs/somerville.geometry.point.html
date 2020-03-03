@@ -61,10 +61,13 @@
          (c/compareTo (:x this) (:x other))))
      c/Printable
      (c/out [this i] (str (c/indent i) &quot;Point (&quot; x &quot;,&quot; y &quot;)&quot;))
-     (c/out [this] (c/out this 0))))
-;; Define a three dimensional point
-;; Implementing Comparable in Clojure so sorting points is easy.
-#?(:clj
+     (c/out [this] (c/out this 0))))</pre>
+			</div>
+			<div class="box section">
+				<p>Define a three dimensional point Implementing Comparable in Clojure so sorting points is easy.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">#?(:clj
    (defrecord Point3 [x y z]
      java.lang.Comparable
      (java.lang.Comparable/compareTo
@@ -81,7 +84,7 @@
      (c/out [this] (c/out this 0))))</pre>
 			</div>
 			<div class="box section">
-				<p>Create a point in either 2 or 3 dimensions.</p><p>Define a three dimensional point Implementing IComparable in ClojureScript so sorting points is easy.</p>
+				<p>Define a three dimensional point Implementing IComparable in ClojureScript so sorting points is easy.</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">#?(:cljs
@@ -98,8 +101,13 @@
          (c/compareTo (:x this) (:x other))))
      c/Printable
      (c/out [this i] (str (c/indent i) &quot;Point (&quot; x &quot;,&quot; y &quot;,&quot; z &quot;)&quot;))
-     (c/out [this] (c/out this 0))))
-(defn point
+     (c/out [this] (c/out this 0))))</pre>
+			</div>
+			<div class="box section">
+				<p>Create a point in either 2 or 3 dimensions.</p>
+			</div>
+			<div class="box section">
+				<pre class="brush: clojure">(defn point
   ([x y]
    (Point2. x y))
   ([x y z]
