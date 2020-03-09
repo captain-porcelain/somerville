@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.geometry.fortune</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>See http://blog.ivank.net/fortunes-algorithm-and-implementation.html</p>
@@ -32,7 +32,7 @@
     [somerville.geometry.parabola :as par]
     [somerville.geometry.point :as p]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<h1></h1>Define a site event type from a point and a type. Types can be :site and :circle
 			</div>
 			<div class="box section">
@@ -41,7 +41,7 @@
   (c/out [this i] (str (c/indent i) &quot;Event &quot; type &quot; at &quot; (c/out point)))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a new event for a point p with type t.</p>
 			</div>
 			<div class="box section">
@@ -49,7 +49,7 @@
   [p t]
   (SiteEvent. p t))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Sort points by y position.</p>
 			</div>
 			<div class="box section">
@@ -57,7 +57,7 @@
   [points]
   (sort-by #(:y %) points))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Sort events by y position.</p>
 			</div>
 			<div class="box section">
@@ -65,7 +65,7 @@
   [events]
   (sort-by #(:y (:point %)) events))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create sorted events for a list of points.</p>
 			</div>
 			<div class="box section">
@@ -73,7 +73,7 @@
   [points]
   (sort-events (map #(event % :site) points)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<h1></h1>Define the structure for tracking edges of the voronoi diagram
 			</div>
 			<div class="box section">
@@ -83,7 +83,7 @@
                        (if (nil? end) &quot;-&quot; (c/out end)) &quot; left: &quot; (c/out left) &quot; right: &quot; (c/out right)))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -98,7 +98,7 @@
          s (p/point (/ (+ (:x p1) (:x p2)) 2) 0)]
      (edge s lp rp))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the intersection of two edges.</p>
 			</div>
 			<div class="box section">
@@ -111,7 +111,7 @@
       (l/line (:start e1) (p/midpoint (:left e1) (:right e1)))
       (l/line (:start e2) (p/midpoint (:left e2) (:right e2))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Define the starting point a new edge. It is defined by a newly split parabola's value at x.</p>
 			</div>
 			<div class="box section">
@@ -123,7 +123,7 @@
       (par/parabola-from-focuspoint-and-directrix-y focuspoint (:y (:point event)))
       (:x (:point event)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Is this TreeNode a leaf?<h1></h1>Define records and functions for managing a binary search tree.Each tree node contains one site event and represents a part of a parabola for that event.Nodes also contain the edges separating voronoi cells.</p>
 			</div>
 			<div class="box section">
@@ -131,7 +131,7 @@
   [node]
   (and (nil? (:left node)) (nil? (:right node))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -147,7 +147,7 @@
   (c/out [this i] (c/out this i true))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a new TreeNode</p>
 			</div>
 			<div class="box section">
@@ -159,7 +159,7 @@
   ([event edge left right]
    (TreeNode. event edge left right)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a zipper from the root tree node.</p>
 			</div>
 			<div class="box section">
@@ -171,7 +171,7 @@
     (fn [node children] (treenode (:event node) (:edge node) (first children) (second children)))
     root))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the child of the current zipper position that is a leaf on the right side. The follow flag is used to track if we should be stepping to the left child.</p>
 			</div>
 			<div class="box section">
@@ -185,7 +185,7 @@
   ([zipper]
    (right-leaf zipper false)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the child of the current zipper position that is a leaf on the left side. The follow flag is used to track if we should be stepping to the right child.</p>
 			</div>
 			<div class="box section">
@@ -199,7 +199,7 @@
   ([zipper]
    (left-leaf zipper false)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the parent of the current zipper position so that the current node is not a right child.</p>
 			</div>
 			<div class="box section">
@@ -212,7 +212,7 @@
         (recur parent)
         parent))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the parent of the current zipper position so that the current node is not a left child.</p>
 			</div>
 			<div class="box section">
@@ -225,7 +225,7 @@
         (recur parent)
         parent))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a sequence of the tree.</p>
 			</div>
 			<div class="box section">
@@ -233,7 +233,7 @@
   [tree]
   (map z/node (take-while (complement z/end?) (iterate z/next (make-zipper tree)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<h1></h1>Define the data structure we need to represent a voronoi diagram.It contains all the inital points and the event queue created from those points.The tree is initially empty and step is set to 0.
 			</div>
 			<div class="box section">
@@ -249,7 +249,7 @@
                        &quot;\\n\\n&quot;))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the parabola that is to be split in two by a site event. This is done by walking down the tree, calculating the parabolas for each child node and intersecting the parabolas. Depending if the event is left or right of the intersection the child node is selected for continuing the search until a leaf is found.</p>
 			</div>
 			<div class="box section">
@@ -269,7 +269,7 @@
         (recur (z/down zipper) event)
         (recur (z/right (z/down zipper)) event)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -277,7 +277,7 @@
   [zipper event]
   (first (drop-while #(not= event (:event %)) (repeatedly (z/next zipper)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check that the leafs to the left and the right of a newly created tree node exist and are different.</p>
 			</div>
 			<div class="box section">
@@ -285,7 +285,7 @@
   [ll rl]
   (not (or (nil? ll) (nil? rl) (= (:point (:event (z/node ll))) (:point (:event (z/node rl)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate the intersections of the edges of the left and right parents of a new tree node if they exist.</p>
 			</div>
 			<div class="box section">
@@ -294,7 +294,7 @@
   (when (circle-points-valid? ll rl)
     (edge-intersection (:edge (z/node lp)) (:edge (z/node rp)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if the event at the zipper position has a circle event and return it.</p>
 			</div>
 			<div class="box section">
@@ -311,7 +311,7 @@
           (when (&lt; circle-y sweep-y)
             (event (p/point (:x intersection) circle-y) :circle)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create TreeNode structure for representing a new site event. If p1 is the parabola that is to be split the created tree is as follows:                (p1)              //    \\            (p1)    (p1)           //   \\         (p1)   (p2)</p>
 			</div>
 			<div class="box section">
@@ -333,7 +333,7 @@
                         (treenode event))
               (treenode (:event node)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>From the zipper where new nodes have been added get the zippers moved to these nodes.</p>
 			</div>
 			<div class="box section">
@@ -343,7 +343,7 @@
     (z/down  (z/down zipper))
     (z/right (z/down zipper))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>A new site event causes the tree to be updated and returns the new nodes to check for circle events.</p>
 			</div>
 			<div class="box section">
@@ -355,7 +355,7 @@
           updated (z/edit parabola (fn [n] (create-subtree n event parabola)))]
       [(z/root updated) (new-nodes updated)])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>TODO this needs to be implemented</p>
 			</div>
 			<div class="box section">
@@ -363,7 +363,7 @@
   [tree point]
   [tree (list)])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Process first event in events and update event queue and tree.</p><p>TODO loop this for all events</p>
 			</div>
 			<div class="box section">
@@ -382,7 +382,7 @@
       new-tree
       (+ 1 (:step v)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -390,6 +390,7 @@
   [points]
   (Voronoi. (sort-points points) (events points) nil 0))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

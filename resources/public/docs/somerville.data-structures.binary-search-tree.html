@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.data-structures.binary-search-tree</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -26,21 +26,16 @@
 			<div class="box section">
 				<pre class="brush: clojure">(ns somerville.data-structures.binary-search-tree)</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Variant 1See http://eddmann.com/posts/binary-search-trees-in-clojure/
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">===========================================================================================================================
-Variant 1
-See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defrecord Node [el left right])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -51,7 +46,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
     (&gt; value el) (Node. el left (insert right value))
     :else tree))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -65,7 +60,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
     :else (let [min-value (min right)]
             (Node. min-value left (remove right min-value)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -74,7 +69,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
     (recur left)
     el))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -83,7 +78,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
     (recur right)
     el))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -94,7 +89,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
     (&gt; value el) (recur right value)
     :else true))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -103,7 +98,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
     (+ 1 (count left) (count right))
     0))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -115,7 +110,7 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
           (height (:right tree) (inc count)))
      count)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -128,13 +123,13 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
      :else (and (bst? left min (dec el))
                 (bst? right (inc el) max)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def to-tree #(reduce insert nil %))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -142,27 +137,22 @@ See http://eddmann.com/posts/binary-search-trees-in-clojure/</pre>
   (when tree
     `(~@(to-list left) ~el ~@(to-list right))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Variant 2See http://macromancy.com/2014/04/09/data-structures-clojure-trees.html
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">===========================================================================================================================
-Variant 2
-See http://macromancy.com/2014/04/09/data-structures-clojure-trees.html</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>comparator helpers</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def gt? (comp pos? compare))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def lt? (comp neg? compare))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -181,7 +171,7 @@ See http://macromancy.com/2014/04/09/data-structures-clojure-trees.html</pre>
   (delete [k n])
   (inOrder []))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -278,12 +268,13 @@ See http://macromancy.com/2014/04/09/data-structures-clojure-trees.html</pre>
           ;; than key
           (and (lt? k key) left) (.delete left k this))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn binary-search-tree [&amp; [k v]] (Node. k v nil nil))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

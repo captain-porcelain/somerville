@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.maps.gaia.core</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>http://experilous.com/1/blog/post/procedural-planet-generation</p>
@@ -34,14 +34,10 @@
     [somerville.geometry.projection.stereographic :as proj]
     [clojure.set :as s]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Mesh Helpers
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Mesh Helpers</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Map the points of a line onto a sphere.</p>
 			</div>
 			<div class="box section">
@@ -49,7 +45,7 @@ Mesh Helpers</pre>
   [l]
   (line/line (proj/to-sphere (:p1 l)) (proj/to-sphere (:p2 l))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Map the points of a triangle onto a sphere.</p>
 			</div>
 			<div class="box section">
@@ -57,7 +53,7 @@ Mesh Helpers</pre>
   [t]
   (triangle/triangle (proj/to-sphere (:p1 t)) (proj/to-sphere (:p2 t)) (proj/to-sphere (:p3 t))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Map the points of a voronoi cell onto a sphere.</p>
 			</div>
 			<div class="box section">
@@ -65,7 +61,7 @@ Mesh Helpers</pre>
   [c]
   (delaunay/voronoi-cell (proj/to-sphere (:point c)) (map #(proj/to-sphere %) (:points c)) (:closed c)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Scale a voronoi cell.</p>
 			</div>
 			<div class="box section">
@@ -73,7 +69,7 @@ Mesh Helpers</pre>
   [c s]
   (delaunay/voronoi-cell (point/scale (:point c) s) (map #(point/scale % s) (:points c)) (:closed c)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>If the given cell is not closed inject a closing point at the pole.</p>
 			</div>
 			<div class="box section">
@@ -83,7 +79,7 @@ Mesh Helpers</pre>
     c
     (delaunay/voronoi-cell (:point c) (into [] (cons (point/point 0 0 -1) (conj (:points c) (point/point 0 0 -1)))) true)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create voronoi for points on a sphere.</p>
 			</div>
 			<div class="box section">
@@ -94,7 +90,7 @@ Mesh Helpers</pre>
         cells (delaunay/to-cells (delaunay/voronoi d))]
     (map close-cell (map cell-to-sphere (map #(scale-cell % 0.1) cells)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create delaunay for points on a sphere.</p>
 			</div>
 			<div class="box section">
@@ -104,14 +100,10 @@ Mesh Helpers</pre>
         triangles (map :t (:triangles (delaunay/delaunay projected)))]
     (map triangle-to-sphere (map #(triangle/scale % 0.1) triangles))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Mesh Building
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Mesh Building</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -120,7 +112,7 @@ Mesh Building</pre>
    :scale 200
    :jitter 0.05})</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a list of lines that represent a cube.</p>
 			</div>
 			<div class="box section">
@@ -128,7 +120,7 @@ Mesh Building</pre>
   [config]
   (map #(point/scale % (:scale config)) (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a list of triangles for a delaunay of a fibonacci sphere.</p>
 			</div>
 			<div class="box section">
@@ -136,7 +128,7 @@ Mesh Building</pre>
   [config]
   (map #(triangle/scale % (:scale config)) (to-delaunay (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a list of lines for a voronoi of a fibonacci sphere.</p>
 			</div>
 			<div class="box section">
@@ -144,14 +136,10 @@ Mesh Building</pre>
   [config]
   (map #(scale-cell % (:scale config)) (to-voronoi (map #(sphere/jitter % (:jitter config)) (sphere/fibonacci (:points config))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Create a graph that holds all triangles and connects them to their neighbours.
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=================================================================================================================
-Create a graph that holds all triangles and connects them to their neighbours.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if two triangles share an edge. They do so if they share two points.</p>
 			</div>
 			<div class="box section">
@@ -159,7 +147,7 @@ Create a graph that holds all triangles and connects them to their neighbours.</
   [t1 t2]
   (= 4 (count (s/union #{(:p1 t1) (:p2 t1) (:p3 t1)} #{(:p1 t2) (:p2 t2) (:p3 t2)}))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get list of neighbors in ts for t as pairs [t1 t2].</p>
 			</div>
 			<div class="box section">
@@ -167,7 +155,7 @@ Create a graph that holds all triangles and connects them to their neighbours.</
   [t ts]
   (into #{} (filter #(not (nil? %)) (map #(if (share-edge? t %) [t %] nil) (remove #{t} ts)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create edges of triangles.</p>
 			</div>
 			<div class="box section">
@@ -175,6 +163,7 @@ Create a graph that holds all triangles and connects them to their neighbours.</
   [ts]
   (into '() (apply s/union (map #(neighbours % ts) ts))))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

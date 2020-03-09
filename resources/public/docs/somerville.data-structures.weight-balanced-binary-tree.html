@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.data-structures.weight-balanced-binary-tree</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -26,62 +26,19 @@
 			<div class="box section">
 				<pre class="brush: clojure">(ns somerville.data-structures.weight-balanced-binary-tree)</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>See https://github.com/danlentz/clj-wbtree</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">See https://github.com/danlentz/clj-wbtree</pre>
+						<div class="box section span">
+				<p>Weight Balanced Functional Binary Tree (Hirai-Yamamoto Tree)</p><p>This is an implementation of a weight-balanced binary tree data  structure based on the following references:</p><p>&ndash;  Adams (1992)     'Implementing Sets Efficiently in a Functional Language'     Technical Report CSTR 92-10, University of Southampton.</p><p>&ndash;  Hirai and Yamamoto (2011)     'Balancing Weight-Balanced Trees'     Journal of Functional Programming / 21 (3):     Pages 287-307</p><p>&ndash;  Oleg Kiselyov     'Towards the best collection API, A design of the overall optimal     collection traversal interface'     <a href="http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt">http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt</a></p><p>&ndash;  Nievergelt and Reingold (1972)     'Binary Search Trees of Bounded Balance'     STOC '72 Proceedings     4th Annual ACM symposium on Theory of Computing     Pages 137-142</p><p>&ndash;  Driscoll, Sarnak, Sleator, and Tarjan (1989)     'Making Data Structures Persistent'     Journal of Computer and System Sciences Volume 38 Issue 1, February 1989     18th Annual ACM Symposium on Theory of Computing     Pages 86-124</p><p>&ndash;  MIT Scheme weight balanced tree as reimplemented by Yoichi Hirai     and Kazuhiko Yamamoto using the revised non-variant algorithm recommended     integer balance parameters from (Hirai/Yamomoto 2011).</p>
 			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Weight Balanced Functional Binary Tree (Hirai-Yamamoto Tree)
-
-
-This is an implementation of a weight-balanced binary tree data
- structure based on the following references:
-
---  Adams (1992)
-    'Implementing Sets Efficiently in a Functional Language'
-    Technical Report CSTR 92-10, University of Southampton.
-
---  Hirai and Yamamoto (2011)
-    'Balancing Weight-Balanced Trees'
-    Journal of Functional Programming / 21 (3):
-    Pages 287-307
-
---  Oleg Kiselyov
-    'Towards the best collection API, A design of the overall optimal
-    collection traversal interface'
-    &lt;http://pobox.com/~oleg/ftp/papers/LL3-collections-enumerators.txt&gt;
-
---  Nievergelt and Reingold (1972)
-    'Binary Search Trees of Bounded Balance'
-    STOC '72 Proceedings
-    4th Annual ACM symposium on Theory of Computing
-    Pages 137-142
-
---  Driscoll, Sarnak, Sleator, and Tarjan (1989)
-    'Making Data Structures Persistent'
-    Journal of Computer and System Sciences Volume 38 Issue 1, February 1989
-    18th Annual ACM Symposium on Theory of Computing
-    Pages 86-124
-
---  MIT Scheme weight balanced tree as reimplemented by Yoichi Hirai
-    and Kazuhiko Yamamoto using the revised non-variant algorithm recommended
-    integer balance parameters from (Hirai/Yamomoto 2011).
-
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(set! *warn-on-reflection* true)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -90,83 +47,54 @@ This is an implementation of a weight-balanced binary tree data
     `(throw (new ~param (str ~@(interpose &quot; &quot; more))))
     `(throw (Exception. (str ~@(interpose &quot; &quot; params))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Data Collection and Metrics</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Data Collection and Metrics
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def stats (atom {}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn reset-stats!! []
   (reset! stats {}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn inc-stat! [stat]
  #_ (swap! stats assoc stat (inc (get @stats stat 1))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Weight Balancing Constants</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Weight Balancing Constants
-</pre>
+						<div class="box section span">
+				<p>+delta+:   The primary balancing rotation parameter that is used for the   determination whether two subtrees of a node are in balance or   require adjustment by means of a rotation operation.  The specific   rotation to be performed is determined by +gamma+.</p>
 			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">+delta+:
-  The primary balancing rotation parameter that is used for the
-  determination whether two subtrees of a node are in balance or
-  require adjustment by means of a rotation operation.  The specific
-  rotation to be performed is determined by +gamma+.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def ^:const +delta+ 3)</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>+gamma+:   The secondary balancing rotation parameter that is used for the   determination of whether a single or double rotation operation should   occur, once it has been decided based on +delta+ that a rotation is   indeed required.</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">+gamma+:
-  The secondary balancing rotation parameter that is used for the
-  determination of whether a single or double rotation operation should
-  occur, once it has been decided based on +delta+ that a rotation is
-  indeed required.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def ^:const +gamma+ 2)</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Universal Comparator</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Universal Comparator
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -178,42 +106,37 @@ Universal Comparator
       (.compareTo ^Integer (hash x) (hash y)))
     (.compareTo ^Integer (hash (class x)) (hash (class y)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn xcompare&lt; [x y]
   (neg? (xcompare x y)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn xcompare&gt; [x y]
   (pos? (xcompare x y)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn xcompare= [x y]
   (zero? (xcompare x y)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Storage Model</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Storage Model
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn- leaf [] nil)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>a value which satisfies null?</p>
 			</div>
 			<div class="box section">
@@ -221,98 +144,93 @@ Storage Model
   []
   (leaf))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn null? [n]
   (nil? n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(deftype Node [k v l r ^long x])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn node [k v l r x]
   (Node. k v l r x))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn node? [thing]
   (instance? Node thing))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Constituent Accessors</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Constituent Accessors
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -k [^Node n]
   (.k n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -v [^Node n]
   (.v n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -l [^Node n]
   (.l n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -r [^Node n]
   (.r n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -x [^Node n]
   (.x n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -kv [^Node n]
   (new clojure.lang.MapEntry (.k n) (.v n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -lr [^Node n]
   (list (.l n) (.r n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defn -kvlr [^Node n]
   (list (.k n) (.v n) (.l n) (.r n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>destructure node n: key value</p>
 			</div>
 			<div class="box section">
@@ -322,7 +240,7 @@ Constituent Accessors
          ~ksym (.k n#) ~vsym (.v n#)]
      ~@body))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>destructure node n: key value left right</p>
 			</div>
 			<div class="box section">
@@ -333,7 +251,7 @@ Constituent Accessors
          ~lsym (.l n#) ~rsym (.r n#)]
      ~@body))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>destructure node n: key value left right size</p>
 			</div>
 			<div class="box section">
@@ -345,7 +263,7 @@ Constituent Accessors
          ~xsym (.x n#)]
      ~@body))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>apply f to the destructured constituent values of n.  f is a function taking four parameters: K, V, L, and R,  where K is the key of NODE, V is the value of NODE, L is the left  subtree of NODE, and R is the right subtree of NODE.</p>
 			</div>
 			<div class="box section">
@@ -353,15 +271,10 @@ Constituent Accessors
   [n f]
   (apply f (-kvlr n)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Fundamental Node Operations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Fundamental Node Operations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -370,7 +283,7 @@ Fundamental Node Operations
     0
     (-x n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>returns node weight as appropriate for rotation calculations using  the 'revised non-variant algorithm' for weight balanced binary tree.</p>
 			</div>
 			<div class="box section">
@@ -378,7 +291,7 @@ Fundamental Node Operations
   ^long [n]
   (inc (node-size n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Efficient mechanism to accomplish partial enumeration of  tree-structure into a seq representation without incurring the  overhead of operating over the entire tree.  Used internally for  implementation of higher-level collection api routines</p>
 			</div>
 			<div class="box section">
@@ -390,7 +303,7 @@ Fundamental Node Operations
        (kvlr [k v l r] n
          (recur l (list n r enum))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -402,7 +315,7 @@ Fundamental Node Operations
        (kvlr [k v l r] n
          (recur r (list n l enum))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -410,7 +323,7 @@ Fundamental Node Operations
   (when (seq enum)
     (first enum)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -420,7 +333,7 @@ Fundamental Node Operations
       (when-not (and (nil? x2) (nil? x3))
         (node-enumerator x2 x3)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -430,7 +343,7 @@ Fundamental Node Operations
       (when-not (and (nil? x2) (nil? x3))
         (node-enumerator-reverse x2 x3)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Join left and right subtrees at root k/v. Assumes all keys in l < k < all keys in r.</p>
 			</div>
 			<div class="box section">
@@ -438,7 +351,7 @@ Fundamental Node Operations
   [k v ^Node l ^Node r]
   (Node. k v l r (+ 1 (if l (.x l) 0) (if r (.x r) 0))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create and return a newly allocated weight balanced tree containing a single association, that value V with key K.</p>
 			</div>
 			<div class="box section">
@@ -446,15 +359,10 @@ Fundamental Node Operations
   [k v]
   (node-create k v (null) (null)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Tree Rotations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Tree Rotations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Perform a single left rotation, moving Y, the left subtree of the right subtree of A, into the left subtree (shown below).  This must occur in order to restore proper balance when the weight of the left subtree of node A is less then the weight of the right subtree of node A multiplied by rotation coefficient +delta+ and the weight of the left subtree of node B is less than the weight of the right subtree of node B multiplied by rotation coefficient +gamma+</p><pre><code>          ,---,                                  ,---,
           | A |                                  | B |
           :---:                                  :---:
@@ -474,7 +382,7 @@ Tree Rotations
     (node-create bk bv
       (node-create ak av x y) z)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Perform a double left rotation, moving Y1, the left subtree of the left subtree of the right subtree of A, into the left subtree (shown below).  This must occur in order to restore proper balance when the weight of the left subtree of node A is less then the weight of the right subtree of node A multiplied by rotation coefficient +delta+ and the weight of the left subtree of node B is greater than or equal to the weight of the right subtree of node B multiplied by rotation coefficient +gamma+.</p><pre><code>          ,---,                                    ,---,
           | A |                                    | B |
        &#95;&#95;&#95;:---:&#95;&#95;&#95;                             &#95;&#95;&#95;&#95;:---:&#95;&#95;&#95;&#95;
@@ -498,7 +406,7 @@ Tree Rotations
         (node-create ak av x y1)
         (node-create ck cv y2 z)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Perform a single right rotation, moving Y, the right subtree of the left subtree of B, into the right subtree (shown below).  This must occur in order to restore proper balance when the weight of the right subtree of node B is less then the weight of the left subtree of node B multiplied by rotation coefficient +delta+ and the weight of the right subtree of node A is less than the weight of the left subtree of node A multiplied by rotation coefficient +gamma+.</p><pre><code>          ,---,                                  ,---,
           | B |                                  | A |
           :---:                                  :---:
@@ -514,7 +422,7 @@ Tree Rotations
   (kvlr [ak av x y] a
     (node-create ak av x (node-create bk bv y z))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Perform a double right rotation, moving Y2, the right subtree of the right subtree of the left subtree of C, into the right subtree (shown below).  This must occur in order to restore proper balance when the weight of the right subtree of node C is less then the weight of the left subtree of node C multiplied by rotation coefficient +delta+ and the weight of the right subtree of node B is greater than or equal to the weight of the left subtree of node B multiplied by rotation coefficient +gamma+.</p><pre><code>          ,---,                                    ,---,
           | C |                                    | B |
        &#95;&#95;&#95;:---:&#95;&#95;&#95;                             &#95;&#95;&#95;&#95;:---:&#95;&#95;&#95;&#95;
@@ -534,15 +442,10 @@ Tree Rotations
         (node-create ak av x y1)
         (node-create ck cv y2 z)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Fundamental Tree Operations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Fundamental Tree Operations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Join left and right subtrees at root k/v, performing a single or double rotation to balance the resulting tree, if needed.  Assumes all keys in l < k < all keys in r, and the relative weight balance of the left and right subtrees is such that no more than one single/double rotation will result in each subtree being less than +delta+ times the weight of the other.</p>
 			</div>
 			<div class="box section">
@@ -563,7 +466,7 @@ Fundamental Tree Operations
                                 (rotate-double-right k v l r)))
       true                  (node-create k v l r))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -579,7 +482,7 @@ Fundamental Tree Operations
              (pos? c) (node-stitch key val l (node-add r k v))
              true     (node-create key v l r)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -598,7 +501,7 @@ Fundamental Tree Operations
                                             (node-concat3 k v r1 r)))
                   true                  (node-create k v l r)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return the node containing the minimum key of the tree rooted at n</p>
 			</div>
 			<div class="box section">
@@ -609,7 +512,7 @@ Fundamental Tree Operations
     (null? (-l n)) n
     true           (recur (-l n))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return the node containing the minimum key of the tree rooted at n</p>
 			</div>
 			<div class="box section">
@@ -620,7 +523,7 @@ Fundamental Tree Operations
     (null? (-r n)) n
     true           (recur (-r n))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a tree the same as the one rooted at n, with the node containing the minimum key removed. See node-least.</p>
 			</div>
 			<div class="box section">
@@ -632,7 +535,7 @@ Fundamental Tree Operations
     true            (node-stitch (-k n) (-v n)
                       (node-remove-least (-l n)) (-r n))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a tree the same as the one rooted at n, with the node containing the maximum key removed. See node-greatest.</p>
 			</div>
 			<div class="box section">
@@ -644,7 +547,7 @@ Fundamental Tree Operations
     true            (node-stitch (-k n) (-v n) (-l n)
                       (node-remove-greatest (-r n)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Join two trees, the left rooted at l, and the right at r, performing a single balancing operation on the resulting tree, if needed. Assumes all keys in l are smaller than all keys in r, and the relative balance of l and r is such that no more than one rotation operation will be required to balance the resulting tree</p>
 			</div>
 			<div class="box section">
@@ -656,7 +559,7 @@ Fundamental Tree Operations
     true      (kvlr [k v _ _] (node-least r)
                 (node-stitch k v l (node-remove-least r)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -668,7 +571,7 @@ Fundamental Tree Operations
                  (node-concat3 (-k minimum) (-v minimum) n1
                    (node-remove-least n2)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -682,7 +585,7 @@ Fundamental Tree Operations
           (pos? c) (node-stitch key val l (node-remove r k))
           true     (node-concat2 l r))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find k (if exists) in only d comparisons (d is depth of tree)  rather than the traditional compare/low compare/high which takes on  avg (* 1.5 (- d 1))</p>
 			</div>
 			<div class="box section">
@@ -698,7 +601,7 @@ Fundamental Tree Operations
         (when-not (xcompare&lt; (-k best) k)
           best)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Fold-left (reduce) the collection from least to greatest.</p>
 			</div>
 			<div class="box section">
@@ -710,7 +613,7 @@ Fundamental Tree Operations
       (recur (node-enum-rest e)
         (f acc (node-enum-first e))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Fold-right (reduce) the collection from greatest to least.</p>
 			</div>
 			<div class="box section">
@@ -722,7 +625,7 @@ Fundamental Tree Operations
       (recur (node-enum-prior e)
         (f acc (node-enum-first e))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -733,7 +636,7 @@ Fundamental Tree Operations
                       (node-remove x (-k y))))
     n n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -742,7 +645,7 @@ Fundamental Tree Operations
                     (node-add acc (-v x) (-k x)))
     (null) n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For the side-effect, apply f to each node of the tree rooted at n</p>
 			</div>
 			<div class="box section">
@@ -755,7 +658,7 @@ Fundamental Tree Operations
       (f n)
       (node-iter r f))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For the side-effect, apply f to each node of the tree rooted at n for which the predicate function returns a logically true value</p>
 			</div>
 			<div class="box section">
@@ -763,7 +666,7 @@ Fundamental Tree Operations
   [n p f]
   (node-iter n (fn [n] (when (p n) (f n)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -775,7 +678,7 @@ Fundamental Tree Operations
                            (node-split-lesser (-r n) k))
     true                 (-l n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -787,7 +690,7 @@ Fundamental Tree Operations
                            (node-split-greater (-l n) k) (-r n))
     true                 (-r n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>returns a triple (l present r) where: l is the set of elements of n that are < k, r is the set of elements of n that are > k, present is false if n contains no element equal to k, or (k v) if n contains an element with key equal to k</p>
 			</div>
 			<div class="box section">
@@ -804,15 +707,10 @@ Fundamental Tree Operations
           (pos?  c) (let [[lr pres rr] (node-split r k)]
                       [(node-concat3 ak v l lr) pres rr]))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Fundamental Set Operations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Fundamental Set Operations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -826,7 +724,7 @@ Fundamental Set Operations
                      (node-set-union l1 l)
                      (node-set-union r1 r))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -844,7 +742,7 @@ Fundamental Set Operations
                        (node-set-intersection l1 l)
                        (node-set-intersection r1 r)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -858,7 +756,7 @@ Fundamental Set Operations
                      (node-set-difference l1 l)
                      (node-set-difference r1 r))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -884,7 +782,7 @@ Fundamental Set Operations
     (let [res (or (null? sub) (subset? sub super))]
       (if res true false))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>return 3-way ordinal comparison of the trees n1 and n2 with the following return-value semantics:</p><p> -1  -> n1 is LESS-THAN    n2   0  -> n1 is EQAL-TO      n2  +1  -> n1 is GREATER-THAN n2</p>
 			</div>
 			<div class="box section">
@@ -905,15 +803,10 @@ Fundamental Set Operations
                                        (node-enumerator r1 ee1)
                                        (node-enumerator r2 ee2)))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Fundamental Map Operations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Fundamental Map Operations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Merge two maps in worst case linear time</p>
 			</div>
 			<div class="box section">
@@ -931,15 +824,10 @@ Fundamental Map Operations
                      (node-merge l1 l)
                      (node-merge r1 r))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Fundamental Vector Operations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Fundamental Vector Operations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return nth node from the beginning of the ordered tree rooted at n.</p>
 			</div>
 			<div class="box section">
@@ -956,7 +844,7 @@ Fundamental Vector Operations
       (exception &quot;index out of range&quot;)
       (srch n index))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return the rank (sequential position) of a given KEY within the ordered tree rooted at n.</p>
 			</div>
 			<div class="box section">
@@ -970,7 +858,7 @@ Fundamental Vector Operations
                               (+ 1 rank (node-size (-l n))))
        true                 (+ rank (node-size (-l n))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lon-lazy) vector of all nodes in tree rooted at n in the order they occur.</p>
 			</div>
 			<div class="box section">
@@ -978,7 +866,7 @@ Fundamental Vector Operations
   [n]
   (node-fold-left conj [] n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lon-lazy) vector of all nodes in tree rooted at n in reverse order.</p>
 			</div>
 			<div class="box section">
@@ -986,7 +874,7 @@ Fundamental Vector Operations
   [n]
   (node-fold-right conj [] n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lon-lazy) vector of all keys in tree rooted at n in the order they occur.</p>
 			</div>
 			<div class="box section">
@@ -994,7 +882,7 @@ Fundamental Vector Operations
   [n]
   (node-fold-left #(conj %1 (-k %2)) [] n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lon-lazy) vector of all keys in tree rooted at n in reverse-order.</p>
 			</div>
 			<div class="box section">
@@ -1002,7 +890,7 @@ Fundamental Vector Operations
   [n]
   (node-fold-right #(conj %1 (-k %2)) [] n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lon-lazy) vector of all values in tree rooted at n in the order they occur.</p>
 			</div>
 			<div class="box section">
@@ -1010,7 +898,7 @@ Fundamental Vector Operations
   [n]
   (node-fold-left #(conj %1 (-v %2)) [] n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lon-lazy) vector of all values in tree rooted at n in reverse-order.</p>
 			</div>
 			<div class="box section">
@@ -1018,15 +906,10 @@ Fundamental Vector Operations
   [n]
   (node-fold-right #(conj %1 (-v %2)) [] n))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Fundamental Seq Operations</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Fundamental Seq Operations
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lazy) seq of nodes in tree rooted at n in the order they occur.</p>
 			</div>
 			<div class="box section">
@@ -1039,7 +922,7 @@ Fundamental Seq Operations
                   (node-enum-seq (node-enum-rest enum))))))]
     (node-enum-seq (node-enumerator n))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Return a (lazy) seq of nodes in tree rooted at n in reverse order.</p>
 			</div>
 			<div class="box section">
@@ -1052,15 +935,10 @@ Fundamental Seq Operations
                   (node-enum-seq-reverse (node-enum-prior enum))))))]
     (node-enum-seq-reverse (node-enumerator-reverse n))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>Misc</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">
-Misc
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -1069,7 +947,7 @@ Misc
   ([start end]      (reduce node-add (null) (shuffle (range start end))))
   ([start end step] (reduce node-add (null) (shuffle (range start end step)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -1078,7 +956,7 @@ Misc
   ([start end]      (reduce conj #{} (range start end)))
   ([start end step] (reduce conj #{} (range start end step))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -1087,98 +965,46 @@ Misc
   ([start end]      (reduce conj (sorted-set) (shuffle (range start end))))
   ([start end step] (reduce conj (sorted-set) (shuffle (range start end step)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(set! *warn-on-reflection* false)</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(def i10 (make-integer-tree 10)) (def i30 (make-integer-tree 20 30)) (def i   (make-integer-tree 30))</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(def i10 (make-integer-tree 10))
-(def i30 (make-integer-tree 20 30))
-(def i   (make-integer-tree 30))</pre>
+						<div class="box section span">
+				<p>(map -k (node-seq i))   => (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24       25 26 27 28 29)</p>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(map -k (node-seq-reverse i))   => (29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8       7 6 5 4 3 2 1 0)</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq i))
-  =&gt; (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
-      25 26 27 28 29)</pre>
+						<div class="box section span">
+				<p>(map -k (node-seq (node-filter (comp even? -k) i)))   => (0 2 4 6 8 10 12 14 16 18 20 22 24 26 28)</p>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(def m (reduce #(apply node-add %1 %2) nil          [[1 :a][2 :b][3 :c][4 :d][5 :e]]))</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq-reverse i))
-  =&gt; (29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8
-      7 6 5 4 3 2 1 0)</pre>
+						<div class="box section span">
+				<p>(map -k (node-seq (node-invert m)))   => (:a :b :c :d :e)</p>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(def a (make-integer-tree 0 100)) (def b (make-integer-tree 0 100 2)) (def c (make-integer-tree 0 100 3)) (def d (make-integer-tree 0 100 4)) (def e (make-integer-tree 0 100 5))</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq (node-filter (comp even? -k) i)))
-  =&gt; (0 2 4 6 8 10 12 14 16 18 20 22 24 26 28)</pre>
+						<div class="box section span">
+				<p>(map -k (node-seq (node-set-intersection b c)))   => (0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96)</p>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(map -k (node-seq (node-set-union b c)))   => (0 2 3 4 6 8 9 10 12 14 15 16 18 20 21 22 24 26 27 28 30 32 33 34 36 38       39 40 42 44 45 46 48 50 51 52 54 56 57 58 60 62 63 64 66 68 69 70 72       74 75 76 78 80 81 82 84 86 87 88 90 92 93 94 96 98 99)</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(def m (reduce #(apply node-add %1 %2) nil
-         [[1 :a][2 :b][3 :c][4 :d][5 :e]]))</pre>
+						<div class="box section span">
+				<p>(map -k (node-seq (node-set-difference b c)))   => (2 4 8 10 14 16 20 22 26 28 32 34 38 40 44 46 50 52 56 58 62 64 68 70       74 76 80 82 86 88 92 94 98)</p>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(map -k (node-seq (node-set-difference c b)))   => (3 9 15 21 27 33 39 45 51 57 63 69 75 81 87 93 99)</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq (node-invert m)))
-  =&gt; (:a :b :c :d :e)</pre>
-			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(def a (make-integer-tree 0 100))
-(def b (make-integer-tree 0 100 2))
-(def c (make-integer-tree 0 100 3))
-(def d (make-integer-tree 0 100 4))
-(def e (make-integer-tree 0 100 5))</pre>
-			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq (node-set-intersection b c)))
-  =&gt; (0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96)</pre>
-			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq (node-set-union b c)))
-  =&gt; (0 2 3 4 6 8 9 10 12 14 15 16 18 20 21 22 24 26 27 28 30 32 33 34 36 38
-      39 40 42 44 45 46 48 50 51 52 54 56 57 58 60 62 63 64 66 68 69 70 72
-      74 75 76 78 80 81 82 84 86 87 88 90 92 93 94 96 98 99)</pre>
-			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq (node-set-difference b c)))
-  =&gt; (2 4 8 10 14 16 20 22 26 28 32 34 38 40 44 46 50 52 56 58 62 64 68 70
-      74 76 80 82 86 88 92 94 98)</pre>
-			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(map -k (node-seq (node-set-difference c b)))
-  =&gt; (3 9 15 21 27 33 39 45 51 57 63 69 75 81 87 93 99)</pre>
-			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

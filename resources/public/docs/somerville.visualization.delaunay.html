@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.visualization.delaunay</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -40,7 +40,7 @@
     [reagent.core :as reagent]
     [somerville.geometry.triangle :as triangle]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -51,7 +51,7 @@
 (def offset-width (atom (/ width 2)))
 (def offset-height (atom (/ height 2)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -69,14 +69,10 @@
    :point-highlight (color/rgba 255 255 255)
    :point-next      (color/rgba  57   0 153)})</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Data Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Data Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -95,7 +91,7 @@ Data Handling</pre>
 (def invalidated (reagent/atom []))
 (def highlight-triangle (reagent/atom nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Increase amount of fibonacci points</p>
 			</div>
 			<div class="box section">
@@ -103,7 +99,7 @@ Data Handling</pre>
   []
   (swap! fib-detail inc))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Decrease amount of fibonacci points</p>
 			</div>
 			<div class="box section">
@@ -111,7 +107,7 @@ Data Handling</pre>
   []
   (swap! fib-detail #(if (&lt; 2 %) (dec %) %)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add another point to the diagram.</p>
 			</div>
 			<div class="box section">
@@ -125,7 +121,7 @@ Data Handling</pre>
   (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))
   (reset! voronoi-cells (delaunay/to-cells @voronoi-lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Remove last point</p>
 			</div>
 			<div class="box section">
@@ -138,7 +134,7 @@ Data Handling</pre>
   (reset! voronoi-lines (delaunay/voronoi @delaunay-triangles))
   (reset! voronoi-cells (delaunay/to-cells @voronoi-lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Cycle through triangles.</p>
 			</div>
 			<div class="box section">
@@ -151,7 +147,7 @@ Data Handling</pre>
               (and (nil? %) (&lt; 0 c)) 0
               (&lt; 0 c) (inc %)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create points for the projected fibonacci sphere.</p>
 			</div>
 			<div class="box section">
@@ -161,7 +157,7 @@ Data Handling</pre>
   (reset! highlight-triangle nil)
   (reset! fib-points (map #(p/scale % 10) (map proj/to-plane (sphere/fibonacci @fib-detail)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add next fibonacci point to diagram</p>
 			</div>
 			<div class="box section">
@@ -174,7 +170,7 @@ Data Handling</pre>
       (add-point! (first @fib-points))
       (swap! fib-points rest))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add remaining fibonacci points to diagram</p>
 			</div>
 			<div class="box section">
@@ -185,7 +181,7 @@ Data Handling</pre>
   (dorun (map add-point! @fib-points))
   (reset! fib-points []))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Highlight the triangles that are invalidated by the next fibonacci point.</p>
 			</div>
 			<div class="box section">
@@ -196,7 +192,7 @@ Data Handling</pre>
         nok (map second (filter first classified))]
     (reset! invalidated nok)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Clear the diagram.</p>
 			</div>
 			<div class="box section">
@@ -210,7 +206,7 @@ Data Handling</pre>
   (reset! delaunay-triangles (delaunay/delaunay @points (p/point (* -1 width) (* -1 height)) (p/point width height)))
   (reset! voronoi-lines (list)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reset zoom.</p>
 			</div>
 			<div class="box section">
@@ -220,7 +216,7 @@ Data Handling</pre>
   (reset! offset-height (/ height 2))
   (reset! zoom 1))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Zoom the points</p>
 			</div>
 			<div class="box section">
@@ -228,7 +224,7 @@ Data Handling</pre>
   [direction]
   (reset! zoom (if (pos? direction) (* 0.9 @zoom) (* 1.1 @zoom))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Toggle drawing the delaunay triangles.</p>
 			</div>
 			<div class="box section">
@@ -236,7 +232,7 @@ Data Handling</pre>
   []
   (reset! draw-delaunay (not @draw-delaunay)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Toggle drawing the voronoi diagram.</p>
 			</div>
 			<div class="box section">
@@ -244,7 +240,7 @@ Data Handling</pre>
   []
   (reset! draw-cells (not @draw-cells)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Toggle drawing the voronoi diagram.</p>
 			</div>
 			<div class="box section">
@@ -252,7 +248,7 @@ Data Handling</pre>
   []
   (reset! draw-voronoi (not @draw-voronoi)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Print the points of the diagram.</p>
 			</div>
 			<div class="box section">
@@ -263,7 +259,7 @@ Data Handling</pre>
   (log/info &quot;Cells:&quot;)
   (dorun (map #(log/info (c/out %) &quot; angle &quot; (p/angle (:point %) (first (:points %)) (second (:points %)))) @voronoi-cells)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -276,14 +272,10 @@ Data Handling</pre>
                   (str &quot;Relative mouse: &quot; (c/out pr))
                   (str &quot;Triangle: &quot; (c/out t))])))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Drawing Functionality
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Drawing Functionality</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw a point.</p>
 			</div>
 			<div class="box section">
@@ -297,7 +289,7 @@ Drawing Functionality</pre>
       (quil/point (+ (:x p) @offset-width) (+ (:y p) @offset-height))
       (quil/stroke-weight 1))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw a cirlce.</p>
 			</div>
 			<div class="box section">
@@ -310,7 +302,7 @@ Drawing Functionality</pre>
       (quil/fill (:r col) (:g col) (:b col) 40)
       (quil/ellipse (+ (:x p) @offset-width) (+ (:y p) @offset-height) d d))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw a line.</p>
 			</div>
 			<div class="box section">
@@ -322,7 +314,7 @@ Drawing Functionality</pre>
       (quil/fill (:r col) (:g col) (:b col) (:a col))
       (quil/line (+ (:x (:p1 l)) @offset-width) (+ (:y (:p1 l)) @offset-height) (+ (:x (:p2 l)) @offset-width) (+ (:y (:p2 l)) @offset-height)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw a triangle</p>
 			</div>
 			<div class="box section">
@@ -333,7 +325,7 @@ Drawing Functionality</pre>
   (draw-line (line/line (:p2 (:t t)) (:p3 (:t t))) lcol)
   (draw-line (line/line (:p3 (:t t)) (:p1 (:t t))) lcol))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw a voronoi cell</p>
 			</div>
 			<div class="box section">
@@ -349,7 +341,7 @@ Drawing Functionality</pre>
   (quil/end-shape)
   (quil/stroke-weight 1))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if the invalidated should be drawn.</p>
 			</div>
 			<div class="box section">
@@ -360,7 +352,7 @@ Drawing Functionality</pre>
     (not (nil? (first @fib-points)))
     (&lt; 0 (count @invalidated))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil repeatedly.</p>
 			</div>
 			<div class="box section">
@@ -388,14 +380,10 @@ Drawing Functionality</pre>
       (draw-circle (:c (nth (:triangles @delaunay-triangles) @highlight-triangle)) (:line-highlight colors))
       (draw-triangle (nth (:triangles @delaunay-triangles) @highlight-triangle) (:line-highlight colors) (:point-highlight colors)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Event Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Event Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>calculate position change and store in atom</p>
 			</div>
 			<div class="box section">
@@ -412,7 +400,7 @@ Event Handling</pre>
             (reset! offset-height (+ p-y (- y old-y))))
     nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>store mouse position in atom</p>
 			</div>
 			<div class="box section">
@@ -424,7 +412,7 @@ Event Handling</pre>
             (reset! mouse-position [x y]))
     nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle releasing mouse buttons.</p>
 			</div>
 			<div class="box section">
@@ -437,7 +425,7 @@ Event Handling</pre>
                (/ 1 @zoom)))
     nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle mouse wheel events.</p>
 			</div>
 			<div class="box section">
@@ -445,7 +433,7 @@ Event Handling</pre>
   [direction]
   (zoom! direction))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -469,14 +457,10 @@ Event Handling</pre>
     :o (toggle-drawing-voronoi-cells!)
     (log/info (str &quot;pressed key &quot; (quil/key-as-keyword)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				App Setup
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-App Setup</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil once before drawing</p>
 			</div>
 			<div class="box section">
@@ -487,7 +471,7 @@ App Setup</pre>
     (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Initialize Quil sketch.</p>
 			</div>
 			<div class="box section">
@@ -504,7 +488,7 @@ App Setup</pre>
     :mouse-wheel mouse-wheel
     :key-pressed key-pressed))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information about usage.</p>
 			</div>
 			<div class="box section">
@@ -535,7 +519,7 @@ App Setup</pre>
      [:li &quot;v to toggle drawing voronoi lines&quot;]
      [:li &quot;o to toggle drawing voronoi cells&quot;]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information current settings.</p>
 			</div>
 			<div class="box section">
@@ -559,7 +543,7 @@ App Setup</pre>
              [:li (str &quot;Highlighted: &quot; @highlight-triangle)]]
             (map (fn [i] [:li i]) @info)))]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw the basic ui for this visualization.</p>
 			</div>
 			<div class="box section">
@@ -571,7 +555,7 @@ App Setup</pre>
     [usage]
     [settings]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render html and canvas for terrain visualization.</p>
 			</div>
 			<div class="box section">
@@ -581,6 +565,7 @@ App Setup</pre>
     {:reagent-render ui
      :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

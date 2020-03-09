@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.rendering.discovery</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -39,14 +39,10 @@
     [somerville.geometry.polygon :as poly]
     [taoensso.timbre :as log]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Parsing wall descriptions
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Parsing wall descriptions</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Translate a line description into an actual line.</p>
 			</div>
 			<div class="box section">
@@ -59,7 +55,7 @@ Parsing wall descriptions</pre>
       (when (= 4 (count iparts))
         (l/line (p/point (nth iparts 0) (nth iparts 1)) (p/point (nth iparts 2) (nth iparts 3)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Translate one wall description.</p>
 			</div>
 			<div class="box section">
@@ -71,7 +67,7 @@ Parsing wall descriptions</pre>
         &quot;line&quot; (translate-line (rest parts))
         :else nil))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Given a string representation of wall descriptions create the geometrical representations for them.</p>
 			</div>
 			<div class="box section">
@@ -79,16 +75,10 @@ Parsing wall descriptions</pre>
   [^String wall-description]
   (filter #(not (nil? %)) (map translate-description (clojure.string/split wall-description #&quot;\\n&quot;))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Defining the events of the discovery process. Each event represents an end or starting point of a wall.The events are sorted by the angle so the processing can sweep through them.Events are grouped if multiple occur at the same angle.
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Defining the events of the discovery process. Each event represents an end or starting point of a wall.
-The events are sorted by the angle so the processing can sweep through them.
-Events are grouped if multiple occur at the same angle.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -98,7 +88,7 @@ Events are grouped if multiple occur at the same angle.</pre>
                               &quot;and angle-2 &quot; angle-2 &quot; for &quot; (gcommons/out wall (inc i))))
   (gcommons/out [this] (gcommons/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -106,7 +96,7 @@ Events are grouped if multiple occur at the same angle.</pre>
   [angle point wall angle-2]
   (Event. angle point wall angle-2))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create paritioned list of angles of the wall points. Each partition contains the points on that angle sorted by the distance to the discovery point.</p>
 			</div>
 			<div class="box section">
@@ -126,15 +116,10 @@ Events are grouped if multiple occur at the same angle.</pre>
                  (event a2 (:p2 %) % a1)))
             walls))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Preparation of sight blocking walls. Consider only those lines that are intersecting the circle givenby the current point of discovery.
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Preparation of sight blocking walls. Consider only those lines that are intersecting the circle given
-by the current point of discovery.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reorder the two points of a line so they are sorted by the angle defined by the line point, point and ref-point.</p>
 			</div>
 			<div class="box section">
@@ -148,7 +133,7 @@ by the current point of discovery.</pre>
       (and (&lt; (first angles) (/ Math/PI 2)) (&gt; (second angles) (/ (* Math/PI 3) 2))) (l/line (second sorted) (first sorted))
       :else (l/line (first sorted) (second sorted)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reduce the walls to those that are inside the polygon.</p>
 			</div>
 			<div class="box section">
@@ -156,7 +141,7 @@ by the current point of discovery.</pre>
   [polygon walls]
   (filter #(not (nil? %)) (map #(poly/shorten-line polygon %) walls)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Cut one wall into separate lines where intersected by other walls.</p>
 			</div>
 			<div class="box section">
@@ -168,7 +153,7 @@ by the current point of discovery.</pre>
         points (concat (list (:p1 wall)) non-ends (list (:p2 wall)))]
     (map #(l/line %1 %2) points (rest points))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Cut all walls on intersections.</p>
 			</div>
 			<div class="box section">
@@ -176,7 +161,7 @@ by the current point of discovery.</pre>
   [walls]
   (reduce concat (map #(cut-wall % walls) walls)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get all walls relevant to the discovered point including limiting the distance through polygon approximation of the view circle.</p>
 			</div>
 			<div class="box section">
@@ -188,21 +173,13 @@ by the current point of discovery.</pre>
         cuts (cut-walls relevant-walls)]
     (concat (:lines polygon) cuts)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Processing the events
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Processing the events</pre>
+						<div class="box section span">
+				Decision Helpers
 			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">------------------------------------------------------------------------------------------------------------------
-Decision Helpers</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if a wall is shorter than 10.</p>
 			</div>
 			<div class="box section">
@@ -210,7 +187,7 @@ Decision Helpers</pre>
   [wall]
   (&lt; (p/distance (:p1 wall) (:p2 wall)) 10))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Given the center point of the discovery and the events at a given angle return the relevant event.</p>
 			</div>
 			<div class="box section">
@@ -218,7 +195,7 @@ Decision Helpers</pre>
   [point events]
   (first (sort-by #(p/distance point (:point %)) events)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the closest wall to point of discovery.</p>
 			</div>
 			<div class="box section">
@@ -229,7 +206,7 @@ Decision Helpers</pre>
                                          (first (sort-by (fn [lp] (p/distance point lp)) (list (:p1 %) (:p2 %))))
                                          (l/intersect line %))) walls))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if an event is visible.</p>
 			</div>
 			<div class="box section">
@@ -241,7 +218,7 @@ Decision Helpers</pre>
         closer (filter #(and (not (gcommons/close-to dist (p/distance point %))) (&lt; (p/distance point %) dist)) intersections)]
     (= 0 (count closer))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>A cast point is valid only if it is on the line from the point towards the event point and not when it points away from event point.</p>
 			</div>
 			<div class="box section">
@@ -256,7 +233,7 @@ Decision Helpers</pre>
       (gcommons/close-to (* 2 Math/PI) alpha)
       (gcommons/close-to 0 alpha))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the next triangle point either at the event or at the wall behind the event.</p>
 			</div>
 			<div class="box section">
@@ -271,7 +248,7 @@ Decision Helpers</pre>
                  #(consider-cast? point (:point event) %)
                  (l/cuts (l/line point (:point event)) ws))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the list of active walls based on the events at an angle.</p>
 			</div>
 			<div class="box section">
@@ -282,7 +259,7 @@ Decision Helpers</pre>
       (filter #(not (commons/in? (:p2 %) ps)) current-walls)
       (distinct (filter #(commons/in? (:p1 %) ps) (map :wall events))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check which type of event this is.</p>
 			</div>
 			<div class="box section">
@@ -296,14 +273,10 @@ Decision Helpers</pre>
       (and (not (&lt; 0 starting)) (&lt; 0 ending)) :ending
       :else :bonkers)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Actual Discovery Process
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">------------------------------------------------------------------------------------------------------------------
-Actual Discovery Process</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This is the function where most of the logic sits. It represents the processing of the events at one angle. It finds next point of a triangle, and updates relevant walls and adds triangles.</p>
 			</div>
 			<div class="box section">
@@ -324,7 +297,7 @@ Actual Discovery Process</pre>
       :else
         [last-point current-triangles new-walls])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the visible triangles.</p>
 			</div>
 			<div class="box section">
@@ -352,7 +325,7 @@ Actual Discovery Process</pre>
             walls
             new-triangles))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Discover the visible area created by one discovered point.</p>
 			</div>
 			<div class="box section">
@@ -376,7 +349,7 @@ Actual Discovery Process</pre>
   ([point wall-description visualrange]
    (discover-point point wall-description visualrange nil)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Transform a triangle into a Java graphics polygon and render it.</p>
 			</div>
 			<div class="box section">
@@ -388,7 +361,7 @@ Actual Discovery Process</pre>
         tmp (.fillPolygon graphics p)
         tmp (.drawPolygon graphics p)]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render overlay image for discoveries.</p>
 			</div>
 			<div class="box section">
@@ -406,7 +379,7 @@ Actual Discovery Process</pre>
         i (image/write-image filename img)]
     i))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Update rendered overlay image for discoveries.</p>
 			</div>
 			<div class="box section">
@@ -421,6 +394,7 @@ Actual Discovery Process</pre>
         tmp (.dispose graphics)]
     (image/write-image filename img)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

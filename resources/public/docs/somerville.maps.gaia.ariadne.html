@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.maps.gaia.ariadne</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -29,20 +29,16 @@
     [somerville.geometry.polygon :as polygon]
     [somerville.geometry.point :as point]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Taken from Ariadne
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=================================================================================================================
-Taken from Ariadne</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def tau (* 2 Math/PI))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>The fractions from 0/n to n/n.</p>
 			</div>
 			<div class="box section">
@@ -50,7 +46,7 @@ Taken from Ariadne</pre>
   [n]
   (map #(/ % n) (range 0 (+ 1 n))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Fractions of a full circle.</p>
 			</div>
 			<div class="box section">
@@ -58,7 +54,7 @@ Taken from Ariadne</pre>
   [n]
   (map #(* tau %) (fractions n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>n/2 fractions of a half circle.</p>
 			</div>
 			<div class="box section">
@@ -66,7 +62,7 @@ Taken from Ariadne</pre>
   [n]
   (map #(/ (* tau %) 2) (fractions (/ n 2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Angle pairs that describe a full sphere.</p>
 			</div>
 			<div class="box section">
@@ -76,7 +72,7 @@ Taken from Ariadne</pre>
         b (drop-last 1 (angles n))]
     (vector a b)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Randomize an angle such that it won't conflict with it's neighbours.</p>
 			</div>
 			<div class="box section">
@@ -85,7 +81,7 @@ Taken from Ariadne</pre>
   (let [random (/ (* (/ tau n) (- (rand) 1)) 1.5)]
     (+ angle random)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Randomize all angle pairs in a list</p>
 			</div>
 			<div class="box section">
@@ -94,7 +90,7 @@ Taken from Ariadne</pre>
   (for [angle angles]
     (vector (randomize (first angle) n) (randomize (second angle) n))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Randomize the angle pairs in a list but keep the poles intact.</p>
 			</div>
 			<div class="box section">
@@ -105,7 +101,7 @@ Taken from Ariadne</pre>
         southpole (drop (- (count angles) (+ n 1)) angles)]
     (concat northpole (randomize-angles others n) southpole)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create 3 point in 3d that lies on a sphere from the radius and two angles</p>
 			</div>
 			<div class="box section">
@@ -116,7 +112,7 @@ Taken from Ariadne</pre>
         z (* r (Math/cos a))]
     (point/point x y z)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>a list of points describing a sphere with radius r and n segments</p>
 			</div>
 			<div class="box section">
@@ -127,7 +123,7 @@ Taken from Ariadne</pre>
           b (second angle)]
       (sphere-point r a b))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>a list of points describing a sphere with radius r and n segments</p>
 			</div>
 			<div class="box section">
@@ -137,7 +133,7 @@ Taken from Ariadne</pre>
   (let [angles (sphere-angles n)]
     (sphere-points-from-angles angles r)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>create a rectangle from 4 points with a random color</p>
 			</div>
 			<div class="box section">
@@ -150,7 +146,7 @@ Taken from Ariadne</pre>
         p4 (nth points n)]
     (polygon/from-points (list p1 p2 p3 p4))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>keeps track of the two points making up the start of a segment</p>
 			</div>
 			<div class="box section">
@@ -163,7 +159,7 @@ Taken from Ariadne</pre>
       (conj rectangles (get-next-area radius points n p1 p2))
       (recur radius (conj rectangles (get-next-area radius points n p1 p2)) (rest points) n p1 p2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>create the areas from a list of points</p>
 			</div>
 			<div class="box section">
@@ -171,7 +167,7 @@ Taken from Ariadne</pre>
   [radius points n]
   (sphere-areas-impl radius [] points n (nth points 0) (nth points n)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a random world of size radius r and split in to segments.</p>
 			</div>
 			<div class="box section">
@@ -179,7 +175,7 @@ Taken from Ariadne</pre>
   [radius segments]
   (sphere-areas radius (sphere-points radius segments) segments))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a random world of size radius r and split in to segments.</p>
 			</div>
 			<div class="box section">
@@ -187,6 +183,7 @@ Taken from Ariadne</pre>
   [radius segments]
   (reduce concat (map :lines (random-areas radius segments))))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

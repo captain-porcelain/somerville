@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.fills.line-fill</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>Provides a simple algorithm to flood fill an area</p>
@@ -29,7 +29,7 @@
     [somerville.geometry.point :as p]
     [somerville.geometry.line :as l]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check that itm is not in itms.</p>
 			</div>
 			<div class="box section">
@@ -37,7 +37,7 @@
   [itm itms]
   (nil? (some #(= itm %) itms)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a function that can be used to partition one line into segments.</p>
 			</div>
 			<div class="box section">
@@ -48,7 +48,7 @@
           tmp (if r nil (reset! seed p))]
       r)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Given a point make a line with all following points up to the max value.</p>
 			</div>
 			<div class="box section">
@@ -56,7 +56,7 @@
   [p max-x]
   (map #(p/point % (:y p)) (take-while #(&lt;= % max-x) (iterate inc (:x p)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Given a point make a column with all following points up to the max value.</p>
 			</div>
 			<div class="box section">
@@ -64,7 +64,7 @@
   [p max-y]
   (map #(p/point (:x p) %) (take-while #(&lt;= % max-y) (iterate inc (:y p)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Take points of a line while decider-fn accepts the points.</p>
 			</div>
 			<div class="box section">
@@ -75,7 +75,7 @@
       #((partition-fn decider-fn seed) %)
       (make-line p max-x))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reduce the points of a list of lines to a list of line segments.</p>
 			</div>
 			<div class="box section">
@@ -83,7 +83,7 @@
   [line]
   (map #(l/line (first %) (last %)) line))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create lines from p to max-x and max-y and map each line to a list of line segments that are acceptable.</p>
 			</div>
 			<div class="box section">
@@ -94,7 +94,7 @@
        (filter-line % max-x decider-fn))
     (make-column p max-y)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if two lines overlap on the x axis.</p>
 			</div>
 			<div class="box section">
@@ -110,7 +110,7 @@
       (and (&gt;= x11 x21) (&gt;= x12 x22) (&lt;= x11 x22))
       (and (&gt;= x11 x21) (&lt;= x12 x22)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find first matching line from candidates that overlap line and are accepted by the decider-fn.</p>
 			</div>
 			<div class="box section">
@@ -123,7 +123,7 @@
          (decider-fn (:p1 line) (:p1 %)))
       candidates)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>From a list of candidates select the matching one and add it to a cluster.</p>
 			</div>
 			<div class="box section">
@@ -134,7 +134,7 @@
       cluster
       (conj cluster matched))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add lines to clusters if they match or create new clusters from them otherwise.</p>
 			</div>
 			<div class="box section">
@@ -145,7 +145,7 @@
         unmatched (filter #(is-not-in % matched) lines)]
     (concat updated (map #(list %) unmatched))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add lines to clusters if they match or create new clusters from them otherwise.</p>
 			</div>
 			<div class="box section">
@@ -160,7 +160,7 @@
             found (first updated-cluster)]
         (recur (conj updated-clusters updated-cluster) (rest remaining-clusters) (remove #(= found %) candidates))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate size of cluster in points.</p>
 			</div>
 			<div class="box section">
@@ -168,7 +168,7 @@
   [c]
   (reduce + (map #(+ 1 (- (:x (:p2 %)) (:x (:p1 %)))) c)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find clusters of line segments that are accepted by the decider function.</p>
 			</div>
 			<div class="box section">
@@ -181,7 +181,7 @@
         clusters
         (recur (grow-clusters clusters (first candidates) decider-fn) (rest candidates))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if a point is in a line.</p>
 			</div>
 			<div class="box section">
@@ -192,7 +192,7 @@
     (&gt;= (:x p) (:x (:p1 line)))
     (&lt;= (:x p) (:x (:p2 line)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if a point is in a cluster.</p>
 			</div>
 			<div class="box section">
@@ -200,7 +200,7 @@
   [p cluster]
   (= true (some true? (map #(in-line? p %) cluster))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate weight of one line.</p>
 			</div>
 			<div class="box section">
@@ -211,7 +211,7 @@
         wy (* length (:y (:p1 line)))]
     {:wx wx :wy wy}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate center point for a cluster.</p>
 			</div>
 			<div class="box section">
@@ -223,6 +223,7 @@
         c (cluster-size cluster)]
     (p/point (int (/ wx c)) (int (/ wy c)))))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

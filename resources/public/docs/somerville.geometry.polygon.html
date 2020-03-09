@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.geometry.polygon</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -32,7 +32,7 @@
     [somerville.geometry.line :as l]
     [taoensso.timbre :as log]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Define a polygon as a list of lines and an optional center. This polygon is specifically used for calculating visibility.</p>
 			</div>
 			<div class="box section">
@@ -41,7 +41,7 @@
   (c/out [this i] (str (c/indent i) &quot;Polygon of lines:\\n&quot; (clojure.string/join &quot;\\n&quot; (map #(if (nil? %) &quot;NIL&quot; (c/out % (inc i))) lines))))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get a line from two points.</p>
 			</div>
 			<div class="box section">
@@ -51,7 +51,7 @@
   ([lines]
    (Polygon2. lines nil)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a polygon from a list of points.</p>
 			</div>
 			<div class="box section">
@@ -61,7 +61,7 @@
   ([points]
    (from-points points nil)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create list of points in polygon.</p>
 			</div>
 			<div class="box section">
@@ -69,7 +69,7 @@
   [poly]
   (map :p1 (:lines poly)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Scale polygon by factor.</p>
 			</div>
 			<div class="box section">
@@ -77,14 +77,10 @@
   [poly factor]
   (from-points (map #(p/scale % factor) (to-points poly))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				General Helpers
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================================================================
-General Helpers</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Intersect a polygon with a line.</p>
 			</div>
 			<div class="box section">
@@ -92,7 +88,7 @@ General Helpers</pre>
   [polygon line]
   (filter #(not (nil? %)) (map #(l/intersect % line) (:lines polygon))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Intersect a polygon with a line.</p>
 			</div>
 			<div class="box section">
@@ -100,7 +96,7 @@ General Helpers</pre>
   [polygon line]
   (distinct (sort (filter #(not (nil? %)) (map #(l/intersect-segments % line) (:lines polygon))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if a point is on some line of a polygon.</p>
 			</div>
 			<div class="box section">
@@ -108,7 +104,7 @@ General Helpers</pre>
   [polygon point]
   (&lt; 0 (count (filter #(l/point-on-segment? % point) (:lines polygon)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if point is inside the polygon.</p>
 			</div>
 			<div class="box section">
@@ -118,7 +114,7 @@ General Helpers</pre>
     (on-polygon? polygon point)
     (= 0 (count (intersect-segments polygon (l/line (:center polygon) point))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil.</p>
 			</div>
 			<div class="box section">
@@ -131,7 +127,7 @@ General Helpers</pre>
       2 (l/line (nth intersections 0) (nth intersections 1))
       line)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reduce line to the parts that are inside the given polygon. If the line is not inside the polygon return nil.</p>
 			</div>
 			<div class="box section">
@@ -140,7 +136,7 @@ General Helpers</pre>
   (let [s (shorten-line-int polygon line)]
     (when-not (= (:p1 s) (:p2 s)) s)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Worker function for recursively calculating the signed area of a 2d polygon.</p>
 			</div>
 			<div class="box section">
@@ -153,7 +149,7 @@ General Helpers</pre>
           a (- xiyi1 xi1yi)]
       (recur (rest points) (+ area a)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate signed area of a 2d polygon.</p>
 			</div>
 			<div class="box section">
@@ -162,7 +158,7 @@ General Helpers</pre>
   (let [points (to-points poly)]
     (signed-area-impl (conj points (first points)) 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate the centroid of a 2d polygon.</p><p>The algorithm was found at http://paulbourke.net/geometry/polyarea/</p>
 			</div>
 			<div class="box section">
@@ -177,7 +173,7 @@ General Helpers</pre>
           yiyi1 (+ (:y (first points)) (:y (second points)))]
       (recur (rest points) (+ cx (* xixi1 sub)) (+ cy (* yiyi1 sub))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>calculate the centroid of a 2 dimensional polygon</p>
 			</div>
 			<div class="box section">
@@ -188,7 +184,7 @@ General Helpers</pre>
         [cx cy] (centroid-x-y (conj points (first points)) 0 0)]
     (p/point (/ cx (* 6 a)) (/ cy (* 6 a)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>calculate the centroid of a 3 dimensional polygon</p>
 			</div>
 			<div class="box section">
@@ -200,14 +196,10 @@ General Helpers</pre>
         zs (map :z points)]
     (p/point (c/avg xs) (c/avg ys) (c/avg zs))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-combine-complex-polygons
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================================================================
-adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-combine-complex-polygons</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Sort points on a line with the start and end points that line.</p>
 			</div>
 			<div class="box section">
@@ -215,7 +207,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
   [l ps]
   (concat (cons (:p1 l) (sort-by #(p/distance (:p1 l) %) ps)) (list (:p2 l))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Given a line and points on that line create a map holding all points as keys and a list of one point that is next to that point as values.</p>
 			</div>
 			<div class="box section">
@@ -227,7 +219,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
       m
       (recur (rest ps) (assoc m (first ps) (list (first (rest ps))))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a graph that reflects the outline of two polygons with all intersections between them.</p>
 			</div>
 			<div class="box section">
@@ -238,7 +230,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
            (map #(outline-split % (intersect-segments poly2 %)) (:lines poly1))
            (map #(outline-split % (intersect-segments poly1 %)) (:lines poly2)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Sort the outline candidates by angle.</p>
 			</div>
 			<div class="box section">
@@ -246,7 +238,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
   [previous current candidates]
   (sort-by second (map #(vector % (p/angle-dot current previous %)) candidates)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the next point in the outline.</p>
 			</div>
 			<div class="box section">
@@ -256,7 +248,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
     (first candidates)
     (first (last (outline-angle-candidates previous current candidates)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Iterate through graph to get the outline.</p>
 			</div>
 			<div class="box section">
@@ -269,7 +261,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
       {:outline (from-points ps) :remaining g}
       (recur (dissoc g p) (next-outline-point (last ps) p (get g p)) (conj ps p)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a polygon that outlines two polygons.</p>
 			</div>
 			<div class="box section">
@@ -280,6 +272,7 @@ adding two polygons see https://stackoverflow.com/questions/2667748/how-do-i-com
         start (p/low-left points)]
     (:outline (build-outline graph start))))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.visualization.fortune</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -37,14 +37,14 @@
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def width 1200)
 (def height 800)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -53,14 +53,10 @@
    :line-low    (color/rgba 241 196  15)
    :line-high   (color/rgba 217  60 110)})</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Data Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Data Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -72,7 +68,7 @@ Data Handling</pre>
 (def sites (atom (fortune/voronoi @points)))
 (def vsites (atom (voronoi/voronoi @points 0 0 width height)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add another point to the diagram.</p>
 			</div>
 			<div class="box section">
@@ -82,7 +78,7 @@ Data Handling</pre>
   (reset! vsites (voronoi/voronoi @points 0 0 width height))
   (reset! sites (fortune/voronoi @points)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Clear the diagram.</p>
 			</div>
 			<div class="box section">
@@ -92,7 +88,7 @@ Data Handling</pre>
   (reset! vsites (voronoi/voronoi @points 0 0 width height))
   (reset! sites (fortune/voronoi @points)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Print debugging informantion</p>
 			</div>
 			<div class="box section">
@@ -100,7 +96,7 @@ Data Handling</pre>
   []
   (log/info (c/out @sites)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Make a step in fortunes algorithm</p>
 			</div>
 			<div class="box section">
@@ -108,7 +104,7 @@ Data Handling</pre>
   []
   (reset! sites (fortune/step @sites)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reset fortunes algorithm.</p>
 			</div>
 			<div class="box section">
@@ -117,14 +113,10 @@ Data Handling</pre>
   (reset! vsites (voronoi/voronoi @points 0 0 width height))
   (reset! sites (fortune/voronoi @points)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Drawing Functionality
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Drawing Functionality</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -134,7 +126,7 @@ Drawing Functionality</pre>
   (quil/fill 0 0 255)
   (quil/rect (:x (:intersection i)) (:y (:intersection i)) 4 4))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -146,7 +138,7 @@ Drawing Functionality</pre>
     (quil/fill 0 255 0)
     (quil/line 0 y0 width y1)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -159,7 +151,7 @@ Drawing Functionality</pre>
       (for [x xs]
         (quil/line x (parabola/solve-parabola-at parabola x) (+ x 1) (parabola/solve-parabola-at parabola (+ x 1)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -169,7 +161,7 @@ Drawing Functionality</pre>
   (quil/fill 211 248 226)
   (quil/line 0 y width y))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -179,7 +171,7 @@ Drawing Functionality</pre>
   (quil/fill 246 148 193)
   (quil/rect (- (:x site) 2) (- (:y site) 2) 4 4))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -189,7 +181,7 @@ Drawing Functionality</pre>
   (quil/fill 211 248 226)
   (quil/rect (- (:x (:point site)) 2) (- (:y (:point site)) 2) 4 4))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -201,7 +193,7 @@ Drawing Functionality</pre>
     (let [m (p/midpoint (:left edge) (:right edge))]
       (quil/line (:x (:start edge)) (:y (:start edge)) (:x m) (:y m)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -211,7 +203,7 @@ Drawing Functionality</pre>
   (quil/fill 200 200 200)
   (dorun (map #(quil/line (:x (:p1 %)) (:y (:p1 %)) (:x (:p2 %)) (:y (:p2 %))) (:lines cell))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil repeatedly.</p>
 			</div>
 			<div class="box section">
@@ -242,14 +234,10 @@ Drawing Functionality</pre>
             (draw-parabola (parabola/parabola-from-focuspoint-and-directrix-y site (+ 1 sweep-y)))))
         (draw-sweepline sweep-y)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Event Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Event Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle releasing mouse buttons.</p>
 			</div>
 			<div class="box section">
@@ -257,7 +245,7 @@ Event Handling</pre>
   []
   (add-point! (p/point (quil/mouse-x) (quil/mouse-y))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -270,14 +258,10 @@ Event Handling</pre>
     82 (reset-steps!) ;; r
     (log/info &quot;Pressed unhandled key with code&quot; (quil/key-code))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				App Setup
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-App Setup</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil once before drawing</p>
 			</div>
 			<div class="box section">
@@ -288,7 +272,7 @@ App Setup</pre>
     (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Initialize Quil sketch.</p>
 			</div>
 			<div class="box section">
@@ -302,7 +286,7 @@ App Setup</pre>
     :mouse-released mouse-released
     :key-pressed key-pressed))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information about usage.</p>
 			</div>
 			<div class="box section">
@@ -320,7 +304,7 @@ App Setup</pre>
      [:li &quot;d to print debugging info&quot;]
      [:li &quot;r to reset processing steps&quot;]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information current settings.</p>
 			</div>
 			<div class="box section">
@@ -332,7 +316,7 @@ App Setup</pre>
     [:ul
      [:li (str &quot;Count points: &quot; (count @points))]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw the basic ui for this visualization.</p>
 			</div>
 			<div class="box section">
@@ -344,7 +328,7 @@ App Setup</pre>
     [usage]
     [settings]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render html and canvas for terrain visualization.</p>
 			</div>
 			<div class="box section">
@@ -354,6 +338,7 @@ App Setup</pre>
     {:reagent-render ui
      :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

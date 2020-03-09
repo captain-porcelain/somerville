@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.rasterization.grid-walls</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -32,14 +32,10 @@
     [somerville.geometry.line :as line]
     [somerville.maps.grid :as grid]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Walking through grids
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Walking through grids</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get coordinates for a rectangular cell.</p>
 			</div>
 			<div class="box section">
@@ -51,7 +47,7 @@ Walking through grids</pre>
         y2 (* wall-length (inc y))]
     [(point/point x2 y1) (point/point x2 y2) (point/point x1 y2)]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create walker for grids based on rectangles returning lines for walls.</p>
 			</div>
 			<div class="box section">
@@ -67,7 +63,7 @@ Walking through grids</pre>
           (when (not (commons/in? :west  (:links c))) (line/line p1 p4))
           (when (not (commons/in? :east  (:links c))) (line/line p2 p3)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create walker for grids based on rectangles returning polygons.</p>
 			</div>
 			<div class="box section">
@@ -77,7 +73,7 @@ Walking through grids</pre>
     (when (&lt; 0 (count (:links c)))
       (poly/from-points (rect-coordinates wall-length (:x c) (:y c))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get coordinates for hex cell.</p>
 			</div>
 			<div class="box section">
@@ -101,7 +97,7 @@ Walking through grids</pre>
      (point/point x3 y3)
      (point/point x2 y3)]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create walker for grids based on hex fields returning lines for walls.</p>
 			</div>
 			<div class="box section">
@@ -119,7 +115,7 @@ Walking through grids</pre>
           (when (not (commons/in? :north-east (:links c))) (line/line p3 p4))
           (when (not (commons/in? :south-east (:links c))) (line/line p5 p4)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create walker for grids based on hex fields returning polygons.</p>
 			</div>
 			<div class="box section">
@@ -129,14 +125,10 @@ Walking through grids</pre>
     [g c]
     (when (&lt; 0 (count (:links c))) (poly/from-points (hex-coordinates wall-length (:x c) (:y c))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Converting grids to renderable objects
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Converting grids to renderable objects</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert grid to list of lines representing relevant walls.</p>
 			</div>
 			<div class="box section">
@@ -150,7 +142,7 @@ Converting grids to renderable objects</pre>
                                 :rect (make-rect-wall-walker wall-length)
                                 :hex  (make-hex-wall-walker wall-length))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert grid to list of polygons representing relevant cells.</p>
 			</div>
 			<div class="box section">
@@ -163,14 +155,10 @@ Converting grids to renderable objects</pre>
                         :rect (make-rect-polygon-walker wall-length)
                         :hex  (make-hex-polygon-walker wall-length)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Converting grids to textual wall descriptions for use in discovery algorithms
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Converting grids to textual wall descriptions for use in discovery algorithms</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create wall description and include border offset.</p>
 			</div>
 			<div class="box section">
@@ -180,7 +168,7 @@ Converting grids to textual wall descriptions for use in discovery algorithms</p
   ([l]
    (wall-description l 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create set of walls for a grid.</p>
 			</div>
 			<div class="box section">
@@ -189,14 +177,10 @@ Converting grids to textual wall descriptions for use in discovery algorithms</p
   (let [wall-length (:wall-length config)]
     (into #{} (map #(wall-description % (:border config)) (convert-to-walls g wall-length)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Special handling for entrances to grids
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Special handling for entrances to grids</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create polygon to draw entrance on the right side for hex dungeon.</p>
 			</div>
 			<div class="box section">
@@ -213,7 +197,7 @@ Special handling for entrances to grids</pre>
         i2 (line/intersect l2 wl)]
     (poly/from-points (list p1 i1 i2 p2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create polygon to draw entrance on the left side for hex dungeon.</p>
 			</div>
 			<div class="box section">
@@ -232,7 +216,7 @@ Special handling for entrances to grids</pre>
         mi2 (point/point (- (:x i2) border) (:y i2))]
     (poly/from-points (list p1 mi1 mi2 p2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create polygon to draw entrance on the top for hex dungeon.</p>
 			</div>
 			<div class="box section">
@@ -251,7 +235,7 @@ Special handling for entrances to grids</pre>
         mi2 (point/point (:x i2) (- (:y i2) border))]
     (poly/from-points (list p1 mi1 mi2 p2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create polygon to draw entrance on the bottom for hex dungeon.</p>
 			</div>
 			<div class="box section">
@@ -268,7 +252,7 @@ Special handling for entrances to grids</pre>
         i2 (line/intersect l2 wl)]
     (poly/from-points (list p1 i1 i2 p2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get polygon representing entrance.</p>
 			</div>
 			<div class="box section">
@@ -289,7 +273,7 @@ Special handling for entrances to grids</pre>
              (= (:y (:start g)) 0)                 (hex-entrance-top ps width height (:border config))
              (= (:y (:start g)) (- (:height g) 1)) (hex-entrance-bottom ps width height (:border config))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>A default config for rasterizing grids</p>
 			</div>
 			<div class="box section">
@@ -297,6 +281,7 @@ Special handling for entrances to grids</pre>
   {:wall-length           50
    :border                40})</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

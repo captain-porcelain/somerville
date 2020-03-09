@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.maps.terrain.loki</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>Implementation of the Diamond Square Algorithm for realistic terrain generation. See https://en.wikipedia.org/wiki/Diamond-square_algorithm For comparisons with other approaches see http://blog.habrador.com/2013/02/how-to-generate-random-terrain.html</p>
@@ -29,14 +29,10 @@
     [taoensso.timbre :as log]
     [somerville.maps.grid :as grid]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Helper Functions
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==========================================================================================================================
-Helper Functions</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a random height between configured minimum and maximum.</p>
 			</div>
 			<div class="box section">
@@ -44,7 +40,7 @@ Helper Functions</pre>
   [config]
   (+ (:min config) (rand-int (- (:max config) (:min config)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Set z value in grid if not already set.</p>
 			</div>
 			<div class="box section">
@@ -54,7 +50,7 @@ Helper Functions</pre>
     (when (nil? (:z c))
       (grid/set-in g x y (assoc c :z z)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create diamond coordiantes for center and width.</p>
 			</div>
 			<div class="box section">
@@ -65,7 +61,7 @@ Helper Functions</pre>
    [(+ x w)    y]
    [   x    (+ y w)]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create square coordiantes for center and width.</p>
 			</div>
 			<div class="box section">
@@ -76,14 +72,10 @@ Helper Functions</pre>
    [(- x w) (+ y w)]
    [(+ x w) (+ y w)]])</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Actual Algorithm
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==========================================================================================================================
-Actual Algorithm</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate average value for series of coords.</p>
 			</div>
 			<div class="box section">
@@ -95,7 +87,7 @@ Actual Algorithm</pre>
                                  coords)))]
     (/ (reduce + fields) (count fields))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -118,7 +110,7 @@ Actual Algorithm</pre>
         ]
     [save-min save-max]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -141,7 +133,7 @@ Actual Algorithm</pre>
       (and (&gt; max-val restricted-max) (&lt; min-val restricted-min)) [restricted-min restricted-max]
       :else [min-val max-val])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -151,7 +143,7 @@ Actual Algorithm</pre>
         dist (- save-max save-min)]
     (+ save-min (rand-int dist))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -159,7 +151,7 @@ Actual Algorithm</pre>
   [g x y w coords config]
   (random-value (average g coords) w (:roughness config) (:restrictions (grid/get-from g x y))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Set initial height values on corners.</p>
 			</div>
 			<div class="box section">
@@ -172,7 +164,7 @@ Actual Algorithm</pre>
     (set-z g m m (random-value (rand-int (:max config)) (:size config) (:roughness config) (:restrictions (grid/get-from g m m))))
     g))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle setting on field as part of a diamond step.</p>
 			</div>
 			<div class="box section">
@@ -181,7 +173,7 @@ Actual Algorithm</pre>
   ;(log/info (str &quot;Diamond &quot; w &quot; - &quot; x &quot;, &quot; y)))
   (set-z g x y (new-value g x y w (square-coords x y w) config)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate the fields to be set as part of a diamond step.</p>
 			</div>
 			<div class="box section">
@@ -193,7 +185,7 @@ Actual Algorithm</pre>
           y (range steps)]
       [(* (inc (* 2 x)) w) (* (inc (* 2 y)) w) w])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle setting on field as part of a square step.</p>
 			</div>
 			<div class="box section">
@@ -202,7 +194,7 @@ Actual Algorithm</pre>
   ;(log/info (str &quot;Square &quot; x &quot;, &quot; y)))
   (set-z g x y (new-value g x y w (diamond-coords x y w) config)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle the square steps for a given diamond coordinate. NOTE: this does not exclude fields that are already set.</p>
 			</div>
 			<div class="box section">
@@ -210,7 +202,7 @@ Actual Algorithm</pre>
   [g [x y w] config]
   (dorun (map #(square-step g % w config) (diamond-coords x y w))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Run the actual diamond-squares algorithm on the given grid.</p>
 			</div>
 			<div class="box section">
@@ -221,14 +213,10 @@ Actual Algorithm</pre>
           tmp (dorun (map #(diamond-step g % config) diamonds))
           tmp (dorun (map #(square-steps g % config) diamonds))])))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Outside Interface
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==========================================================================================================================
-Outside Interface</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Generate default configuration for a world.</p>
 			</div>
 			<div class="box section">
@@ -241,7 +229,7 @@ Outside Interface</pre>
      :max       25
      :roughness 0.5}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a landscape based on config.</p>
 			</div>
 			<div class="box section">
@@ -258,6 +246,7 @@ Outside Interface</pre>
           tmp (dorun (process g config))]
       (assoc g :config config))))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

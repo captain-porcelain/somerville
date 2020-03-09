@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.visualization.tracer</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -37,14 +37,14 @@
   (:require-macros
     [cljs.core.async.macros :refer [go]]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def width 320)
 (def height 320)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -55,35 +55,31 @@
    :line-voronoi   (color/rgba 241 196  15)
    :line-delaunay  (color/rgba 217  60 110)})</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Data Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Data Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def test-image (atom nil))
 (def image (atom nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def partitions-all (reagent/atom nil))
 (def partitions (reagent/atom nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def threshold-cie (reagent/atom 10))
 (def threshold-cluster (reagent/atom 100))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -91,7 +87,7 @@ Data Handling</pre>
 (def draw-image (reagent/atom true))
 (def debug (reagent/atom nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if the colors of two pixels are to be considered the same.</p>
 			</div>
 			<div class="box section">
@@ -101,7 +97,7 @@ Data Handling</pre>
         cie (color/cie76 (vfn p1) (vfn p2))]
     (&lt; cie @threshold-cie)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Filter partitions that are too small.</p>
 			</div>
 			<div class="box section">
@@ -113,7 +109,7 @@ Data Handling</pre>
         tmp (log/info (str &quot;filtered to &quot; (count parts2)))]
     (reset! partitions parts2)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find partitions of pixels with a given sameness.</p>
 			</div>
 			<div class="box section">
@@ -126,7 +122,7 @@ Data Handling</pre>
         tmp (log/info (str &quot;... done. found &quot; (count parts1) &quot; partitions with avg &quot; avg1))]
     (reset! partitions-all parts1)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find partions and filter them.</p>
 			</div>
 			<div class="box section">
@@ -136,7 +132,7 @@ Data Handling</pre>
     (do-partition)
     (do-filter)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Print color of a point.</p>
 			</div>
 			<div class="box section">
@@ -147,7 +143,7 @@ Data Handling</pre>
     (str &quot;Color at &quot; (c/out point) &quot;: &quot;
          (c/out (apply color/rgba (quil/get-pixel @image (:x point) (:y point)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Increase the size a cluster must have to not be filtered out.</p>
 			</div>
 			<div class="box section">
@@ -156,7 +152,7 @@ Data Handling</pre>
   (reset! threshold-cluster (+ @threshold-cluster 100))
   (do-filter))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Decrease the size a cluster must have to not be filtered out.</p>
 			</div>
 			<div class="box section">
@@ -165,7 +161,7 @@ Data Handling</pre>
   (when (&lt; 100 @threshold-cluster) (reset! threshold-cluster (- @threshold-cluster 100)))
   (do-filter))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Increase the threshold by which cie colors are considered the same.</p>
 			</div>
 			<div class="box section">
@@ -174,7 +170,7 @@ Data Handling</pre>
   (reset! threshold-cie (+ @threshold-cie 1))
   (do-filter))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Decrease the threshold by which cie colors are considered the same.</p>
 			</div>
 			<div class="box section">
@@ -183,7 +179,7 @@ Data Handling</pre>
   (when (&lt; 100 @threshold-cie) (reset! threshold-cie (- @threshold-cie 1)))
   (do-filter))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Toggle between drawing the image and the partitions.</p>
 			</div>
 			<div class="box section">
@@ -191,14 +187,10 @@ Data Handling</pre>
   []
   (reset! draw-image (not @draw-image)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Drawing Functionality
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Drawing Functionality</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw found cluster.</p>
 			</div>
 			<div class="box section">
@@ -213,7 +205,7 @@ Drawing Functionality</pre>
         (quil/fill (:r dc) (:g dc) (:b dc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil repeatedly.</p>
 			</div>
 			<div class="box section">
@@ -225,14 +217,10 @@ Drawing Functionality</pre>
   (when @draw-image (quil/image @test-image 0 0))
   (when (not @draw-image) (dorun (for [cl @partitions] (draw-cluster cl)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Event Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Event Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle pressing mouse buttons.</p>
 			</div>
 			<div class="box section">
@@ -240,7 +228,7 @@ Event Handling</pre>
   []
   (debug-point! (p/point (quil/mouse-x) (quil/mouse-y))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -249,7 +237,7 @@ Event Handling</pre>
      18 (reset! alt false)
      nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -262,14 +250,10 @@ Event Handling</pre>
      80 (dopartition) ;; p
     (log/info &quot;Pressed unhandled key with code&quot; (quil/key-code))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				App Setup
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-App Setup</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil once before drawing</p>
 			</div>
 			<div class="box section">
@@ -282,7 +266,7 @@ App Setup</pre>
   (reset! test-image (quil/load-image  &quot;/images/test-image.jpg&quot;))
   (reset! image (quil/load-image &quot;/images/test-image.jpg&quot;)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Initialize Quil sketch.</p>
 			</div>
 			<div class="box section">
@@ -297,7 +281,7 @@ App Setup</pre>
     :key-released key-released
     :key-pressed key-pressed))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information about usage.</p>
 			</div>
 			<div class="box section">
@@ -317,7 +301,7 @@ App Setup</pre>
      [:li &quot;- to decrease cie threshold&quot;]
      [:li &quot;left mouse click to find color at cursor&quot;]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information current settings.</p>
 			</div>
 			<div class="box section">
@@ -336,7 +320,7 @@ App Setup</pre>
       [:h3 &quot;Debug&quot;]
       [:div @debug]])])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw the basic ui for this visualization.</p>
 			</div>
 			<div class="box section">
@@ -348,7 +332,7 @@ App Setup</pre>
     [usage]
     [settings]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render html and canvas for terrain visualization.</p>
 			</div>
 			<div class="box section">
@@ -358,6 +342,7 @@ App Setup</pre>
     {:reagent-render ui
      :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

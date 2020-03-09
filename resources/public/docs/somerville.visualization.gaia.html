@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.visualization.gaia</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -33,20 +33,20 @@
     [quil.core :as quil :include-macros true]
     [reagent.core :as reagent]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def tau (* 2 Math/PI))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def width 1200)
 (def height 800)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -59,42 +59,38 @@
    :focus-line (color/rgba 241 196  15)
    :focus-fill (color/rgba  80  80  80 128)})</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Data Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Data Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def fsm (reagent/atom nil))
 (def worker (atom nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def world (atom []))
 (def fibonacci-size (reagent/atom 100))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def draw-mode (reagent/atom :triangles))
 (def index (reagent/atom 0))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def mouse-position (atom [0 0]))
 (def position (atom [61 -249]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>get mouse based angle</p>
 			</div>
 			<div class="box section">
@@ -103,7 +99,7 @@ Data Handling</pre>
   (let [[x y] @position]
     (* tau (/ (- x width) width))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>get mouse based angle</p>
 			</div>
 			<div class="box section">
@@ -112,14 +108,10 @@ Data Handling</pre>
   (let [[x y] @position]
     (* tau (/ (- height y) height))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Drawing Functionality
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Drawing Functionality</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draws one point of the world.</p>
 			</div>
 			<div class="box section">
@@ -128,7 +120,7 @@ Drawing Functionality</pre>
   (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/point (:x p) (:y p) (:z p)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draws one line of the world.</p>
 			</div>
 			<div class="box section">
@@ -137,7 +129,7 @@ Drawing Functionality</pre>
   (quil/stroke (:r lc) (:g lc) (:b lc) (:a lc))
   (quil/line (:x (:p1 l)) (:y (:p1 l)) (:z (:p1 l)) (:x (:p2 l)) (:y (:p2 l)) (:z (:p2 l))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draws one polygon representing an area of the world.</p>
 			</div>
 			<div class="box section">
@@ -151,7 +143,7 @@ Drawing Functionality</pre>
   (quil/vertex (:x (:p3 t)) (:y (:p3 t)) (:z (:p3 t)))
   (quil/end-shape))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draws one voronoi cell representing an area of the world.</p>
 			</div>
 			<div class="box section">
@@ -166,7 +158,7 @@ Drawing Functionality</pre>
   (quil/end-shape)
   (draw-point (:point cell) pc))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw indicator for poles.</p>
 			</div>
 			<div class="box section">
@@ -187,7 +179,7 @@ Drawing Functionality</pre>
           (quil/cone 6 25)))
       (quil/stroke-weight 1))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by processing repeatedly.</p>
 			</div>
 			<div class="box section">
@@ -209,14 +201,10 @@ Drawing Functionality</pre>
         (when (&lt; 0 (count @world))
           (draw-triangle (nth @world @index) (:focus-fill colors) (:focus-line colors)))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Define the FSM that handles gaia
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=====================================================================================================================
-Define the FSM that handles gaia</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -224,7 +212,7 @@ Define the FSM that handles gaia</pre>
   [my-fsm event]
   (log/info &quot;Idle state reached.&quot;))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Cycle through faces.</p>
 			</div>
 			<div class="box section">
@@ -233,7 +221,7 @@ Define the FSM that handles gaia</pre>
   (when (&lt; @index (dec (count @world))) (swap! index inc))
   (talos/process! @fsm {:event :done}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Cycle through faces.</p>
 			</div>
 			<div class="box section">
@@ -242,7 +230,7 @@ Define the FSM that handles gaia</pre>
   (when (&gt; @index 0) (swap! index dec))
   (talos/process! @fsm {:event :done}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Increase amount of fibonacci points for next generation.</p>
 			</div>
 			<div class="box section">
@@ -251,7 +239,7 @@ Define the FSM that handles gaia</pre>
   (swap! fibonacci-size #(+ % 10))
   (talos/process! @fsm {:event :done}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Decrease amount of fibonacci points for next generation.</p>
 			</div>
 			<div class="box section">
@@ -260,7 +248,7 @@ Define the FSM that handles gaia</pre>
   (when (&gt; @fibonacci-size 0) (swap! fibonacci-size #(- % 10)))
   (talos/process! @fsm {:event :done}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reset world to delaunay of fibonacci sphere.</p>
 			</div>
 			<div class="box section">
@@ -273,7 +261,7 @@ Define the FSM that handles gaia</pre>
                                                         :points @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reset world to voronoi of fibonacci sphere.</p>
 			</div>
 			<div class="box section">
@@ -286,7 +274,7 @@ Define the FSM that handles gaia</pre>
                                                         :points @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reset world to random fibonacci sphere.</p>
 			</div>
 			<div class="box section">
@@ -299,7 +287,7 @@ Define the FSM that handles gaia</pre>
                                                         :points @fibonacci-size}}))
   (talos/process! @fsm {:event :work-requested}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Reset world to calculated data.</p>
 			</div>
 			<div class="box section">
@@ -310,7 +298,7 @@ Define the FSM that handles gaia</pre>
   (reset! world (:result (:data event)))
   (talos/process! @fsm {:event :done}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -328,7 +316,7 @@ Define the FSM that handles gaia</pre>
     (talos/state :wait-world           idle-callback)
     (talos/state :got-world            got-world-callback)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -350,14 +338,10 @@ Define the FSM that handles gaia</pre>
     (talos/transition :done-voronoi            :wait-world           :got-world)
     (talos/transition :done                    :*                    :idle)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Event Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Event Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>calculate position change and store in atom</p>
 			</div>
 			<div class="box section">
@@ -370,7 +354,7 @@ Event Handling</pre>
     (reset! mouse-position [x y])
     (reset! position [(+ p-x (- x old-x)) (+ p-y (- y old-y))])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>store mouse position in atom</p>
 			</div>
 			<div class="box section">
@@ -380,7 +364,7 @@ Event Handling</pre>
         y (quil/mouse-y)]
     (reset! mouse-position [x y])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Trigger actions on key presses.</p>
 			</div>
 			<div class="box section">
@@ -388,7 +372,7 @@ Event Handling</pre>
   []
   (talos/process! @fsm {:event :key-pressed :data (quil/key-code)}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Receive messages from webworker.</p>
 			</div>
 			<div class="box section">
@@ -400,14 +384,10 @@ Event Handling</pre>
                           :data {:data (:data message)
                                  :result (:result message)}})))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				App Setup
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-App Setup</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Test background worker process.</p>
 			</div>
 			<div class="box section">
@@ -417,7 +397,7 @@ App Setup</pre>
         tmp (set! (.-onmessage w) receive!)]
     (reset! worker w)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil once before drawing</p>
 			</div>
 			<div class="box section">
@@ -428,7 +408,7 @@ App Setup</pre>
     (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Initialize Quil sketch.</p>
 			</div>
 			<div class="box section">
@@ -448,7 +428,7 @@ App Setup</pre>
     :mouse-pressed mouse-pressed
     :key-pressed key-pressed))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information about usage.</p>
 			</div>
 			<div class="box section">
@@ -468,7 +448,7 @@ App Setup</pre>
      [:li &quot;m to increase points on fibonacci sphere&quot;]
      [:li &quot;l to decrease points on fibonacci sphere&quot;]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information current settings.</p>
 			</div>
 			<div class="box section">
@@ -485,7 +465,7 @@ App Setup</pre>
        [:li (str &quot;Draw Mode: &quot; @draw-mode)]
        [:li (str &quot;Fibonacci Size: &quot; @fibonacci-size)]]]]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw the basic ui for this visualization.</p>
 			</div>
 			<div class="box section">
@@ -497,7 +477,7 @@ App Setup</pre>
     [usage]
     [settings]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render html and canvas for terrain visualization.</p>
 			</div>
 			<div class="box section">
@@ -507,6 +487,7 @@ App Setup</pre>
     {:reagent-render ui
      :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

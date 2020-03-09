@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.maps.grid</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>Provides two dimensional grids and functions to manipulate them</p>
@@ -29,14 +29,10 @@
     [somerville.commons :as commons]
     [taoensso.timbre :as log]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Grid Cell Access
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Grid Cell Access</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if cell is in grid and not masked.</p>
 			</div>
 			<div class="box section">
@@ -51,7 +47,7 @@ Grid Cell Access</pre>
   ([g c]
    (in-bounds? g (:x c) (:y c))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get an element from grid array.</p>
 			</div>
 			<div class="box section">
@@ -63,7 +59,7 @@ Grid Cell Access</pre>
   ([g [x y]]
    (get-from g x y)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Update an element in grid array.</p>
 			</div>
 			<div class="box section">
@@ -71,7 +67,7 @@ Grid Cell Access</pre>
   [g w h e]
   (aset (:array g) w h e))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Update an element in grid array.</p>
 			</div>
 			<div class="box section">
@@ -79,7 +75,7 @@ Grid Cell Access</pre>
   [g w h e]
   (aset (:array g) w h (int e)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Update a cell.</p>
 			</div>
 			<div class="box section">
@@ -89,14 +85,10 @@ Grid Cell Access</pre>
   ([g c f]
    (set-in g (:x c) (:y c) (f (get-from g (:x c) (:y c))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Grid Cell Filters
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Grid Cell Filters</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get all cells from grid.</p>
 			</div>
 			<div class="box section">
@@ -106,7 +98,7 @@ Grid Cell Filters</pre>
         x (range (:width g))]
     (get-from g x y)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the dead ends in the grid.</p>
 			</div>
 			<div class="box section">
@@ -114,7 +106,7 @@ Grid Cell Filters</pre>
   [g]
   (filter #(= 1 (count (:links %))) (all-cells g)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the cells without neighbors in the grid.</p>
 			</div>
 			<div class="box section">
@@ -122,7 +114,7 @@ Grid Cell Filters</pre>
   [g]
   (filter #(= 0 (count (:links %))) (all-cells g)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get all cell coordinates that are not masked.</p>
 			</div>
 			<div class="box section">
@@ -130,7 +122,7 @@ Grid Cell Filters</pre>
   [g]
   (map #(vector (:x %) (:y %)) (filter #(not (:masked %)) (all-cells g))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get all cell coordinates that are not masked.</p>
 			</div>
 			<div class="box section">
@@ -138,7 +130,7 @@ Grid Cell Filters</pre>
   [g]
   (map #(vector (:x %) (:y %)) (filter #(:masked %) (all-cells g))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get all cell coordinates that are not masked.</p>
 			</div>
 			<div class="box section">
@@ -146,7 +138,7 @@ Grid Cell Filters</pre>
   [g]
   (filter #(not (:masked %)) (all-cells g)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get all cell coordinates that are on the grid border and not masked</p>
 			</div>
 			<div class="box section">
@@ -155,14 +147,10 @@ Grid Cell Filters</pre>
   (filter #(or (= 0 (first %)) (= 0 (second %)) (= (dec (:width g)) (first %)) (= (dec (:height g)) (second %)))
     (unmasked-cell-coordinates g)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Grid based on two dimensional array
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Grid based on two dimensional array</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a two dimensional grid of rectangles sized width x height.</p>
 			</div>
 			<div class="box section">
@@ -174,7 +162,7 @@ Grid based on two dimensional array</pre>
    :data-type :map
    :array (to-array-2d (repeat width (repeat height {})))})</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a two dimensional grid of integers.</p>
 			</div>
 			<div class="box section">
@@ -186,7 +174,7 @@ Grid based on two dimensional array</pre>
    :data-type :int
    :array (make-array Integer/TYPE width height)})</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a two dimensional grid with cells of rectangles sized width x height.</p>
 			</div>
 			<div class="box section">
@@ -199,7 +187,7 @@ Grid based on two dimensional array</pre>
                 (set-in g x y {:links [] :x x :y y})))]
     g))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a two dimensional grid with cells of rectangles sized width x height.</p>
 			</div>
 			<div class="box section">
@@ -207,7 +195,7 @@ Grid based on two dimensional array</pre>
   [^Integer width ^Integer height]
   (int-grid width height :rect))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a two dimensional grid with cells of rectangles sized width x height.</p>
 			</div>
 			<div class="box section">
@@ -215,7 +203,7 @@ Grid based on two dimensional array</pre>
   [^Integer width ^Integer height]
   (int-grid width height :hex))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a two dimensional grid of Integers of width x height.</p>
 			</div>
 			<div class="box section">
@@ -223,14 +211,10 @@ Grid based on two dimensional array</pre>
   [^Integer width ^Integer height]
   (integer-grid-map width height :rect))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Maze Building Helpers
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Maze Building Helpers</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the coordinates for the linked cell.</p>
 			</div>
 			<div class="box section">
@@ -247,7 +231,7 @@ Maze Building Helpers</pre>
       :north-east (if (odd? (:x c)) [(inc (:x c)) (dec (:y c))] [(inc (:x c)) (:y c)])
       :south-east (if (odd? (:x c)) [(inc (:x c)) (:y c)]       [(inc (:x c)) (inc (:y c))]))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the link from the coordinates of two cells.</p>
 			</div>
 			<div class="box section">
@@ -271,7 +255,7 @@ Maze Building Helpers</pre>
             (and (even? x1) (= x1 (dec x2)) (= y1 y2))       :north-east
             (and (even? x1) (= x1 (dec x2)) (= y1 (dec y2))) :south-east)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get accessible neighbors of a cell.</p>
 			</div>
 			<div class="box section">
@@ -294,7 +278,7 @@ Maze Building Helpers</pre>
               {:direction :north       :cell (linked-cell g c :north)}
               {:direction :south       :cell (linked-cell g c :south)})))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get neighbors that have not been visited before.</p>
 			</div>
 			<div class="box section">
@@ -303,7 +287,7 @@ Maze Building Helpers</pre>
   (filter #(and (= 0 (count (:links (:cell %)))) (not (:masked (:cell %))))
           (neighbor-cells g c)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get neighbors that have been visited before.</p>
 			</div>
 			<div class="box section">
@@ -312,7 +296,7 @@ Maze Building Helpers</pre>
   (filter #(and (&lt; 0 (count (:links (:cell %)))) (not (:masked (:cell %))))
           (neighbor-cells g c)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the coordinates of surrounding cells.</p>
 			</div>
 			<div class="box section">
@@ -331,7 +315,7 @@ Maze Building Helpers</pre>
                   [(inc x) (inc y)])
       :hex (map #(vector (:x (:cell %)) (:y (:cell %))) (neighbor-cells g (get-from g x y))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the reverse of a link direction.</p>
 			</div>
 			<div class="box section">
@@ -348,7 +332,7 @@ Maze Building Helpers</pre>
     :south-east :north-west
     nil         nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Connect grid cells.</p>
 			</div>
 			<div class="box section">
@@ -358,7 +342,7 @@ Maze Building Helpers</pre>
     [(update-cell g c  #(assoc % :links (conj (:links %) link)))
      (update-cell g c2 #(assoc % :links (conj (:links %) (reverse-link link))))]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Connect grid cell to the one indicated by the link.</p>
 			</div>
 			<div class="box section">
@@ -366,7 +350,7 @@ Maze Building Helpers</pre>
   [g c link]
   (when-not (nil? link) (place-link-to g c (linked-cell g c link))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Unconnect grid cell from the on indicated by the link.</p>
 			</div>
 			<div class="box section">
@@ -377,7 +361,7 @@ Maze Building Helpers</pre>
           l1 (update-cell g c #(assoc % :links (remove #{link} (:links %))))
           l2 (update-cell g c2 #(assoc % :links (remove #{(reverse-link link)} (:links %))))])))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Unconnect grid cell from all connected neighbors.</p>
 			</div>
 			<div class="box section">
@@ -385,7 +369,7 @@ Maze Building Helpers</pre>
   [g c]
   (map #(unlink g c %) (:links c)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if a cells should be masked.</p>
 			</div>
 			<div class="box section">
@@ -393,7 +377,7 @@ Maze Building Helpers</pre>
   [mask c]
   (= \\X (nth (nth mask (:y c) &quot; &quot;) (:x c) &quot; &quot;)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a walker that marks cells as masked based on a text. Each line of text represents one grid row. A X marks the cell as masked.</p>
 			</div>
 			<div class="box section">
@@ -403,7 +387,7 @@ Maze Building Helpers</pre>
     (fn [g e]
       (update-cell g e #(assoc % :masked (masked? mask e))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Ensure that the start cell connects to outside of the grid.</p>
 			</div>
 			<div class="box section">
@@ -421,7 +405,7 @@ Maze Building Helpers</pre>
             (= (:x c) 0)                 (update-cell g c #(assoc % :links (concat (:links %) (list :south-west :north-west))))
             (= (:x c) (dec (:width g)))  (update-cell g c #(assoc % :links (concat (:links %) (list :south-east :north-east)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Make a grid sparse by eliminating dead ends until the factor of rock cells to path cells reaches the given factor.</p>
 			</div>
 			<div class="box section">
@@ -433,14 +417,10 @@ Maze Building Helpers</pre>
       (let [tmp (dorun (map #(dorun (unlink-all g %)) des))]
         (recur (dead-ends g))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Grid Iterators
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Grid Iterators</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Execute function for every element in grid and return grid. The function should take the grid and the current element as arguments.</p>
 			</div>
 			<div class="box section">
@@ -452,7 +432,7 @@ Grid Iterators</pre>
       (f g (get-from g x y))))
   g)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Execute function for every element in grid and return walking result. The function should take the grid and the current element as arguments.</p>
 			</div>
 			<div class="box section">
@@ -462,7 +442,7 @@ Grid Iterators</pre>
         x (range (:width g))]
     (f g (get-from g x y))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Execute function for every line in grid. The function should take the grid and the current row of elements as arguments.</p>
 			</div>
 			<div class="box section">
@@ -473,7 +453,7 @@ Grid Iterators</pre>
       (f g (map #(get-from g % y) (range (:width g))))))
   g)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Execute function for every unmasked cell in grid. The function should take the grid, current cell and the remaining cells as arguments and return the next cell.</p>
 			</div>
 			<div class="box section">
@@ -486,7 +466,7 @@ Grid Iterators</pre>
       (let [next-cell (f g (get-from g x y) remaining)]
         (recur (remove #{next-cell} remaining) next-cell)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Build a set of new frontier cells for grid based from position w, h ignoring walls.</p>
 			</div>
 			<div class="box section">
@@ -497,7 +477,7 @@ Grid Iterators</pre>
             (map #(vector (:x (:cell %)) (:y (:cell %)))
                  (neighbor-cells g (get-from g x y))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Build a set of new frontier cells for grid based from position w, h ignoring walls.</p>
 			</div>
 			<div class="box section">
@@ -507,7 +487,7 @@ Grid Iterators</pre>
     (filter #(not (commons/in? % visited))
       (surrounding-coordinates g x y))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Build a set of new frontier cells for grid based from position w, h and ignore already visited cells.</p>
 			</div>
 			<div class="box section">
@@ -520,7 +500,7 @@ Grid Iterators</pre>
                    #(commons/in? (:direction %) (:links (get-from g x y)))
                    (neighbor-cells g (get-from g x y)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Execute funtion for every element in the grid by building a frontier set from a starting node outwards. The function should take the grid, the current element and the distance to the first cell as arguments.</p>
 			</div>
 			<div class="box section">
@@ -543,6 +523,7 @@ Grid Iterators</pre>
   ([g f]
    (flood g f (first (unmasked-cell-coordinates g)) -1 frontier-no-wall)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

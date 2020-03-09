@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.geometry.line</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -30,7 +30,7 @@
     [somerville.geometry.point :as p]
     [taoensso.timbre :as log]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -47,7 +47,7 @@
      (c/out [this i] (str (c/indent i) &quot;Line from &quot; (if (nil? p1) &quot;NIL&quot; (c/out p1)) &quot; to &quot; (if (nil? p2) &quot;NIL&quot; (c/out p2))))
      (c/out [this] (c/out this 0))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -64,7 +64,7 @@
      (c/out [this i] (str (c/indent i) &quot;Line from &quot; (if (nil? p1) &quot;NIL&quot; (c/out p1)) &quot; to &quot; (if (nil? p2) &quot;NIL&quot; (c/out p2))))
      (c/out [this] (c/out this 0))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get a line from two points.</p>
 			</div>
 			<div class="box section">
@@ -73,7 +73,7 @@
   ;(when (or (nil? p1) (nil? p2)) (throw (Exception. &quot;Can't create line with null as point.&quot;)))
   (Line2. p1 p2))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get a line from two points and sort points.</p>
 			</div>
 			<div class="box section">
@@ -84,7 +84,7 @@
   ([l]
    (sorted-line (:p1 l) (:p2 l))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get a line from the slope intercept form a * x + b.</p>
 			</div>
 			<div class="box section">
@@ -92,7 +92,7 @@
   [a b]
   (line (p/point 0 b) (p/point 1 (+ a b))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get line in slope intercept form f(x) = a*x + b</p>
 			</div>
 			<div class="box section">
@@ -101,7 +101,7 @@
   (let [s (p/slope (:p1 line) (:p2 line))]
     {:a s :b (- (:y (:p1 line)) (* s (:x (:p1 line))))}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>A line is given by y = a*x + b. This function solves this for a given x.</p>
 			</div>
 			<div class="box section">
@@ -110,7 +110,7 @@
   (let [si (if (nil? (:a line)) (slope-intercept line) line)]
     (+ (* (:a si) x) (:b si))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For a line in parameterized form find the parameter value representing x</p>
 			</div>
 			<div class="box section">
@@ -120,7 +120,7 @@
     nil
     (/ (- x (:x (:p1 line))) (- (:x (:p2 line)) (:x (:p1 line))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For a parameterized line solve it for a given parameter</p>
 			</div>
 			<div class="box section">
@@ -128,7 +128,7 @@
   [line t]
   (+ (:x (:p1 line)) (* t (- (:x (:p2 line)) (:x (:p1 line))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For a parameterized line solve it for a given parameter</p>
 			</div>
 			<div class="box section">
@@ -136,7 +136,7 @@
   [line t]
   (+ (:y (:p1 line)) (* t (- (:y (:p2 line)) (:y (:p1 line))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For a line given by two points this function solves this for a given x.</p>
 			</div>
 			<div class="box section">
@@ -147,7 +147,7 @@
       nil
       (y-by-t line t))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For a line given by two points this function returns the point at x.</p>
 			</div>
 			<div class="box section">
@@ -155,7 +155,7 @@
   [line x]
   (p/point x (solve-line-at line x)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if given point is on the segment of line given by the lines defining points.</p>
 			</div>
 			<div class="box section">
@@ -173,17 +173,10 @@
       (&gt;= (+ (max (:y (:p1 line)) (:y (:p2 line))) 0) (:y point))
       (c/close-to (:y point) (solve-line-at line (:x point))))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				<p>(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l)))) ys (sort (list (:y (:p1 l)) (:y (:p2 l))))] (and (<= (- (first xs) c/epsilon) (:x p)) (>= (+ (last xs) c/epsilon) (:x p)) (<= (- (first ys) c/epsilon) (:y p)) (>= (+ (last ys) c/epsilon) (:y p)))))</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(let [xs (sort (list (:x (:p1 l)) (:x (:p2 l))))
-ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
-(and
-(&lt;= (- (first xs) c/epsilon) (:x p)) (&gt;= (+ (last xs) c/epsilon) (:x p))
-(&lt;= (- (first ys) c/epsilon) (:y p)) (&gt;= (+ (last ys) c/epsilon) (:y p)))))</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if a line is vertical.</p>
 			</div>
 			<div class="box section">
@@ -191,7 +184,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   [l]
   (= (:x (:p1 l)) (:x (:p2 l))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if two lines are parallel.</p>
 			</div>
 			<div class="box section">
@@ -211,7 +204,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
     (catch #?(:clj Exception :cljs js/Object) e
       (log/error &quot;Exception while checking if lines are parallel:\\n\\t&quot; l1 &quot;\\n\\t&quot; l2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a line for the normal of a line on the first point of the line.</p>
 			</div>
 			<div class="box section">
@@ -220,7 +213,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
     (Line2. (:p1 line) (p/point-at (:p1 line) (+ angle (/ Math/PI 2)) 1.0))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a line for the normal of a line on the second point of the line.</p>
 			</div>
 			<div class="box section">
@@ -229,7 +222,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   (let [angle (p/angle (:p1 line) (p/point (+ 1 (:x (:p1 line))) (:y (:p1 line))) (:p2 line))]
     (Line2. (:p2 line) (p/point-at (:p2 line) (+ angle (/ Math/PI 2)) 1.0))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a line parallel to the given one dist away.</p>
 			</div>
 			<div class="box section">
@@ -243,7 +236,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
         y2 (y-by-t n2 dist)]
     (Line2. (p/point x1 y1) (p/point x2 y2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the line that bisects two points.</p>
 			</div>
 			<div class="box section">
@@ -254,7 +247,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
         t (- (:y m) (* s (:x m)))]
     (Line2. (p/point 0 t) (p/point 1 (+ s t)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the line that bisects two points.</p>
 			</div>
 			<div class="box section">
@@ -270,7 +263,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   ([l]
    (bisector (:p1 l) (:p2 l))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get intersection point of two lines.</p>
 			</div>
 			<div class="box section">
@@ -284,7 +277,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
             y (solve-line-at l1 x)]
         (p/point x y)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get intersection point of two parameterized lines.</p>
 			</div>
 			<div class="box section">
@@ -306,7 +299,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
         t (/ g h)]
     (p/point (x-by-t l1 t) (y-by-t l1 t))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Intersect two lines.</p>
 			</div>
 			<div class="box section">
@@ -318,7 +311,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
       (intersect-parameterized l2 l1)
       (intersect-parameterized l1 l2))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Intersect two line segments.</p>
 			</div>
 			<div class="box section">
@@ -335,7 +328,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
         (= (:p2 l1) (:p2 l2)) (:p2 l1)
         :else nil))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get list of intersections of one line with a list of lines.</p>
 			</div>
 			<div class="box section">
@@ -343,7 +336,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   [line lines]
   (filter #(not (nil? %)) (map #(intersect line %) lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get list of intersections of one line with a list of lines.</p>
 			</div>
 			<div class="box section">
@@ -351,7 +344,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   [line lines]
   (filter #(not (nil? %)) (map #(intersect-segments line %) lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Scale a line by factor.</p>
 			</div>
 			<div class="box section">
@@ -359,7 +352,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   [l factor]
   (line (p/scale (:p1 l) factor) (p/scale (:p2 l) factor)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Move all points of line</p>
 			</div>
 			<div class="box section">
@@ -367,6 +360,7 @@ ys (sort (list (:y (:p1 l)) (:y (:p2 l))))]
   [t p]
   (line (p/add (:p1 t) p) (p/add (:p2 t) p)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

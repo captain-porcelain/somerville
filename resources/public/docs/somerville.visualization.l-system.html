@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.visualization.l-system</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -34,14 +34,14 @@
     [taoensso.timbre :as log]
     [reagent.core :as reagent]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def width 1200)
 (def height 800)</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -50,14 +50,10 @@
    :line-low    (color/rgba 241 196  15)
    :line-high   (color/rgba 217  60 110)})</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Data Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Data Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -65,7 +61,7 @@ Data Handling</pre>
 (def koch-rules (list koch-rule1))
 (def koch (ls/lsystem :F koch-rules))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -73,7 +69,7 @@ Data Handling</pre>
 (def rendering (reagent/atom (list)))
 (def length (reagent/atom 20))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -84,7 +80,7 @@ Data Handling</pre>
     (= :- sym) (- (:angle render-state) (/ Math/PI 4))
     :else (:angle render-state)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -94,7 +90,7 @@ Data Handling</pre>
     (conj (:points render-state) (p/point-at (first (:points render-state)) (:angle render-state) (:length render-state)))
     (:points render-state)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Shorten the rendering length</p>
 			</div>
 			<div class="box section">
@@ -105,7 +101,7 @@ Data Handling</pre>
       (swap! length dec)
       (log/info &quot;Setting length to&quot; @length))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Lengthen the rendering length</p>
 			</div>
 			<div class="box section">
@@ -114,7 +110,7 @@ Data Handling</pre>
   (swap! length inc)
   (log/info &quot;Setting length to&quot; @length))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Produce the current l-system</p>
 			</div>
 			<div class="box section">
@@ -122,14 +118,10 @@ Data Handling</pre>
   []
   (reset! current (ls/produce @current)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Drawing Functionality
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Drawing Functionality</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -137,7 +129,7 @@ Drawing Functionality</pre>
   []
   (reset! rendering (ls/render @current (p/point 10 10) @length (ls/renderer update-points update-angle))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -150,7 +142,7 @@ Drawing Functionality</pre>
         (quil/fill (:r lc) (:g lc) (:b lc) (:a lc))
         (quil/line (:x (:p1 l)) (:y (:p1 l)) (:x (:p2 l)) (:y (:p2 l)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil repeatedly.</p>
 			</div>
 			<div class="box section">
@@ -161,14 +153,10 @@ Drawing Functionality</pre>
   (quil/fill 0 255 0)
   (dorun (draw-koch)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Event Handling
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Event Handling</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -180,14 +168,10 @@ Event Handling</pre>
     68 (render) ;; d
     (log/info &quot;Pressed unhandled key with code&quot; (quil/key-code))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				App Setup
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-App Setup</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>This function is called by quil once before drawing</p>
 			</div>
 			<div class="box section">
@@ -198,7 +182,7 @@ App Setup</pre>
     (quil/fill (:r bg) (:g bg) (:b bg) (:a bg)))
   (quil/frame-rate 10))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Initialize Quil sketch.</p>
 			</div>
 			<div class="box section">
@@ -211,7 +195,7 @@ App Setup</pre>
     :size [width height]
     :key-pressed key-pressed))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information about usage.</p>
 			</div>
 			<div class="box section">
@@ -228,7 +212,7 @@ App Setup</pre>
      [:li &quot;p to produce the l-system&quot;]
      [:li &quot;d to draw l-system&quot;]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Show information current settings.</p>
 			</div>
 			<div class="box section">
@@ -242,7 +226,7 @@ App Setup</pre>
      [:li (str &quot;System Length:&quot; (count (:state @current)))]
      [:li (str &quot;Rendered Length:&quot; (count @rendering))]]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Draw the basic ui for this visualization.</p>
 			</div>
 			<div class="box section">
@@ -254,7 +238,7 @@ App Setup</pre>
     [usage]
     [settings]]])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render html and canvas for terrain visualization.</p>
 			</div>
 			<div class="box section">
@@ -264,6 +248,7 @@ App Setup</pre>
     {:reagent-render ui
      :component-did-mount #(init &quot;hostelement&quot;)}))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

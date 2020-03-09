@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.commons</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -28,7 +28,7 @@
   (:require
     [clojure.string :as string]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate absolute value.</p>
 			</div>
 			<div class="box section">
@@ -36,7 +36,7 @@
   [n]
   (if (&lt; n 0) (* -1 n) n))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check that itm is not in itms.</p>
 			</div>
 			<div class="box section">
@@ -44,7 +44,7 @@
   [itm itms]
   (false? (nil? (some #(= itm %) itms))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Randomly select one of elements.</p>
 			</div>
 			<div class="box section">
@@ -55,7 +55,7 @@
       nil
       (nth elements (rand-int c)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Try to parse a string as a integer.</p>
 			</div>
 			<div class="box section">
@@ -72,7 +72,7 @@
   ([^String n]
    (parse-int n 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -80,7 +80,7 @@
   [sides]
   (+ (rand-int sides) 1))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -92,7 +92,7 @@
 (def d20 #(d 20))
 (def d100 #(+ (d 10) (* 10 (- (d 10) 1))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -100,7 +100,7 @@
   [amount die]
   (take amount (repeatedly die)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -108,7 +108,7 @@
   []
   (reduce + (rest (sort (roll 4 d6)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -117,25 +117,25 @@
   (let [atts (rest (sort (take 7 (repeatedly attribute))))]
     (str (clojure.string/join &quot;, &quot; atts) &quot; -&gt; &quot; (reduce + atts))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Dates when cities were founded according to Friedenschor calendar</p>
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def aersiire {:year -6765 :phase 8 :day 26}); 26.08.6765</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def anan-elunore {:year -6527 :phase 7 :day 28}) ; 28.07.6527</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def estellad {:year -6323 :phase 7 :day 4}) ; 04.07.6323</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Length of the 'weeks'</p>
 			</div>
 			<div class="box section">
@@ -143,13 +143,13 @@
 (def sariel {:length 23})
 (def palias {:length 7})</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def first-reunion {:year -16520 :phase 11 :day 4})</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate amount of days till next years 1.1.</p>
 			</div>
 			<div class="box section">
@@ -157,7 +157,7 @@
   [p d]
   (+ 1 (+ (- 30 d) (* 30 (- 12 p)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate amount of days since this years 1.1.</p>
 			</div>
 			<div class="box section">
@@ -165,7 +165,7 @@
   [p d]
   (- (+ d (* 30 (- p 1))) 1))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate amount of days between two dates.</p>
 			</div>
 			<div class="box section">
@@ -176,7 +176,7 @@
         ys (- (:year d2) (+ (:year d1) 1))]
     (+ (* 360 ys) t f)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -191,7 +191,7 @@
         ny (+ (:year d) nyc)]
     {:year ny :phase np :day nd}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -204,12 +204,13 @@
         days (mod rem1 (:length cal))]
     {:union unions :week weeks :day days}))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(def reunions (map #(add-days first-reunion (* 12236 %)) (iterate inc 0)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

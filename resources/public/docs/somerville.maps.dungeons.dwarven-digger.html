@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.maps.dungeons.dwarven-digger</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -29,14 +29,10 @@
     [somerville.commons :as commons]
     [somerville.maps.grid :as grid]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Find golden regions
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=======================================================================================================================
-Find golden regions</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find neighboring cells that contain gold.</p>
 			</div>
 			<div class="box section">
@@ -44,7 +40,7 @@ Find golden regions</pre>
   [g [x y]]
   (map #(vector (:x (:cell %)) (:y (:cell %))) (filter #(not (nil? (:gold (:cell %)))) (grid/neighbor-cells g (grid/get-from g [x y])))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get set of all neighbors that contain gold for set of cells.</p>
 			</div>
 			<div class="box section">
@@ -52,7 +48,7 @@ Find golden regions</pre>
   [g current]
   (into #{} (reduce concat (map #(golden-neighbors g %) current))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find one region of gold containing cells.</p>
 			</div>
 			<div class="box section">
@@ -65,7 +61,7 @@ Find golden regions</pre>
       [connected remaining]
       (recur (remove current remaining) (clojure.set/difference (all-golden-neighbors g current) connected) (clojure.set/union connected current)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find all cells containing gold.</p>
 			</div>
 			<div class="box section">
@@ -73,7 +69,7 @@ Find golden regions</pre>
  [g]
  (filter #(not (nil? (:gold (grid/get-from g %)))) (grid/unmasked-cell-coordinates g)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find all regions containing gold.</p>
 			</div>
 			<div class="box section">
@@ -86,7 +82,7 @@ Find golden regions</pre>
       (let [[region remain] (find-golden-region g remaining)]
         (recur remain (conj regions region))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate gold value of region.</p>
 			</div>
 			<div class="box section">
@@ -94,7 +90,7 @@ Find golden regions</pre>
   [g region]
   (reduce + (map #(:gold (grid/get-from g %)) region)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate distance between two coordinates.</p>
 			</div>
 			<div class="box section">
@@ -104,7 +100,7 @@ Find golden regions</pre>
         dy (- y2 y1)]
     (Math/round (Math/sqrt (+ (* dx dx) (* dy dy))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate distance to a region.</p>
 			</div>
 			<div class="box section">
@@ -112,14 +108,10 @@ Find golden regions</pre>
   [region [x y]]
   (reduce min (map #(dist % [x y]) region)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Placing gold in an empty grid
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=======================================================================================================================
-Placing gold in an empty grid</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a flooder that places an amount of gold in a cell equal to the value minus the distance of the starting cell.</p>
 			</div>
 			<div class="box section">
@@ -128,7 +120,7 @@ Placing gold in an empty grid</pre>
   (fn [g c distance]
     (grid/update-cell g c #(assoc % :gold (+ (get % :gold 0) (- value distance))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Place a heap of gold on a cell that floods over to neighboring cells.</p>
 			</div>
 			<div class="box section">
@@ -136,7 +128,7 @@ Placing gold in an empty grid</pre>
   [g c value]
   (grid/flood g (make-gold-flooder value) [(:x c) (:y c)] value (commons/get-random (list grid/frontier-in-bounds grid/frontier-rect-in-bounds))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Remove gold regions consisting of only one cell.</p>
 			</div>
 			<div class="box section">
@@ -146,7 +138,7 @@ Placing gold in an empty grid</pre>
     #(grid/update-cell g (first (first %)) (second (first %)) (fn [c] (dissoc c :gold)))
     (filter #(= 1 (value g %)) (find-golden-regions g))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Remove gold cells with value of one that are connected to regions.</p>
 			</div>
 			<div class="box section">
@@ -160,7 +152,7 @@ Placing gold in an empty grid</pre>
          (= 1 (get % :gold 0)))
       (grid/all-cells g))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Place heaps of gold in grid.</p>
 			</div>
 			<div class="box section">
@@ -173,15 +165,10 @@ Placing gold in an empty grid</pre>
         t (when (:remove-trailing-ends config) (dorun (remove-trailing-ends g)))]
     g))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Post processing
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=======================================================================================================================
-Post processing
-</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find all open cells.</p>
 			</div>
 			<div class="box section">
@@ -189,7 +176,7 @@ Post processing
   [g]
   (filter #(&lt; 0 (count (get % :links []))) (grid/all-cells g)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find open neighbors that are not linked to cell.</p>
 			</div>
 			<div class="box section">
@@ -198,7 +185,7 @@ Post processing
   (let [open (filter #(&lt; 0 (count (get (:cell %) :links []))) (grid/neighbor-cells g c))]
     (filter #(not (commons/in? (:direction %) (:links c))) open)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add link to neighbors.</p>
 			</div>
 			<div class="box section">
@@ -206,7 +193,7 @@ Post processing
   [g c neighbors]
   (dorun (map #(grid/place-link-to g c (:cell %)) neighbors)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Remove walls that are inside one room.</p>
 			</div>
 			<div class="box section">
@@ -215,30 +202,13 @@ Post processing
   (dorun
     (map #(open-to-neighbors g % (unconnected-open-neighbors g %)) (open-cells g))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Create a dungeon<p>Assume to be a dwarf. You have a good sense in which direction to find gold and how far away it is. You dig towards the closest and biggest region. But since you are drunk there is always the chance that you take a wrong turn. You also have some issues diciding which way to go when two regions are the same distance. So you call another dwarf to help you dig both ways.</p>
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=======================================================================================================================
-Create a dungeon
-
-Assume to be a dwarf. You have a good sense in which direction to find gold and how far away it is.
-You dig towards the closest and biggest region. But since you are drunk there is always the chance that you
-take a wrong turn. You also have some issues diciding which way to go when two regions are the same distance.
-So you call another dwarf to help you dig both ways.</pre>
+						<div class="box section span">
+				<p>(defn non-border-neighbors "Get neighbor coordinates that are not on the border." [g c] (let [border (grid/unmasked-border-coordinates g) candidates (filter #(not (commons/in? [(:x (:cell %)) (:y (:cell %))] border)) (grid/neighbor-cells g (grid/get-from g c)))] candidates))</p>
 			</div>
-			<div class="box section">
-				
-			</div>
-			<div class="box section">
-				<pre class="brush: clojure">(defn non-border-neighbors
-&quot;Get neighbor coordinates that are not on the border.&quot;
-[g c]
-(let [border (grid/unmasked-border-coordinates g)
-candidates (filter #(not (commons/in? [(:x (:cell %)) (:y (:cell %))] border)) (grid/neighbor-cells g (grid/get-from g c)))]
-candidates))</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create links from a cell to all neighbors containing gold.</p>
 			</div>
 			<div class="box section">
@@ -246,7 +216,7 @@ candidates))</pre>
   [g [x y]]
   (dorun (map #(grid/place-link-to g (grid/get-from g [x y]) (grid/get-from g %)) (golden-neighbors g [x y]))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Ensure that a whole region is connected.</p>
 			</div>
 			<div class="box section">
@@ -254,7 +224,7 @@ candidates))</pre>
   [g region]
   (map #(tap-cell g %) region))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find the candidate with the shortest distance to another region. If you are drunk you only have a 50% chance</p>
 			</div>
 			<div class="box section">
@@ -272,7 +242,7 @@ candidates))</pre>
           (first sorted-candidates)
           (commons/get-random sorted-candidates))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Carve tunnels that connect golden regions.</p>
 			</div>
 			<div class="box section">
@@ -295,7 +265,7 @@ candidates))</pre>
                 next-cell (if (nil? region) c2 (best-candidate g (into (list) dungeon) remaining))]
             (recur remaining (clojure.set/union dungeon2 #{c2}) next-cell)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get a random starting position from the border of the grid that does not contain gold.</p>
 			</div>
 			<div class="box section">
@@ -303,14 +273,10 @@ candidates))</pre>
   [g]
   (grid/get-from g (commons/get-random (filter #(nil? (:gold (grid/get-from g %))) (grid/unmasked-border-coordinates g)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Interface of the Dwarven Digger
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">=======================================================================================================================
-Interface of the Dwarven Digger</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Generate default configuration for a dungeon.</p>
 			</div>
 			<div class="box section">
@@ -327,7 +293,7 @@ Interface of the Dwarven Digger</pre>
    :iterations 1
    :amount (int (* 0.025 width height))})</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Place gold in grid and let loose the drawves of digging.</p>
 			</div>
 			<div class="box section">
@@ -338,7 +304,7 @@ Interface of the Dwarven Digger</pre>
          tmp (dorun (carve g [(:x start) (:y start)]))]
      g))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Handle the process of digging the dungeon.</p>
 			</div>
 			<div class="box section">
@@ -354,7 +320,7 @@ Interface of the Dwarven Digger</pre>
         tmp (when (:remove-thin-walls config) (remove-thin-walls g))]
     g2))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a dungeon based on a dwarven digger searching for gold.</p>
 			</div>
 			<div class="box section">
@@ -366,6 +332,7 @@ Interface of the Dwarven Digger</pre>
   ([width height grid-type]
    (process (assoc (default-config width height) :grid-type grid-type))))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

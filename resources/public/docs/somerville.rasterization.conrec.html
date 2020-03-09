@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.rasterization.conrec</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>See http://paulbourke.net/papers/conrec/</p>
@@ -31,7 +31,7 @@
             [somerville.geometry.commons :as c]
             [taoensso.timbre :as log]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -45,7 +45,7 @@
                        (c/out p0 (inc i)) &quot;\\n&quot;))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>For a point the the 3 neighboring points with increasing x and y and create 4 triangles. The center point receives the average height value.</p>
 			</div>
 			<div class="box section">
@@ -63,7 +63,7 @@
         p4 (p/point x (inc y) z4)]
     (TriangleHeights. p0 p1 p2 p3 p4)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Triangulate grid by creating 4 triangles for each point and its three neighbors.</p>
 			</div>
 			<div class="box section">
@@ -74,7 +74,7 @@
           x (range size)]
       (triangle-heights g x y))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert TriangleHeights to be relative to given height.</p>
 			</div>
 			<div class="box section">
@@ -89,7 +89,7 @@
             (p/subtract (:p4 %) hp))
          triangle-heights)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -100,7 +100,7 @@
     (&lt; (:z p) 0) :below
     :else        :on))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create list of case indices for each point of triangle heights.</p>
 			</div>
 			<div class="box section">
@@ -112,7 +112,7 @@
    (h-case (:p3 triangle))
    (h-case (:p4 triangle))])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Collapse case indices for one triangle in the triangle heights for better comparability in case statement.</p>
 			</div>
 			<div class="box section">
@@ -147,7 +147,7 @@
     [2 2 1] 0
     [2 2 2] 0))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Collapse case indices for one triangle in the triangle heights for better comparability in case statement.</p>
 			</div>
 			<div class="box section">
@@ -182,7 +182,7 @@
     [:above :above :on]    :no-line
     [:above :above :above] :no-line))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create cases for corners of each triangle in the TriangleHeights.</p>
 			</div>
 			<div class="box section">
@@ -195,7 +195,7 @@
         tc4 [(nth is 4) (nth is 0) (nth is 1)]]
     [tc1 tc2 tc3 tc4]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create case for each triangle in the triangle heights.</p>
 			</div>
 			<div class="box section">
@@ -203,7 +203,7 @@
   [triangle-heights]
   (map triangle-case (triangle-corner-cases triangle-heights)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -214,7 +214,7 @@
    (- (* (:z p2) (:x p1)) (* (:z p1) (:x p2)))
    (- (:z p2) (:z p1))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -225,7 +225,7 @@
    (- (* (:z p2) (:y p1)) (* (:z p1) (:y p2)))
    (- (:z p2) (:z p1))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -233,7 +233,7 @@
   [p1 p2]
   (p/point (x-sect p1 p2) (y-sect p1 p2)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create lines for one triangle in a TriangleHeights by case.</p>
 			</div>
 			<div class="box section">
@@ -251,7 +251,7 @@
     :l3-&gt;l1 (l/line (intersect p3 p1) (intersect p1 p2))
     nil))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get lines for each triangle inside a TriangleHeights.</p>
 			</div>
 			<div class="box section">
@@ -263,7 +263,7 @@
      (case-line (:p3 t) (:p0 t) (:p4 t) (nth cases 2))
      (case-line (:p4 t) (:p0 t) (:p1 t) (nth cases 3))]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get lines for one height value from triangulation.</p>
 			</div>
 			<div class="box section">
@@ -276,7 +276,7 @@
         lines
         (recur (rest sets) (conj lines (nth (first sets) 0) (nth (first sets) 1) (nth (first sets) 2) (nth (first sets) 3)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -287,7 +287,7 @@
           x (range size)]
       (:z (grid/get-from g x y)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -305,7 +305,7 @@
     (for [i (range max-lines)]
       (+ min-value (* (inc i) step)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get contours of preselected height.</p>
 			</div>
 			<div class="box section">
@@ -314,7 +314,7 @@
   (let [triangles (triangulation g)]
     (map #(hash-map :height % :lines (height-lines triangles %)) hs)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get contours of heights in given steps apart.</p>
 			</div>
 			<div class="box section">
@@ -322,6 +322,7 @@
   [g steps]
   (contour-preselected g (line-heights g 1 steps)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

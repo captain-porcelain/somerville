@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.geometry.voronoi</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -30,14 +30,10 @@
     [somerville.geometry.line :as l]
     [somerville.geometry.point :as p]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Section for bisector handling specific to voronoi calculation.
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">-----------------------------------------------------------------------------
-Section for bisector handling specific to voronoi calculation.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Define a structure for a bisector given by the two points and the bisecting line.</p>
 			</div>
 			<div class="box section">
@@ -47,7 +43,7 @@ Section for bisector handling specific to voronoi calculation.</pre>
                        (c/out line (+ i 2)) &quot;\\n&quot;))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate all bisectors for a list of points. For each point a map with that point and the bisectors with the other points is returned.</p>
 			</div>
 			<div class="box section">
@@ -60,14 +56,10 @@ Section for bisector handling specific to voronoi calculation.</pre>
                   (for [p2 points]
                     (when-not (= p1 p2) (Bisector. p1 p2 (l/bisector p1 p2)))))}))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Section for intersection handling specific to voronoi calculation.
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">-----------------------------------------------------------------------------
-Section for intersection handling specific to voronoi calculation.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Define a structure for intersections of bisectors.</p>
 			</div>
 			<div class="box section">
@@ -80,7 +72,7 @@ Section for intersection handling specific to voronoi calculation.</pre>
                        (c/indent i) &quot;is &quot; (c/out intersection) &quot;\\n&quot;))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate all intersections of one bisector with a set of bisectors.</p>
 			</div>
 			<div class="box section">
@@ -95,7 +87,7 @@ Section for intersection handling specific to voronoi calculation.</pre>
             nil
             (Intersection. i bisector l1)))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Sort intersections by angle.</p>
 			</div>
 			<div class="box section">
@@ -103,7 +95,7 @@ Section for intersection handling specific to voronoi calculation.</pre>
   [intersections]
   (sort-by #(p/angle (:p1 (:bisector1 %)) (p/point 0 0) (:intersection %)) intersections))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Given a point and its bisectors calculates all intersections of the bisectors.</p>
 			</div>
 			<div class="box section">
@@ -112,7 +104,7 @@ Section for intersection handling specific to voronoi calculation.</pre>
   (let [bisectors (concat (:bisectors p) bbox)]
     (assoc p :intersections (sort-intersections (reduce concat (map #(intersect % bisectors) bisectors))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Count the intersections with bisectors that are more relevant than the given one.</p>
 			</div>
 			<div class="box section">
@@ -125,7 +117,7 @@ Section for intersection handling specific to voronoi calculation.</pre>
         closer (filter #(and (&lt; (:dp %) dist) (&lt; (:di %) dist)) distances)]
     (count closer)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if the intersection is relevant for the voronoi cell.</p>
 			</div>
 			<div class="box section">
@@ -133,7 +125,7 @@ Section for intersection handling specific to voronoi calculation.</pre>
   [point intersection bisectors]
   (= 0 (count-intersections point intersection bisectors)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create lines that describe the bounding box for the voronoi</p>
 			</div>
 			<div class="box section">
@@ -145,14 +137,10 @@ Section for intersection handling specific to voronoi calculation.</pre>
     (Bisector. (p/point (- bx2 1) by2) (p/point (+ bx2 1) by2) (l/line (p/point bx2 by1) (p/point bx2 by2)))
     (Bisector. (p/point bx1 (- by2 1)) (p/point bx1 (+ by2 1)) (l/line (p/point bx1 by2) (p/point bx2 by2)))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Main section for creating voronois.
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">-----------------------------------------------------------------------------
-Main section for creating voronois.</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -163,7 +151,7 @@ Main section for creating voronois.</pre>
                        &quot;\\n&quot;))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -180,7 +168,7 @@ Main section for creating voronois.</pre>
                        &quot;\\n\\n&quot;))
   (c/out [this] (c/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate voronoi cell corner points from intersected bisectors.</p>
 			</div>
 			<div class="box section">
@@ -194,7 +182,7 @@ Main section for creating voronois.</pre>
              #(relevant? (:point site) (:intersection %) (map :line (:bisectors site)))
              (:intersections site))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Connect a list of points into a list of lines from point to point.</p>
 			</div>
 			<div class="box section">
@@ -202,7 +190,7 @@ Main section for creating voronois.</pre>
   [cell]
   (map #(l/line %1 %2) cell (concat (rest cell) (list (first cell)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create cell instance from point and edges of cell.</p>
 			</div>
 			<div class="box section">
@@ -210,7 +198,7 @@ Main section for creating voronois.</pre>
   [point lines]
   (Cell. point lines))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Calculate a set of voronoi cells when given a set of points and a bounding box.</p>
 			</div>
 			<div class="box section">
@@ -222,6 +210,7 @@ Main section for creating voronois.</pre>
         cells (map cell points cell-edges)]
     (Voronoi. intersected cells bx1 by1 bx2 by2)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

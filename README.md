@@ -4,6 +4,7 @@ Somerville is a personal maths and visualization project. It is a playgorund for
 and is most certainly not useful for anybody else.
 
 There is no guarantee for correctness of any implementation, nor for their completeness.
+If you care about such things you may want to take a look at [Thi.ng](https://thi.ng/)
 
 Yet, if you are still are still interested run
 

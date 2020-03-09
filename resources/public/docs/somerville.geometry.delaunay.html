@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.geometry.delaunay</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				<p>Create Delaunay triangulation. See https://leatherbee.org/index.php/2018/10/06/terrain-generation-3-voronoi-diagrams/ And http://paulbourke.net/papers/triangulate/</p>
@@ -36,14 +36,10 @@
     [clojure.string :as string]
     [taoensso.timbre :as log]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Creating Delaunay Triangulations
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Creating Delaunay Triangulations</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -52,13 +48,13 @@ Creating Delaunay Triangulations</pre>
   (sgc/out [this i] (str (sgc/indent i) &quot;Delaunay triangle\\n&quot; (sgc/out t) &quot;\\nwith circumcircle\\n&quot; (sgc/out c)))
   (sgc/out [this] (sgc/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
 				<pre class="brush: clojure">(defrecord Delaunay-triangulation [points triangles bounds max-point])</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -68,7 +64,7 @@ Creating Delaunay Triangulations</pre>
   ([t]
    (Delaunay-triangle. t (triangle/circumcircle t))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Test if two delaunay triangles share at least one point.</p>
 			</div>
 			<div class="box section">
@@ -78,7 +74,7 @@ Creating Delaunay Triangulations</pre>
         ps2 #{(:p1 (:t t2)) (:p2 (:t t2)) (:p3 (:t t2))}]
     (pos? (count (clojure.set/intersection ps1 ps2)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get min k value of given points.</p>
 			</div>
 			<div class="box section">
@@ -86,7 +82,7 @@ Creating Delaunay Triangulations</pre>
   [points k]
   (apply min (map k points)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get max k value of given points.</p>
 			</div>
 			<div class="box section">
@@ -94,7 +90,7 @@ Creating Delaunay Triangulations</pre>
   [points k]
   (apply max (map k points)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find a triangle that contains all points.</p>
 			</div>
 			<div class="box section">
@@ -110,7 +106,7 @@ Creating Delaunay Triangulations</pre>
         (p/point minx (* 2 (+ 1 maxy)))
         (p/point (* 2 (+ 1 maxx)) miny)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Check if point invalidates triangle.</p>
 			</div>
 			<div class="box section">
@@ -118,7 +114,7 @@ Creating Delaunay Triangulations</pre>
   [dt p]
   (or (circle/point-in? (:c dt) p) (circle/point-on? (:c dt) p)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a map from the lines that make up a triangle, setting value to count, i.e. 1.</p>
 			</div>
 			<div class="box section">
@@ -129,7 +125,7 @@ Creating Delaunay Triangulations</pre>
     (l/sorted-line (:p2 (:t t)) (:p3 (:t t))) 1
     (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) 1))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create the hole left by invalidated triangles.</p>
 			</div>
 			<div class="box section">
@@ -137,7 +133,7 @@ Creating Delaunay Triangulations</pre>
   [triangles]
   (map key (filter #(= 1 (val %)) (apply merge-with + (map to-counted-lines triangles)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a list of triangles that fills hole.</p>
 			</div>
 			<div class="box section">
@@ -145,7 +141,7 @@ Creating Delaunay Triangulations</pre>
   [hole p]
   (map #(delaunay-triangle (triangle/triangle (:p1 %) (:p2 %) p)) (map l/sorted-line hole)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add a new point to the triangulation.</p>
 			</div>
 			<div class="box section">
@@ -158,7 +154,7 @@ Creating Delaunay Triangulations</pre>
         th (triangulate-hole (hole nok) p)]
     (Delaunay-triangulation. (conj (:points triangulation) p) (concat ok th) (:bounds triangulation) (:max-point triangulation))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create Delaunay triangulation.</p>
 			</div>
 			<div class="box section">
@@ -177,7 +173,7 @@ Creating Delaunay Triangulations</pre>
   ([points]
    (delaunay points (p/point (min-val points :x) (min-val points :y)) (p/point (max-val points :x) (max-val points :y)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Remove the triangles that share a point with the boundary</p>
 			</div>
 			<div class="box section">
@@ -185,14 +181,10 @@ Creating Delaunay Triangulations</pre>
   [triangulation]
   (filter #(not (shares-point % (:bounds triangulation))) (:triangles triangulation)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Creating Voronoi Lines
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Creating Voronoi Lines</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a map from the lines that make up a triangle, setting value to keep pointer to triangle.</p>
 			</div>
 			<div class="box section">
@@ -203,7 +195,7 @@ Creating Voronoi Lines</pre>
     (l/sorted-line (:p2 (:t t)) (:p3 (:t t))) [t]
     (l/sorted-line (:p3 (:t t)) (:p1 (:t t))) [t]))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert all triangles to list of unique edges that link to the triangles they touch.</p>
 			</div>
 			<div class="box section">
@@ -211,7 +203,7 @@ Creating Voronoi Lines</pre>
   [triangles]
   (apply merge-with concat (map triangle-lines triangles)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -221,7 +213,7 @@ Creating Voronoi Lines</pre>
   (sgc/out [this i] (str (sgc/indent i) &quot;Voronoi Cell &quot; (if closed &quot;(closed)&quot; &quot;(open)&quot;) &quot; for &quot; (sgc/out point i) &quot; with points: &quot; (string/join &quot;, &quot; (map #(sgc/out % i) points))))
   (sgc/out [this] (sgc/out this 0)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a voronoi cell.</p>
 			</div>
 			<div class="box section">
@@ -229,7 +221,7 @@ Creating Voronoi Lines</pre>
   [point points closed]
   (VoronoiCell. point points closed))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a line between the center points on both sides of a delaunay triangle line.</p>
 			</div>
 			<div class="box section">
@@ -237,7 +229,7 @@ Creating Voronoi Lines</pre>
   [t1 t2 points]
   (VoronoiLine. (l/sorted-line (:p (:c t1)) (:p (:c t2))) points))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a line from the center on one side of the delaunay triangle line to the border.</p>
 			</div>
 			<div class="box section">
@@ -248,7 +240,7 @@ Creating Voronoi Lines</pre>
         op (p/add (p/scale (p/subtract mp cp) 1000) cp)]
     (VoronoiLine. (l/sorted-line cp op) points)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create an appropriate line for a voronoi cell.</p>
 			</div>
 			<div class="box section">
@@ -262,7 +254,7 @@ Creating Voronoi Lines</pre>
       (and (= 1 (count inner)) (= 1 (count border))) (center-to-border-line (first inner) (first border) ps)
       :else nil)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert Delaunay triangles to lines of a voronoi diagram.</p>
 			</div>
 			<div class="box section">
@@ -274,7 +266,7 @@ Creating Voronoi Lines</pre>
       #(voronoi-line % (:bounds triangulation))
       (all-to-triangle-lines (:triangles triangulation)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert Delaunay triangles to voronoi diagram.</p>
 			</div>
 			<div class="box section">
@@ -282,14 +274,10 @@ Creating Voronoi Lines</pre>
   [triangulation]
   (voronoi-lines triangulation))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Creating Voronoi Polygons
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">====================================================================================================
-Creating Voronoi Polygons</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Filter the lines to those that relate to given point.</p>
 			</div>
 			<div class="box section">
@@ -297,7 +285,7 @@ Creating Voronoi Polygons</pre>
   [lines point]
   (map :line (filter #(commons/in? point (:points %)) lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Extract the voronoi points from the lines again.</p>
 			</div>
 			<div class="box section">
@@ -305,7 +293,7 @@ Creating Voronoi Polygons</pre>
   [lines]
   (into #{} (reduce concat (map :points lines))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Collect the voronoi points with their relevant lines.</p>
 			</div>
 			<div class="box section">
@@ -313,7 +301,7 @@ Creating Voronoi Polygons</pre>
   [lines]
   (map (fn [p] {:point p :lines (lines-of-point lines p)}) (points-from-lines lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Get the next line that builds a cell.</p>
 			</div>
 			<div class="box section">
@@ -321,7 +309,7 @@ Creating Voronoi Polygons</pre>
   [points lines]
   (first (filter #(or (commons/in? (:p1 %) points) (commons/in? (:p2 %) points)) lines)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add relevant point from line to cell points.</p>
 			</div>
 			<div class="box section">
@@ -334,7 +322,7 @@ Creating Voronoi Polygons</pre>
           (and (= (last  points) (:p1 line))) (conj points (:p2 line))
           (and (= (last  points) (:p2 line))) (conj points (:p1 line)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a comparator for sorting points clockwise. See https://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order</p>
 			</div>
 			<div class="box section">
@@ -357,7 +345,7 @@ Creating Voronoi Polygons</pre>
         (&gt; det 0) false
         :else (&gt; d1 d2)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Convert the lines of one voronoi point to the points of a cell.</p>
 			</div>
 			<div class="box section">
@@ -371,7 +359,7 @@ Creating Voronoi Polygons</pre>
         {:points points :closed (= (first points) (last points))}
         (recur remaining (update-points points nl))))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Transform lines to voronoi cells.</p>
 			</div>
 			<div class="box section">
@@ -388,6 +376,7 @@ Creating Voronoi Polygons</pre>
        (VoronoiCell. (:point %) points (:closed cell)))
     (collect-points lines)))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;

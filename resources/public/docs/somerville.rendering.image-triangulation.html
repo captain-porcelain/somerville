@@ -18,7 +18,7 @@
 		<div class="gridlayout">
 			<div class="box header">
 				<h1 class="project-name">somerville.rendering.image-triangulation</h1>
-				<a class="toc-link" href="toc.html">table of contents</a>
+				<a class="toc-link" href="index.html">table of contents</a>
 			</div>
 			<div class="box section">
 				
@@ -39,14 +39,10 @@
     [taoensso.timbre :as log]
     [clojure.string :as s]))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Image Processing
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Image Processing</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a decider function for the flood fill. It is based on color similarity.</p>
 			</div>
 			<div class="box section">
@@ -57,7 +53,7 @@ Image Processing</pre>
           cie (c/cie76 (vfn p1) (vfn p2))]
       (&lt; cie threshold-cie))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add color of seed point to partition.</p>
 			</div>
 			<div class="box section">
@@ -65,7 +61,7 @@ Image Processing</pre>
   [part image]
   (assoc part :color (.getRGB image (:x (:seed part)) (:y (:seed part)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add color of seed point to all partitions.</p>
 			</div>
 			<div class="box section">
@@ -73,7 +69,7 @@ Image Processing</pre>
   [partitions image]
   (map #(add-seed-color % image) partitions))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Find center point of partition.</p>
 			</div>
 			<div class="box section">
@@ -83,7 +79,7 @@ Image Processing</pre>
     (int (/ (reduce + (map :x points)) (count points)))
     (int (/ (reduce + (map :y points)) (count points)))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add center point to partition.</p>
 			</div>
 			<div class="box section">
@@ -91,7 +87,7 @@ Image Processing</pre>
   [part]
   (assoc part :center (partition-center (:points part))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Add center point to all partitions.</p>
 			</div>
 			<div class="box section">
@@ -99,7 +95,7 @@ Image Processing</pre>
   [partitions]
   (map add-center partitions))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -108,14 +104,10 @@ Image Processing</pre>
   (let [decider-fn (make-decider-fn image sensitivity)]
     (add-centers (add-seed-colors (ff/partition-samples samples decider-fn 0 0 (.getWidth image) (.getHeight image)) image))))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Debugging helpers
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Debugging helpers</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -123,7 +115,7 @@ Debugging helpers</pre>
   [image part]
   (dorun (map #(.setRGB image (:x %) (:y %) (:color part)) (:points part))))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -133,7 +125,7 @@ Debugging helpers</pre>
         tmp (dorun (map #(draw-partition image %) partitions))]
     (i/write-image filename image)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -145,7 +137,7 @@ Debugging helpers</pre>
                 tmp (draw-partition image %)]
             (i/write-image filename image)) partitions)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Render grid walls to image.</p>
 			</div>
 			<div class="box section">
@@ -161,7 +153,7 @@ Debugging helpers</pre>
         tmp (.dispose graphics)]
     (i/write-image filename image)))</pre>
 			</div>
-			<div class="box section">
+						<div class="box section">
 				
 			</div>
 			<div class="box section">
@@ -169,14 +161,10 @@ Debugging helpers</pre>
   [filename width height hulls]
   (dorun (map #(render-hull filename width height (:hull %) (:seed %)) hulls)))</pre>
 			</div>
-			<div class="box section">
-				
+						<div class="box section span">
+				Actual triangulation
 			</div>
-			<div class="box section">
-				<pre class="brush: clojure">==================================================================================================================
-Actual triangulation</pre>
-			</div>
-			<div class="box section">
+						<div class="box section">
 				<p>Create a voronoi representation of an image.</p>
 			</div>
 			<div class="box section">
@@ -195,6 +183,7 @@ Actual triangulation</pre>
     ;(svg/voronoi approximation &quot;/tmp/voronoi.svg&quot;)
     partitions))</pre>
 			</div>
+			
 			<div class="box footer">
 				Generated by <a href="https://github.com/captain-porcelain/sidenotes">Sidenotes</a>.
 				&nbsp;&nbsp;
