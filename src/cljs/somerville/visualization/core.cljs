@@ -29,7 +29,7 @@
     [:li {:on-click #(reset! current-view "voronoi")} "Voronoi by intersecting"]
     [:li {:on-click #(reset! current-view "doc-image")} "Documentation Images"]]
    [:div
-    [:a {:href "docs/toc.html"} "Documentation"]]])
+    [:a {:href "docs/index.html"} "Documentation"]]])
 
 (defn switch
   "Switch the shown view."
